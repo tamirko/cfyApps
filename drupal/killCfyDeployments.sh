@@ -1,6 +1,6 @@
 #!/bin/bash -x
 
-# Cancel all started executions.  
+# Cancel all sthhharted executions.  
 cfy deployments list | grep tamir | awk -F\| '{print $2}' | sed 's/ //g' | xargs -I file cfy executions list -d file | grep install | grep -v uninstall | grep started |  awk -F\| '{print $2}' | sed 's/ //g' |  xargs -I file cfy executions cancel -e file -f
 
 # Uninstall all apps
