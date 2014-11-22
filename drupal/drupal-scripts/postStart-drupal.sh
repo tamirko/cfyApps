@@ -1,7 +1,7 @@
 #!/bin/bash -x
 
 currHostName=`hostname`
-
+echo "test "
 documentRoot=$(ctx source node properties docRoot)
 ctx logger info "${currHostName}:$0 :documentRoot ${documentRoot}"
 
