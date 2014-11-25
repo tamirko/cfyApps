@@ -1,7 +1,6 @@
 #!/bin/bash -x
 
 currHostName=`hostname`
-echo "test 3333 adam "
 export date1=$(date +"%s")
 documentRoot=$(ctx source node properties docRoot)
 ctx logger info "${currHostName}:$0 :documentRoot ${documentRoot}"
