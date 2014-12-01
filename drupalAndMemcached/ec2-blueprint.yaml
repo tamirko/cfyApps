@@ -15,7 +15,7 @@ node_types:
         default:
           image_name: ami-a73264ce
           size_name: m1.medium
-          security_groups: ['my_drupal_application_sg']
+          security_groups: ['my_drupal_app_sg']
 
   mysql_dbms:
     derived_from: cloudify.nodes.DBMS
@@ -134,7 +134,7 @@ relationships:
     derived_from: cloudify.relationships.connected_to
     source_interfaces:
       cloudify.interfaces.relationship_lifecycle:
-        preconfigure:
+        establish:
           implementation: drupal-scripts/configure-memcached-drupal.sh
           inputs: {}
 
@@ -143,10 +143,8 @@ node_templates:
     type: cloudify.libcloud.nodes.SecurityGroup
     properties:
       security_group:
-        name: my_drupal_application_sg
+        name: my_drupal_app_sg
       rules:
-#        - remote_ip_prefix: 0.0.0.0/0
-#          port: { get_property: [ drupal_application, base_port ] }
         - remote_ip_prefix: 0.0.0.0/0
           port: { get_property: [ mysql_database, port ] }
         - remote_ip_prefix: 0.0.0.0/0

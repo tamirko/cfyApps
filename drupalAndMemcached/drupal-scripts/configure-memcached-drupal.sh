@@ -34,10 +34,21 @@ drupalDefaultFolder="${sitesFolder}/default"
 drupalDefaultSettingsFilePath="${drupalDefaultFolder}/default.settings.php"
 drupalSettingsFilePath="${drupalDefaultFolder}/settings.php"
 
-sitesAll=$sitesFolder/all
-modules=$sitesAll/modules
-themes=$sitesAll/themes
-libraries=$sitesAll/libraries
- 		
+pushd $drupalDefaultFolder
+drush dl memcache
+drush en -y memcache,memcache_admin
+currPWD=`pwd`
+echo "xxx currPWD is ${currPWD}"
+ctx logger info "${currHostName}:${currFilename} xxx currPWD is ${currPWD}"
+
+memcacheSettings="memcache_settings.php"
+cp memcache_template_for_settings.php $memcacheSettings
+sed -i -e "s%MEMCACHE_HOST_IP\:MEMCACHE_PORT%$dbHost\:$dbPort%g" $memcachesettings
+cat $memcacheSettings >> $drupalSettingsFilePath
+ 	
+ctx logger info "${currHostName}:${currFilename} Clearing cache"
+drush cc all
+popd
+	
 ctx logger info "${currHostName}:${currFilename} :End of ${currHostName}:$0"
 echo "End of ${currHostName}:$0"
