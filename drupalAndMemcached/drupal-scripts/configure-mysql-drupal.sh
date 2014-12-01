@@ -1,4 +1,4 @@
-#!/bin/bash -x
+#!/bin/bash
 
 currHostName=`hostname`
 currFilename=$(basename "$0")
@@ -102,7 +102,7 @@ echo "\$conf['error_level'] = 2;" >> $drupalSettingsFilePath
 echo "ini_set('display_errors', 1);" >> $drupalSettingsFilePath
 
 
-sitesAll=${sitesFolder}/all
+sitesAll=$sitesFolder/all
 modules=$sitesAll/modules
 themes=$sitesAll/themes
 libraries=$sitesAll/libraries

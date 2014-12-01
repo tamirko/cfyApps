@@ -15,9 +15,9 @@ node_types:
         default:
           image_name: ami-a73264ce
           size_name: m1.medium
-          security_groups: ['my_drupal_app_sg']
+          security_groups: ['my_drupal_application_sg']
 
-  mysql_database:
+  mysql_dbms:
     derived_from: cloudify.nodes.DBMS
     properties:
       port:
@@ -33,8 +33,28 @@ node_types:
         description: A command separated list of my.cnf values for the above variable names
         type: string
 
-  memcached:
+  mysql_schema:
+    derived_from: cloudify.nodes.SoftwareComponent
+    properties:
+      port:
+        description: MySQL port
+        type: integer
+      schemaurl:
+        description: schema zip url
+        type: string
+      query:
+        description: Test Query
+        type: string
+
+  memcached_db_server:
     derived_from: cloudify.nodes.DBMS
+    properties:
+      port:
+        description: Memcached port
+        type: integer
+
+  memcached_application:
+    derived_from: cloudify.nodes.SoftwareComponent
     properties:
       port:
         description: Memcached port
@@ -42,25 +62,10 @@ node_types:
       requiredmemory:
         description: Required memory size in MB
         type: integer
-  
-  drupal_server:
+
+  apache_server:
     derived_from: cloudify.nodes.WebServer
     properties:
-      app_name:
-        description: Application name
-        type: string      
-      dbName:
-        description: Database name
-        type: string
-      query:
-        description: Test Query
-        type: string
-      schemaurl:
-        description: schema zip url
-        type: string
-      drupalImageURL:
-        description: Drupal image zip URL
-        type: string
       base_port:
         description: Web application port
         type: integer
@@ -76,55 +81,74 @@ node_types:
       num_instances:
         description: Number of instances
         type: integer
+      drupalVersion:
+        description: Drupal version
+        type: string
+      newPort:
+        description: Apache port
+        type: integer
+      docRoot:
+        description: docRoot of the Apache
+        type: string
+
+  drupal_application:
+    derived_from: cloudify.nodes.SoftwareComponent
+    properties:
+      drupalImageURL:
+        description: Drupal image zip URL
+        type: string
+      app_name:
+        description: Application name
+        type: string
+      dbName:
+        description: Database name
+        type: string
       dbUserName:
         description: DB user name
         type: string
       dbUserPassword:
         description: DB user password
         type: string
-      drupalVersion:
-        description: Drupal version
-        type: string
       docRoot:
         description: docRoot of the Drupal
         type: string
-      newPort:
-        description: Apache port
-        type: integer
 
 relationships:
-  drupal_app_connected_to_mysql_app:
+  drupal_server_connected_to_mysql_database:
     derived_from: cloudify.relationships.connected_to
+
+  drupal_app_connected_to_mysql_drupal_schema:
+    derived_from: cloudify.relationships.connected_to
+    source_interfaces:
+      cloudify.interfaces.relationship_lifecycle:
+        postconfigure:
+          implementation: drupal-scripts/configure-mysql-drupal.sh
+          inputs: {}
     target_interfaces:
       cloudify.interfaces.relationship_lifecycle:
         postconfigure:
-          implementation: mysql-scripts/postConfigure-mysql.sh
+          implementation: mysql-scripts/configure-mysql-schema.sh
           inputs: {}
+
+  drupal_app_connected_to_memcached_app:
+    derived_from: cloudify.relationships.connected_to
     source_interfaces:
       cloudify.interfaces.relationship_lifecycle:
         preconfigure:
-          implementation: drupal-scripts/preConfigure-drupal.sh
+          implementation: drupal-scripts/configure-memcached-drupal.sh
           inputs: {}
-  
-  drupal_app_connected_to_memcached_app:
-    derived_from: cloudify.relationships.connected_to
-    target_interfaces:
-      cloudify.interfaces.relationship_lifecycle:
-        postconfigure:
-          implementation: memcached-scripts/postConfigure-memcached.sh
-          inputs: {}    
 
 node_templates:
-  drupal_app_security_group:
+  drupal_application_security_group:
     type: cloudify.libcloud.nodes.SecurityGroup
     properties:
       security_group:
-        name: my_drupal_app_sg
+        name: my_drupal_application_sg
       rules:
 #        - remote_ip_prefix: 0.0.0.0/0
-#          port: { get_property: [ drupal_app, base_port ] }
+#          port: { get_property: [ drupal_application, base_port ] }
         - remote_ip_prefix: 0.0.0.0/0
-          port: { get_property: [ mysql_app, port ] }
+          port: { get_property: [ mysql_database, port ] }
         - remote_ip_prefix: 0.0.0.0/0
           port: 3306
 
@@ -136,15 +160,15 @@ node_templates:
     instances:
       deploy: 1
     relationships:
-      - target: drupal_app_security_group
+      - target: drupal_application_security_group
         type: cloudify.relationships.connected_to
 
   memcached_vm:
     type: vm_host
     instances:
-      deploy: 2
+      deploy: 1
     relationships:
-      - target: drupal_app_security_group
+      - target: drupal_application_security_group
         type: cloudify.relationships.connected_to
 
   apache_vm:
@@ -154,11 +178,11 @@ node_templates:
     relationships:
       - target: floatingip
         type: cloudify.libcloud.server_connected_to_floating_ip
-      - target: drupal_app_security_group
+      - target: drupal_application_security_group
         type: cloudify.relationships.connected_to
 
-  mysql_app:
-    type: mysql_database
+  mysql_database:
+    type: mysql_dbms
     properties:
       port: 3306
       sectionNames: mysqld
@@ -173,54 +197,88 @@ node_templates:
       - target: mysql_vm
         type: cloudify.relationships.contained_in
 
+  mysql_drupal_schema:
+    type: mysql_schema
+    properties:
+      port: 3306
+      query: select name,mail from users
+      schemaurl: http://repository.cloudifysource.org/org/cloudifysource/examples/drupal/new_babies7.zip
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        configure: mysql-scripts/configure-mysql-schema.sh
+    relationships:
+      - target: mysql_database
+        type: cloudify.relationships.contained_in
+
+  memcached_server:
+    type: memcached_db_server
+    properties:
+      port: 11211
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create: memcached-scripts/install-memcached.sh
+        configure: memcached-scripts/configure-memcached.sh
+    relationships:
+      - target: memcached_vm
+        type: cloudify.relationships.contained_in
+
   memcached_app:
-    type: memcached
+    type: memcached_application
     properties:
       port: 11211
       requiredmemory: 1000
     interfaces:
       cloudify.interfaces.lifecycle:
-        create: memcached-scripts/install-memcached.sh
         start: memcached-scripts/start-memcached.sh
-        stop: memcached-scripts/stop-memcached.sh
+        stop: memcached-scripts/stop-memcached.sh  
     relationships:
-      - target: memcached_vm
+      - target: memcached_server
         type: cloudify.relationships.contained_in
 
-  drupal_app:
-    type: drupal_server
+  drupal_server:
+    type: apache_server
     properties:
-      app_name: My drupal app name      
-      schemaurl: http://repository.cloudifysource.org/org/cloudifysource/examples/drupal/new_babies7.zip
-      drupalImageURL: http://repository.cloudifysource.org/org/cloudifysource/examples/drupal/babies_image_d7_v2.zip
-      dbName: mydrupaldb
-      dbUserName: admin
-      dbUserPassword: 123
-      query: select name,mail from users
       base_port: 8080
       num_instances: 1
       needPhp: yesplease
       needMemcache: yesplease
       dbType: mysql
-      docRoot: /var/www
       drupalVersion: 7
       newPort: 80
+      docRoot: /var/www  
     interfaces:
       cloudify.interfaces.lifecycle:
         create: apache-scripts/install-apache.sh
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: apache_vm
+      - type: drupal_server_connected_to_mysql_database
+        target: mysql_database
+
+  drupal_app:
+    type: drupal_application
+    properties:
+      docRoot: /var/www
+      drupalImageURL: http://repository.cloudifysource.org/org/cloudifysource/examples/drupal/babies_image_d7_v2.zip
+      app_name: My drupal web server
+      dbName: mydrupaldb
+      dbUserName: admin
+      dbUserPassword: 123  
+    interfaces:
+      cloudify.interfaces.lifecycle:        
         start: apache-scripts/start-apache.sh
         stop: apache-scripts/stop-apache.sh
     relationships:
       - type: cloudify.relationships.contained_in
-        target: apache_vm
-      - type: drupal_app_connected_to_mysql_app
-        target: mysql_app
+        target: drupal_server
       - type: drupal_app_connected_to_memcached_app
         target: memcached_app
+      - type: drupal_app_connected_to_mysql_drupal_schema
+        target: mysql_drupal_schema
 
 outputs:
   endpoint:
     description: My application endpoint
     value:
       ip_address: { get_attribute: [ apache_vm, ip ] }
-      port: { get_property: [ drupal_app, base_port ] }
+      port: { get_property: [ drupal_server, base_port ] }

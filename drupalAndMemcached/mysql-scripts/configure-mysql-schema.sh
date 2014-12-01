@@ -16,40 +16,16 @@ function error_exit {
 export PATH=$PATH:/usr/sbin:/sbin:/usr/bin || error_exit $? "Failed on: export PATH=$PATH:/usr/sbin:/sbin"
 
 pushd ~
-export currSchema=$(ctx source node properties schemaurl)
-ctx logger info "${currHostName}:${currFilename} schemaurl of the source node is ${currSchema} ... "
-
-export currLoc=`pwd`
-export currZip=currZip.zip
-ctx logger info "${currHostName}:${currFilename} :Wgetting ${currSchema} to ${currLoc}/${currZip}..."
-
-wget -O $currZip $currSchema
-ctx logger info "${currHostName}:${currFilename} :Wgot ${currSchema} to ${currLoc}/${currZip}"
-
-type unzip
-retVal=$?
-ctx logger info "${currHostName}:${currFilename} :retVal is ${retVal}..."
-if [ $retVal -ne 0 ]; then
-  ctx logger info "${currHostName}:${currFilename} :Apt-getting unzip ..."
-  sudo apt-get install -y -q unzip
-  ctx logger info "${currHostName}:${currFilename} :Apt-got unzip ..."
-fi
-
-ctx logger info "${currHostName}:${currFilename} :Unzipping ${currZip} ..."
-unzip -o $currZip
-
-ctx logger info "${currHostName}:${currFilename} :Deleting ${currZip} ..."
-rm $currZip
-currSQL=`ls *.sql`
-
 
 dbName=$(ctx source node properties dbName)
 ctx logger info "${currHostName}:${currFilename} :Creating db ${dbName} with root..."
-mysqladmin -u root create $dbName
+queryOutput=`mysqladmin -u root create $dbName`
+ctx logger info "${currHostName}:${currFilename} :Created db ${dbName} output is:\r\n${queryOutput}"
       
 dbUser=$(ctx source node properties dbUserName)
-dbPassW=$(ctx source node properties dbUserPassword)
+ctx logger info "${currHostName}:${currFilename} :dbUser is ${dbUser}"
 
+dbPassW=$(ctx source node properties dbUserPassword)
 
 createLocalUser="CREATE USER '${dbUser}'@'localhost' IDENTIFIED BY '${dbPassW}';"
 currQuery="mysql -u root ${dbName} -e ${createLocalUser}"
@@ -86,11 +62,38 @@ currQuery="mysql -u root ${dbName} -e ${grantPrivGlobalUser}"
 ctx logger info "${currHostName}:${currFilename} :currQuery is: ${currQuery}"
 queryOutput=`mysql -u root $dbName -e "${grantPrivGlobalUser}"`
 ctx logger info "${currHostName}:${currFilename} :grantPrivGlobalUser output is:\r\n${queryOutput}"
-		
+
+export currSchema=$(ctx target node properties schemaurl)
+ctx logger info "${currHostName}:${currFilename} schemaurl of the source node is ${currSchema} ... "
+
+export currLoc=`pwd`
+export currZip=currZip.zip
+ctx logger info "${currHostName}:${currFilename} :Wgetting ${currSchema} to ${currLoc}/${currZip}..."
+
+wget -O $currZip $currSchema
+ctx logger info "${currHostName}:${currFilename} :Wgot ${currSchema} to ${currLoc}/${currZip}"
+
+type unzip
+retVal=$?
+ctx logger info "${currHostName}:${currFilename} :retVal is ${retVal}..."
+if [ $retVal -ne 0 ]; then
+  ctx logger info "${currHostName}:${currFilename} :Apt-getting unzip ..."
+  sudo apt-get install -y -q unzip
+  ctx logger info "${currHostName}:${currFilename} :Apt-got unzip ..."
+fi
+
+ctx logger info "${currHostName}:${currFilename} :Unzipping ${currZip} ..."
+unzip -o $currZip
+
+ctx logger info "${currHostName}:${currFilename} :Deleting ${currZip} ..."
+rm $currZip
+currSQL=`ls *.sql`
+
+	
 ctx logger info "${currHostName}:${currFilename} :Importing ${currSQL} to ${dbName} with root..."
 mysql -u root $dbName < $currSQL
 
-export dbQuery=$(ctx source node properties query)
+export dbQuery=$(ctx target node properties query)
 ctx logger info "${currHostName}:${currFilename} :Running ${dbQuery} on ${dbName} with root..."
 
 queryOutput=`mysql -u root $dbName -e "${dbQuery}"`

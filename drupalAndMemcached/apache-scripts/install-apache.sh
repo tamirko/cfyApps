@@ -96,11 +96,11 @@ else
 fi 
 
 if [ "${needMemcache}" == "yesplease" ] ; then
-	ctx logger info "${currHostName}:${currFilename} Installing php-memcache (client ) ..."
+	ctx logger info "${currHostName}:${currFilename} Installing php-memcache (client) ..."
 	ctx logger info "${currHostName}:${currFilename} sudo apt-get install php5-memcache ..."
 	sudo apt-get install -y -q php5-memcache
 	
-	ctx logger info "${currHostName}:${currFilename} Installing php-memcached ( client ) ..."
+	ctx logger info "${currHostName}:${currFilename} Installing php-memcached (client) ..."
 	ctx logger info "${currHostName}:${currFilename} sudo apt-get install php5-memcached ..."
 	sudo apt-get install -y -q php5-memcached
 fi	

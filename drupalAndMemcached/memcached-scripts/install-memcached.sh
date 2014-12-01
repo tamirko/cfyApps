@@ -5,7 +5,7 @@ currFilename=$(basename "$0")
 
 # A command separated list of my.cnf section names
 currPort=$(ctx node properties port)
-ctx logger info "xxx ${currHostName}:${currFilename} :curr memcached port ${currPort}"
+ctx logger info "${currHostName}:${currFilename} :curr memcached port ${currPort}"
 
 # args:
 # $1 the error code of the last command (should be explicitly passed)
@@ -18,11 +18,11 @@ function error_exit {
 }
 
 function killMemcachdProcess {
-	ctx logger info "xxx ${currHostName}:${currFilename} sudo service memcached stop..."
+	ctx logger info "${currHostName}:${currFilename} sudo service memcached stop..."
 	sudo service memcached stop
 	ps -ef | grep -iE "memcache" | grep -ivE "grep|cfy|cloudify|${currFilename}"
 	if [ $? -eq 0 ] ; then 
-		ctx logger info "xxx ${currHostName}:${currFilename} xargs sudo kill -9 memcached..."
+		ctx logger info "${currHostName}:${currFilename} xargs sudo kill -9 memcached..."
 		ps -ef | grep -iE "memcache" | grep -ivE "grep|cfy|cloudify|${currFilename}" | awk '{print $2}' | xargs sudo kill -9		
 	fi  
 }
@@ -38,20 +38,20 @@ fi
 
 # The existence of the usingAptGet file in the ext folder will later serve as a flag that "we" are on Ubuntu or Debian or Mint
 
-ctx logger info "xxx ${currHostName}:${currFilename} Invoking apt-get -y -q update ..."
+ctx logger info "${currHostName}:${currFilename} Invoking apt-get -y -q update ..."
 sudo apt-get -y -q update || error_exit $? "Failed on: sudo apt-get -y update"
 
-ctx logger info "xxx ${currHostName}:${currFilename} #1 Killing old memcached process if exists..."
+ctx logger info "${currHostName}:${currFilename} #1 Killing old memcached process if exists..."
 killMemcachdProcess
 
-ctx logger info "xxx ${currHostName}:${currFilename} Invoking apt-get install -y -q memcached ..."
+ctx logger info "${currHostName}:${currFilename} Invoking apt-get install -y -q memcached ..."
 sudo apt-get install -y -q memcached || error_exit $? "Failed on: sudo apt-get install -y -q memcached"
 
-ctx logger info "xxx ${currHostName}:${currFilename} #2 Killing old memcached process if exists..."
+ctx logger info "${currHostName}:${currFilename} #2 Killing old memcached process if exists..."
 killMemcachdProcess
 
 memcachePsEf=`ps -ef | grep -iE "memcache" | grep -ivE "cfy|cloudify|grep|${currFilename}"`
-ctx logger info "xxx ${currHostName}:${currFilename} :curr memcached memcachePsEf ${memcachePsEf}"
+ctx logger info "${currHostName}:${currFilename} :curr memcached memcachePsEf ${memcachePsEf}"
 
-echo "xxx ${currFilename} End of ${currFilename}"
-ctx logger info "xxx ${currHostName}:${currFilename} End of ${currFilename}"
+echo "${currFilename} End of ${currFilename}"
+ctx logger info "${currHostName}:${currFilename} End of ${currFilename}"
