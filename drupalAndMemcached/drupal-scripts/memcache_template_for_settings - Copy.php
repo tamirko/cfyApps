@@ -10,7 +10,14 @@ $conf['cache_class_cache_form'] = 'DrupalDatabaseCache';
 $conf['page_cache_without_database'] = TRUE;
 $conf['page_cache_invoke_hooks'] = FALSE;
 
-$conf['memcache_servers'] = array('MEMCACHE_HOST_IP:MEMCACHE_PORT' => 'default');
-$conf['memcache_bins'] = array('cache' => 'default');
-
+$conf['memcache_servers'] = array('MEMCACHE_HOST_IP:MEMCACHE_PORT' => 'default',
+	'MEMCACHE_HOST_IP:MEMCACHE_PORT' => 'pages',
+	'MEMCACHE_HOST_IP:MEMCACHE_PORT' => 'blocks',
+	'MEMCACHE_HOST_IP:MEMCACHE_PORT' => 'filters',
+	'MEMCACHE_HOST_IP:MEMCACHE_PORT' => 'menus');
+$conf['memcache_bins'] = array('cache' => 'default',
+ 'cache_page' => 'pages',
+ 'cache_block' => 'blocks',
+ 'cache_filter' => 'filters',
+ 'cache_menu' => 'menus');
 			

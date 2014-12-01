@@ -22,7 +22,11 @@ $conf['memcache_bins'] = array('cache' => 'default',
  'cache_menu' => 'menus');
 				
 ==================================
-Add the following line to 
+Add the following line to :
+sudo find / -name "memcache*.ini"
+ /etc/php5/conf.d/memcached.ini
+ /etc/php5/conf.d/memcache.ini
+and to : 
 sudo find / -name "php.ini"
 -rw-r--r-- 1 root root 68428 Oct 29 12:38 /etc/php5/apache2/php.ini
 -rw-r--r-- 1 root root 68149 Dec  1 12:27 /etc/php5/cli/php.ini
@@ -34,5 +38,7 @@ echo "; The new end" >> ~/php.ini
 sudo cp php.ini $currDirName
 done
 =====================
-Now reload the httpd
+Now reload the httpd and memcache
+$ sudo /etc/init.d/memcached restart
+$ sudo /etc/init.d/apache2 restart
 							 

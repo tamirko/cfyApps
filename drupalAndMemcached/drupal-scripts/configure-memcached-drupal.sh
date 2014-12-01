@@ -37,6 +37,8 @@ drupalSettingsFilePath="${drupalDefaultFolder}/settings.php"
 pushd $drupalDefaultFolder
 drush dl memcache
 drush en -y memcache,memcache_admin
+
+pushd ~
 currPWD=`pwd`
 ctx logger info "${currHostName}:${currFilename} xxx currPWD is ${currPWD}"
 
@@ -44,9 +46,12 @@ rawMemcacheSettings="memcache_template_for_settings.php"
 currMemcacheSettings="${currPWD}/${rawMemcacheSettings}"
 ctx logger info "${currHostName}:${currFilename} xxx currMemcacheSettings is ${currMemcacheSettings}"
 
-ctx download-resource drupal-scripts/$rawMemcacheSettings '@{"target_path": "${currMemcacheSettings}"}'
-export retVal=$?
-ctx logger info "${currHostName}:${currFilename} xxx reval of ctx download-resource drupal-scripts/${rawMemcacheSettings} is ${retVal}"
+ctx download-resource "drupal-scripts/${rawMemcacheSettings}"
+
+# This didn't work : 
+#  ctx download-resource "drupal-scripts/${rawMemcacheSettings}" '@{"target_path": "${currPWD}"}'
+# So I used this : 
+sudo find / -name "${rawMemcacheSettings}" | xargs -I file mv file $currMemcacheSettings
 
 currLS=`ls -l $currMemcacheSettings`
 ctx logger info "${currHostName}:${currFilename} xxx currLS is\r\n${currLS}"
@@ -54,7 +59,7 @@ ctx logger info "${currHostName}:${currFilename} xxx currLS is\r\n${currLS}"
 sed -i -e "s%MEMCACHE_HOST_IP\:MEMCACHE_PORT%$dbHost\:$dbPort%g" $currMemcacheSettings
 cat $currMemcacheSettings >> $drupalSettingsFilePath
 #rm -f $currMemcacheSettings
-
+popd
  	
 ctx logger info "${currHostName}:${currFilename} Clearing cache"
 drush cc all
