@@ -45,7 +45,24 @@ node_types:
       query:
         description: Test Query
         type: string
-  
+
+  memcached_db_server:
+    derived_from: cloudify.nodes.DBMS
+    properties:
+      port:
+        description: Memcached port
+        type: integer
+
+  memcached_application:
+    derived_from: cloudify.nodes.SoftwareComponent
+    properties:
+      port:
+        description: Memcached port
+        type: integer
+      requiredmemory:
+        description: Required memory size in MB
+        type: integer
+
   apache_server:
     derived_from: cloudify.nodes.WebServer
     properties:
@@ -113,6 +130,14 @@ relationships:
           implementation: mysql-scripts/configure-mysql-schema.sh
           inputs: {}
 
+  drupal_app_connected_to_memcached_app:
+    derived_from: cloudify.relationships.connected_to
+    source_interfaces:
+      cloudify.interfaces.relationship_lifecycle:
+        establish:
+          implementation: drupal-scripts/configure-memcached-drupal.sh
+          inputs: {}
+
 node_templates:
   drupal_application_security_group:
     type: cloudify.libcloud.nodes.SecurityGroup
@@ -133,7 +158,15 @@ node_templates:
     relationships:
       - target: drupal_application_security_group
         type: cloudify.relationships.connected_to
-  
+
+  memcached_vm:
+    type: vm_host
+    instances:
+      deploy: 1
+    relationships:
+      - target: drupal_application_security_group
+        type: cloudify.relationships.connected_to
+
   apache_vm:
     type: vm_host
     instances:
@@ -173,6 +206,31 @@ node_templates:
       - target: mysql_database
         type: cloudify.relationships.contained_in
 
+  memcached_server:
+    type: memcached_db_server
+    properties:
+      port: 11211
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create: memcached-scripts/install-memcached.sh
+        configure: memcached-scripts/configure-memcached.sh
+    relationships:
+      - target: memcached_vm
+        type: cloudify.relationships.contained_in
+
+  memcached_app:
+    type: memcached_application
+    properties:
+      port: 11211
+      requiredmemory: 1000
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        start: memcached-scripts/start-memcached.sh
+        stop: memcached-scripts/stop-memcached.sh  
+    relationships:
+      - target: memcached_server
+        type: cloudify.relationships.contained_in
+
   drupal_server:
     type: apache_server
     properties:
@@ -209,6 +267,8 @@ node_templates:
     relationships:
       - type: cloudify.relationships.contained_in
         target: drupal_server
+      - type: drupal_app_connected_to_memcached_app
+        target: memcached_app
       - type: drupal_app_connected_to_mysql_drupal_schema
         target: mysql_drupal_schema
 

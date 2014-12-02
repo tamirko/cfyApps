@@ -1,27 +1,28 @@
-#!/bin/bash -x
+#!/bin/bash
 
 currHostName=`hostname`
-export date1=$(date +"%s")
+currFilename=$(basename "$0")
+
 documentRoot=$(ctx source node properties docRoot)
-ctx logger info "${currHostName}:$0 :documentRoot ${documentRoot}"
+ctx logger info "${currHostName}:${currFilename} :documentRoot ${documentRoot}"
 
 databaseName=$(ctx source node properties dbName)
-ctx logger info "${currHostName}:$0 :databaseName ${databaseName}"
+ctx logger info "${currHostName}:${currFilename} :databaseName ${databaseName}"
 
 dbUsername=$(ctx source node properties dbUserName)
-ctx logger info "${currHostName}:$0 :dbUsername ${dbUsername}"
+ctx logger info "${currHostName}:${currFilename} :dbUsername ${dbUsername}"
 
 dbPassword=$(ctx source node properties dbUserPassword)
-ctx logger info "${currHostName}:$0 :dbPassword ${dbPassword}"
+ctx logger info "${currHostName}:${currFilename} :dbPassword ${dbPassword}"
 
 dbPort=$(ctx target node properties port)
-ctx logger info "${currHostName}:$0 :dbPort ${dbPort}"
+ctx logger info "${currHostName}:${currFilename} :dbPort ${dbPort}"
 
 dbHost=$(ctx target instance host_ip)
-ctx logger info "${currHostName}:$0 :dbHost ${dbHost}"
+ctx logger info "${currHostName}:${currFilename} :dbHost ${dbHost}"
 
 drupalImageURL=$(ctx source node properties drupalImageURL)
-ctx logger info "${currHostName}:$0 :drupalImageURL ${drupalImageURL}"
+ctx logger info "${currHostName}:${currFilename} :drupalImageURL ${drupalImageURL}"
 
 
 # args:
@@ -37,20 +38,20 @@ function error_exit {
 
 export PATH=$PATH:/usr/sbin:/sbin || error_exit $? "Failed on: export PATH=$PATH:/usr/sbin:/sbin"
 
-ctx logger info "${currHostName}:$0 :Deleting ${documentRoot}/index.html ..."
+ctx logger info "${currHostName}:${currFilename} :Deleting ${documentRoot}/index.html ..."
 sudo rm -rf $documentRoot/index.html
-ctx logger info "${currHostName}:$0 :Deleting ${documentRoot}/index.php ..."
+ctx logger info "${currHostName}:${currFilename} :Deleting ${documentRoot}/index.php ..."
 sudo rm -rf $documentRoot/index.php
 
 pushd /tmp
 mkdir tmpZipFolder
 cd tmpZipFolder
 zipLocation=/tmp/tmpZipFolder
-ctx logger info "${currHostName}:$0 :wgetting ${drupalImageURL}"
+ctx logger info "${currHostName}:${currFilename} :wgetting ${drupalImageURL}"
 drupalZip=drupal.zip
 wget -O $drupalZip $drupalImageURL
 contentLevel=`unzip -l $drupalZip  | head -4 | grep -c "/"`
-ctx logger info "${currHostName}:$0 :Unzipping ${drupalZip} contentLevel is ${contentLevel}..."
+ctx logger info "${currHostName}:${currFilename} :Unzipping ${drupalZip} contentLevel is ${contentLevel}..."
 if [ $contentLevel -eq 0 ] ; then
 	cd $documentRoot
 	rm -rf index.php
@@ -74,16 +75,16 @@ drupalDefaultFolder="${sitesFolder}/default"
 drupalDefaultSettingsFilePath="${drupalDefaultFolder}/default.settings.php"
 drupalSettingsFilePath="${drupalDefaultFolder}/settings.php"
 
-ctx logger info "${currHostName}:$0 :Chmodding a+w ${drupalDefaultFolder} ..."
+ctx logger info "${currHostName}:${currFilename} :Chmodding a+w ${drupalDefaultFolder} ..."
 sudo chmod -R 777 $sitesFolder
 
-ctx logger info "${currHostName}:$0 :Copying ${drupalDefaultSettingsFilePath} to ${drupalSettingsFilePath} ..."
+ctx logger info "${currHostName}:${currFilename} :Copying ${drupalDefaultSettingsFilePath} to ${drupalSettingsFilePath} ..."
 sudo cp -f $drupalDefaultSettingsFilePath $drupalSettingsFilePath
 
-ctx logger info "${currHostName}:$0 :Chmodding a+w ${drupalSettingsFilePath} ..."
+ctx logger info "${currHostName}:${currFilename} :Chmodding a+w ${drupalSettingsFilePath} ..."
 sudo chmod 777 $drupalSettingsFilePath
 		
-ctx logger info "${currHostName}:$0 :Setting db for Drupal ${drupalVersion} ..."
+ctx logger info "${currHostName}:${currFilename} :Setting db for Drupal ${drupalVersion} ..."
 origDbConnString="\$databases = array()"
 newMySqlConnString="\$databases = array();\n"
 newMySqlConnString="${newMySqlConnString} \n\$databases['default']['default'] = array("
@@ -101,30 +102,33 @@ echo "\$conf['error_level'] = 2;" >> $drupalSettingsFilePath
 echo "ini_set('display_errors', 1);" >> $drupalSettingsFilePath
 
 
-sitesAll=${sitesFolder}/all
+sitesAll=$sitesFolder/all
 modules=$sitesAll/modules
 themes=$sitesAll/themes
 libraries=$sitesAll/libraries
  
-ctx logger info "${currHostName}:$0 :Creating ${modules} ...
+ctx logger info "${currHostName}:${currFilename} :Creating ${modules} ...
 sudo mkdir -p $modules
 
-ctx logger info "${currHostName}:$0 :Creating ${themes} ...
+ctx logger info "${currHostName}:${currFilename} :Creating ${themes} ...
 sudo mkdir -p $themes
 
-ctx logger info "${currHostName}:$0 :Creating ${libraries} ...
+ctx logger info "${currHostName}:${currFilename} :Creating ${libraries} ...
 sudo mkdir -p $libraries
 	
-ctx logger info "${currHostName}:$0 :Chmodding +w ${modules} ...	
+ctx logger info "${currHostName}:${currFilename} :Chmodding +w ${modules} ...	
 sudo chmod a+w $modules
 
-ctx logger info "${currHostName}:$0 :Chmodding +w ${themes} ...	
+ctx logger info "${currHostName}:${currFilename} :Chmodding +w ${themes} ...	
 sudo chmod a+w $themes
 
-ctx logger info "${currHostName}:$0 :Chmodding +w ${libraries} ...	
+ctx logger info "${currHostName}:${currFilename} :Chmodding +w ${libraries} ...	
 sudo chmod a+w $libraries
 				
-ctx logger info "${currHostName}:$0 :End of ${currHostName}:$0"
+ctx logger info "${currHostName}:${currFilename} :End of ${currHostName}:$0"
 
-ctx logger info "${currHostName}:$0 Installing Drush..."
+ctx logger info "${currHostName}:${currFilename} Installing Drush..."
 sudo apt-get install -y -q drush
+
+ctx logger info "${currHostName}:${currFilename} :End of ${currHostName}:$0"
+echo "End of ${currHostName}:$0"

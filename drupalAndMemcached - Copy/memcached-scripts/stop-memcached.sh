@@ -1,4 +1,4 @@
-#!/bin/bash -x
+#!/bin/bash
 
 currHostName=`hostname`
 currFilename=$(basename "$0")
@@ -15,8 +15,7 @@ function error_exit {
 
 export PATH=$PATH:/usr/sbin:/sbin:/usr/bin || error_exit $? "Failed on: export PATH=$PATH:/usr/sbin:/sbin"
 
-ctx logger info "xxx ${currHostName}:${currFilename} sudo service mysql start..."
-sudo service mysql start || error_exit $? "Failed on: sudo service mysql start"
+sudo service memcached stop || error_exit $? "Failed on: sudo service memcached stop"
 
-ps -ef | grep -i mysql | grep -ivE "cfy|cloudify|grep"
+ps -ef | grep -i memcache | grep -ivE "cfy|cloudify|grep|${currFilename}"
 

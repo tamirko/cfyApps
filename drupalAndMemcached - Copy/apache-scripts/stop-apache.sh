@@ -1,8 +1,5 @@
 #!/bin/bash
 
-currHostName=`hostname`
-currFilename=$(basename "$0")
-
 # args:
 # $1 the error code of the last command (should be explicitly passed)
 # $2 the message to print in case of an error
@@ -15,10 +12,8 @@ function error_exit {
 
 export PATH=$PATH:/usr/sbin:/sbin || error_exit $? "Failed on: export PATH=$PATH:/usr/sbin:/sbin"
 
-ctx logger info "${currHostName}:${currFilename} Starting apache..."
-sudo /etc/init.d/apache2 start || error_exit $? "Failed on: sudo /etc/init.d/apache2 start"
+ctx logger info "Stopping apache..."
+sudo /etc/init.d/apache2 stop || error_exit $? "Failed on: sudo /etc/init.d/apache2 stop"
 
-ps -ef | grep -i apache2 | grep -v grep
-
-ctx logger info "${currHostName}:${currFilename} End of $0"
+ctx logger info "End of $0"
 echo "End of $0"

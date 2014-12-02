@@ -15,8 +15,11 @@ function error_exit {
 
 export PATH=$PATH:/usr/sbin:/sbin:/usr/bin || error_exit $? "Failed on: export PATH=$PATH:/usr/sbin:/sbin"
 
-ctx logger info "xxx ${currHostName}:${currFilename} sudo service mysql start..."
-sudo service mysql start || error_exit $? "Failed on: sudo service mysql start"
+ctx logger info "xxx ${currHostName}:${currFilename} :sudo service memcached start..."
+sudo service memcached start || error_exit $? "Failed on: sudo service memcached start"
 
-ps -ef | grep -i mysql | grep -ivE "cfy|cloudify|grep"
+memcachePsEf=`ps -ef | grep -iE "memcache" | grep -ivE "cfy|cloudify|grep|${currFilename}"`
+ctx logger info "xxx ${currHostName}:${currFilename} :curr memcached memcachePsEf ${memcachePsEf}"
 
+
+#/usr/bin/memcached -m 64 -p 11211 -u memcache -l 127.0.0.1
