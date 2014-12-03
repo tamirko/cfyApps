@@ -273,8 +273,8 @@ node_templates:
         start: apache-scripts/start-apache.sh
         stop: apache-scripts/stop-apache.sh
       drupal.interfaces.action:
-        download_module: drupal-scripts/drush-dl.sh
-        enable_module: drupal-scripts/drush-en.sh
+        install_project: drupal-scripts/drush-install.sh
+        set_variable: drupal-scripts/drush-setvar.sh
 
     relationships:
       - type: cloudify.relationships.contained_in
@@ -285,14 +285,27 @@ node_templates:
         target: mysql_drupal_schema
 
 plugins:
-    drush-plugin:
-        executor: central_deployment_agent
-        source: drush-plugin
+   drush-plugin:
+      executor: central_deployment_agent
+      source: drush-plugin
 
 workflows:
-  drush_dl: drush-plugin.drush.tasks.drush_install_module  
-  drush_en: drush-plugin.drush.tasks.drush_enable_module
+   drush_install:
+      mapping: drush-plugin.drush.tasks.install_project
+      parameters:
+         project_name: {}
 
+   drush_setvar:
+      mapping: drush-plugin.drush.tasks.set_variable
+      parameters:
+         variable_name: {}
+         variable_value: {}
+
+# Syntax without parameters
+# drush_dl: drush-plugin.drush.tasks.drush_download_module
+# drush_en: drush-plugin.drush.tasks.drush_enable_module
+
+  
 outputs:
   endpoint:
     description: My application endpoint

@@ -15,49 +15,38 @@
 
 
 # ctx is imported and used in operations
-from cloudify import ctx
+from cloudify.workflows import ctx
 
 # put the workflow decorator on any function that is a task
 from cloudify.decorators import workflow
 import os
 
-
 @workflow
-def drush_download_module(ctx,module_name, **kwargs):    
-	ctx.logger.info("xxx In drush_download_module")
-	ctx.logger.info("xxx drush_download_module: deployment_id is {}".format(ctx.deployment_id))
+def install_project(project_name,**kwargs):
+    ctx.logger.info("xxx install_project {}".format(project_name))
 
-	# I can use this instead ,but for the execise I used something else 
-	# node = ctx.get_node('drupal_app')
-	
-	
-    for node in ctx.nodes:
-        ctx.logger.info("xxx drush_download_module node.type_hierarchy is {}".format(node.type_hierarchy))
-        ctx.logger.info("xxx drush_download_module node.id is {}".format(node.id))
-        if node.id == 'drupal_app':
-            ctx.logger.info("xxx about to exec node.id {}".format(node.id))
-			# See docs http://getcloudify.org/guide/3.1/plugin-script.html
-            for instance in node.instances:		
-                instance.execute_operation('drupal.interfaces.action.download_module', 
-					kwargs={'process': {'args': [module_name]}})		
-        else:
-           ctx.logger.info("xxx In drush_download_module")			        
-			
-	ctx.logger.info("xxx End of drush_download_module")
-	
-@workflow
-def drush_enable_module(ctx,module_name, **kwargs):    
-	ctx.logger.info("xxx In drush_enable_module")
-	ctx.logger.info("xxx drush_enable_module: deployment_id is {}".format(ctx.deployment_id))
+    # I can use this instead ,but for the exercise I used something else
+    # node = ctx.get_node('drupal_app')
 
     for node in ctx.nodes:
-        ctx.logger.info("xxx drush_enable_module node.type_hierarchy is {}".format(node.type_hierarchy))
-        ctx.logger.info("xxx drush_enable_module node.id is {}".format(node.id))
         if node.id == 'drupal_app':
-            ctx.logger.info("xxx about to exec node.id {}".format(node.id))
-            for instance in node.instances:		
-                instance.execute_operation('drupal.interfaces.enable_module',module_name=module_name)
-        else:
-           ctx.logger.info("xxx In drush_enable_module")			        
-			
-	ctx.logger.info("xxx End of drush_enable_module")	
+            ctx.logger.info("xxx install_project is about to exec on node.id {}".format(node.id))
+            # See docs http://getcloudify.org/guide/3.1/plugin-script.html
+            for instance in node.instances:
+                instance.execute_operation("drupal.interfaces.action.install_project",
+                                           kwargs={'process': {'args': [project_name]}})
+    ctx.logger.info("xxx End of install_project")
+
+@workflow
+def set_variable(variable_name,variable_value,**kwargs):
+    ctx.logger.info("xxx set_variable variable_name is  {}".format(variable_name))
+    ctx.logger.info("xxx set_variable variable_value is {}".format(variable_value))
+
+    for node in ctx.nodes:
+        if node.id == 'drupal_app':
+            ctx.logger.info("xxx set_variable is about to exec on node.id {}".format(node.id))
+            # See docs http://getcloudify.org/guide/3.1/plugin-script.html
+            for instance in node.instances:
+                instance.execute_operation("drupal.interfaces.action.set_variable",
+                                           kwargs={'process': {'args': [variable_name, variable_value]}})
+    ctx.logger.info("xxx End of set_variable")

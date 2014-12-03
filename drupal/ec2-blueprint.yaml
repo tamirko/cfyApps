@@ -4,6 +4,14 @@ imports:
   - http://www.getcloudify.org/spec/cloudify/3.1rc2/types.yaml
   - http://www.getcloudify.org/spec/libcloud-plugin/1.1rc2/plugin.yaml
 
+inputs:
+  docRoot:
+    default: /var/www
+  dbPort:
+    default: 3306
+  memcachePort:
+    default: 11211
+
 node_types:
   vm_host:
     derived_from: cloudify.libcloud.nodes.Server
@@ -147,7 +155,7 @@ node_templates:
   mysql_database:
     type: mysql_dbms
     properties:
-      port: 3306
+      port: { get_input: dbPort }
       sectionNames: mysqld
       variableNames: bind-address
       newValues: 0.0.0.0
@@ -163,7 +171,7 @@ node_templates:
   mysql_drupal_schema:
     type: mysql_schema
     properties:
-      port: 3306
+      port: { get_input: dbPort }
       query: select name,mail from users
       schemaurl: http://repository.cloudifysource.org/org/cloudifysource/examples/drupal/new_babies7.zip
     interfaces:
@@ -183,7 +191,7 @@ node_templates:
       dbType: mysql
       drupalVersion: 7
       newPort: 80
-      docRoot: /var/www  
+      docRoot: { get_input: docRoot }
     interfaces:
       cloudify.interfaces.lifecycle:
         create: apache-scripts/install-apache.sh
@@ -196,7 +204,7 @@ node_templates:
   drupal_app:
     type: drupal_application
     properties:
-      docRoot: /var/www
+      docRoot: { get_input: docRoot }
       drupalImageURL: http://repository.cloudifysource.org/org/cloudifysource/examples/drupal/babies_image_d7_v2.zip
       app_name: My drupal web server
       dbName: mydrupaldb

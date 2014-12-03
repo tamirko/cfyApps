@@ -1,0 +1,26 @@
+ 
+cfy teardown -f --ignore-deployments 
+export bp=dr0112_a8
+export dep=drd0112_a8
+cfy blueprints upload -p drupalAndMemcached/ec2-blueprint.yaml -b $bp
+
+cfy events list --include-logs --execution-id 31c0e22e-ff98-4a9e-b7b8-aee6c24aa2f0 > out
+cfy deployments delete -d $dep
+cfy blueprints delete -b $bp
+cfy blueprints list
+
+cfy executions start -d $dep -w install
+export bp=dr0112_b2
+export dep=drd0112_b2
+cfy blueprints upload -p drupalAndMemcached/ec2-blueprint.yaml -b $bp
+cfy deployments create -d $dep -b $bp
+cfy executions start -d $dep -w uninstall 
+  
+sl config setup
+sl cci list --datacenter=dal05
+sl sshkey list
+
+cfy local init -p sl_blueprint.yaml -v
+cfy local execute -w install
+
+  

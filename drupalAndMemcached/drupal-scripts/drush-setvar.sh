@@ -18,10 +18,10 @@ function error_exit {
 
 sitesFolder="${documentRoot}/sites"
 
-ctx logger info "${currHostName}:${currFilename} Invoking drush en -y $1..."
+ctx logger info "${currHostName}:${currFilename} Invoking drush vset $1 $2 --always-set..."
 
 pushd $sitesFolder
-drush en -y $1
+drush vset $1 $2 --always-set
 
 ctx logger info "${currHostName}:${currFilename} Invoking drush cc all ..."
 drush cc all
