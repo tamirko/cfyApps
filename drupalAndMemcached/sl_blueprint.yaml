@@ -63,8 +63,8 @@ inputs:
     default: {}
     # this is a {'label':id} dictionary. for example:
     # {
-    #  'cloudify-dev':116386,
-    #  'cloudify-test': 73986
+    #  'cloudify-dev':123456,
+    #  'cloudify-test': 123456
     #}
 
   ssh_key_filename:
