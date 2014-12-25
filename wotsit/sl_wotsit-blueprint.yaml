@@ -1,0 +1,50 @@
+tosca_definitions_version: cloudify_dsl_1_0
+
+imports:
+  - http://www.getcloudify.org/spec/cloudify/3.1/types.yaml
+  - https://raw.githubusercontent.com/cloudify-cosmo/cloudify-softlayer-plugin/master/plugin.yaml
+
+inputs:
+  docRoot:
+    default: /var/www
+
+node_types:
+  wotsit:
+    derived_from: cloudify.nodes.Root
+
+
+node_templates:
+  win_vs:
+    type: cloudify.softlayer.nodes.WindowsVirtualServer
+    properties:
+      location: '168642'
+        # 352494 - hong kong 2
+        # 168642 - san jose		
+      domain: 'tk.wotsit.cfy.org'
+      ram:  1017 # 16 GB
+      cpu: 859
+      disk: 1178 # 922 # 100 GB (SAN)
+      os: 977
+        # 977 Windows 8
+        # 4248 OS_WINDOWS_2008_FULL_STD_64_BIT_R2_SP1
+      # provision_scripts: ['https://119.81.178.98:443/postprov.cmd']
+      provision_scripts: ['https://raw.githubusercontent.com/cloudify-cosmo/cloudify-softlayer-plugin/master/softlayer_plugin/scripts/postprov.cmd']
+
+  wotsit_app:
+    type: wotsit
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create:
+          implementation: scripts/addHosts.ps1
+          inputs:
+            process:
+              args: ['tamirssite', '11.22.5578.899']
+              command_prefix: powershell
+        configure: scripts/createDir.bat
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: win_vs
+
+outputs:
+  vs_ip:
+    value: { get_attribute: [win_vs, public_ip] }

@@ -1,0 +1,201 @@
+tosca_definitions_version: cloudify_dsl_1_0
+
+imports:
+  - http://www.getcloudify.org/spec/cloudify/3.1/types.yaml
+  - https://raw.githubusercontent.com/cloudify-cosmo/cloudify-softlayer-plugin/master/plugin.yaml
+  - https://raw.githubusercontent.com/cloudify-cosmo/cloudify-docker-plugin/master/plugin.yaml
+
+################################################################
+# Blueprint inputs
+# 
+# The values are provided via the inputs.json file.
+# passed when creating the deployment (-i inputs.json).
+################################################################
+
+inputs:
+  agent_user:
+    description: >
+      User name used when SSH-ing into the started machine
+    default: root
+
+node_types:
+  vm_host:
+    derived_from: cloudify.softlayer.nodes.VirtualServer
+    properties:
+      location: 
+        default: '168642'
+        # 352494 - hong kong 2
+        # 168642 - san jose
+      domain: 
+        default: 'docker.cfy.org'
+      ram: 
+        default: 1017 # 16 GB
+      cpu: 
+        default: 859
+      disk: 
+        default: 1178 # 922 # 100 GB (SAN)
+      os: 
+        default: 4174
+      ssh_keys:
+        default: [123456]
+      cloudify_agent:
+        default:
+          user: { get_input: agent_user }
+      agents_user:
+          default: { get_input: agent_user }
+
+  mongo_database:
+    derived_from: cloudify.nodes.DBMS
+    properties:
+      role:
+        description: MongoDB role
+      port:
+        description: MongoDB port
+      web_port:
+        description: MongoDB web console port
+
+  nodecellar_app:
+    derived_from: cloudify.nodes.ApplicationServer
+    properties:
+      port:
+        description: Web application port
+        type: integer
+
+  mock_docker:
+    derived_from: cloudify.nodes.ApplicationModule
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create: docker_install/docker-install.sh
+
+node_templates:
+  vm:
+    type: vm_host
+
+  docker_app:
+    type: mock_docker
+    relationships:
+      - target: vm
+        type: cloudify.relationships.contained_in
+    
+  mongod:
+    type: mongo_database
+    properties:
+      role: mongod
+      port: 27017
+      web_port: 28017
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create:
+          implementation: docker.docker_plugin.tasks.pull        
+          inputs:
+            daemon_client: {}
+            image_pull:
+              repository: dockerfile/mongodb
+        configure:
+          implementation: docker.docker_plugin.tasks.configure          
+          inputs:
+            daemon_client: {}
+            container_config:
+              command: mongod --rest --httpinterface --smallfiles
+              # src: http://insert/url/to/image/here            
+              image: dockerfile/mongodb
+              ports: 
+                - { get_property: [ mongod, port ] }
+                - { get_property: [ mongod, web_port ] }
+        start:
+          implementation: docker.docker_plugin.tasks.run          
+          inputs:
+            daemon_client:   {}
+            # processes_to_wait_for: 
+              # process_names: 
+                # - mongod
+              # wait_for_time_secs: 5
+            container_start:               
+              #publish_all_ports: true  
+              port_bindings:                
+                27017: { get_property: [ mongod, port ] }
+                28017: { get_property: [ mongod, web_port ] }
+        stop:
+          implementation: docker.docker_plugin.tasks.stop
+          inputs:
+            daemon_client:  {}
+            container_stop: {}
+        delete:
+          implementation: docker.docker_plugin.tasks.delete
+          inputs:
+            daemon_client:    {}
+            # required in case container to remove is currently running
+            container_stop:   {}
+            container_remove: {}
+    relationships:
+      - target: vm
+        type: cloudify.relationships.contained_in
+      - target: docker_app
+        type: cloudify.relationships.connected_to
+
+  nodecellar:
+    type: nodecellar_app
+    properties:
+      port: 8080
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create:
+          implementation: docker.docker_plugin.tasks.pull
+          inputs:
+            daemon_client: {}
+            image_pull:
+              repository: uric/nodecellar
+        configure:
+          implementation: docker.docker_plugin.tasks.configure
+          inputs:
+            daemon_client: {}
+            container_config:
+              command: nodejs server.js
+              image: uric/nodecellar
+              environment:
+                NODECELLAR_PORT: { get_property: [ nodecellar, port ] }
+                MONGO_PORT: { get_property: [ mongod, port ] }
+              ports:
+                - { get_property: [ nodecellar, port ] }
+        start:
+          implementation: docker.docker_plugin.tasks.run
+          inputs:
+            daemon_client:   {}
+            container_start:            
+              #publish_all_ports: true
+              port_bindings:      
+                8080: { get_property: [ nodecellar, port ] }
+        stop:
+          implementation: docker.docker_plugin.tasks.stop
+          inputs:
+            daemon_client:  {}
+            container_stop: {}
+        delete:
+          implementation: docker.docker_plugin.tasks.delete
+          inputs:
+            daemon_client:    {}
+            # required in case container to remove is currently running
+            container_stop:   {}
+            container_remove: {}
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: vm
+      - type: cloudify.relationships.connected_to
+        target: docker_app
+      - type: cloudify.relationships.connected_to
+        target: mongod
+        source_interfaces:
+          cloudify.interfaces.relationship_lifecycle:
+            preconfigure: nodecellar-scripts/preconfigure.py
+  
+###########################################################
+# This outputs section exposes the application endpoint.
+# You can access it by running:
+#   - cfy deployments -d <deployment_id> outputs
+###########################################################
+
+outputs:
+  endpoint:
+    description: Web application endpoint
+    value:
+      port: { get_property: [ nodecellar, port ] }

@@ -43,7 +43,7 @@ node_types:
         type: string
 
   mysql_schema:
-    derived_from: cloudify.nodes.SoftwareComponent
+    derived_from: cloudify.nodes.ApplicationModule
     properties:
       port:
         description: MySQL port
@@ -63,7 +63,7 @@ node_types:
         type: integer
 
   memcached_application:
-    derived_from: cloudify.nodes.SoftwareComponent
+    derived_from: cloudify.nodes.ApplicationModule
     properties:
       port:
         description: Memcached port
@@ -101,7 +101,7 @@ node_types:
         type: string
 
   drupal_application:
-    derived_from: cloudify.nodes.SoftwareComponent
+    derived_from: cloudify.nodes.ApplicationModule
     properties:
       drupalImageURL:
         description: Drupal image zip URL
@@ -361,7 +361,14 @@ workflows:
       mapping: drush-plugin.drush.tasks.install_project
       parameters:
          project_name: {}
-
+   
+   # See Built-in Workflows in http://getcloudify.org/guide/3.1/guide-workflows.html
+   drush_install2:
+      mapping: default_workflows.cloudify.plugins.workflows.execute_operation
+      parameters:
+         operation: drupal.interfaces.action.install_project
+         node_ids: [drupal_app]
+		 
    drush_setvar:
       mapping: drush-plugin.drush.tasks.set_variable
       parameters:

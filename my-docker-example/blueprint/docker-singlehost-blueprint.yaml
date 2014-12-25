@@ -1,0 +1,173 @@
+tosca_definitions_version: cloudify_dsl_1_0
+
+imports:
+  - http://www.getcloudify.org/spec/cloudify/3.1/types.yaml
+  - https://raw.githubusercontent.com/cloudify-cosmo/cloudify-docker-plugin/master/plugin.yaml
+
+################################################################
+# Blueprint inputs
+# 
+# The values are provided via the inputs.json file.
+# passed when creating the deployment (-i inputs.json).
+################################################################
+
+inputs:
+
+    host_ip:
+        description: >
+          The ip of the host the application will be deployed on  
+        default: 127.0.0.1
+
+    agent_user:
+        description: >
+          User name used when SSH-ing into the started machine
+        default: ubuntu
+
+    agent_private_key_path:
+        description: >
+          Path to a private key that resided on the management machine.
+          SSH-ing into agent machines will be done with this key.
+        default: /home/ubuntu/.ssh/agent_key.pem    
+
+node_types:  
+
+  mongo_database:
+    derived_from: cloudify.nodes.DBMS
+    properties:
+      port:
+        description: MongoDB port
+      web_port:
+        description: MongoDB web console port
+
+  nodecellar_app:
+    derived_from: cloudify.nodes.ApplicationServer
+    properties:
+      port:
+        description: Web application port
+        type: integer
+
+node_templates:
+
+  vm:
+    type: cloudify.nodes.Compute
+    properties:
+      ip: { get_input: host_ip }
+      cloudify_agent:
+        user: { get_input: agent_user }
+        key: { get_input: agent_private_key_path }
+
+  mongod:
+    type: mongo_database
+    properties:
+      port: 27017
+      web_port: 28017
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create:
+          implementation: docker.docker_plugin.tasks.pull        
+          inputs:
+            daemon_client: {}
+            image_pull:
+              repository: dockerfile/mongodb
+        configure:
+          implementation: docker.docker_plugin.tasks.configure          
+          inputs:
+            daemon_client: {}
+            container_config:
+              command: mongod --rest --httpinterface --smallfiles
+              # src: http://insert/url/to/image/here            
+              image: dockerfile/mongodb
+              ports: 
+                - { get_property: [ mongod, port ] }
+                - { get_property: [ mongod, web_port ] }
+        start:
+          implementation: docker.docker_plugin.tasks.run          
+          inputs:
+            daemon_client:   {}
+            # processes_to_wait_for: 
+              # process_names: 
+                # - mongod
+              # wait_for_time_secs: 5
+            container_start:               
+              #publish_all_ports: true  
+              port_bindings:                
+                27017: { get_property: [ mongod, port ] }
+                28017: { get_property: [ mongod, web_port ] }
+        stop:
+          implementation: docker.docker_plugin.tasks.stop
+          inputs:
+            daemon_client:  {}
+            container_stop: {}
+        delete:
+          implementation: docker.docker_plugin.tasks.delete
+          inputs:
+            daemon_client:    {}
+            # required in case container to remove is currently running
+            container_stop:   {}
+            container_remove: {}
+    relationships:
+      - target: vm
+        type: cloudify.relationships.contained_in
+
+  nodecellar:
+    type: nodecellar_app
+    properties:
+      port: 8080
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create:
+          implementation: docker.docker_plugin.tasks.pull        
+          inputs:
+            daemon_client: {}
+            image_pull:
+              repository: uric/nodecellar
+        configure:
+          implementation: docker.docker_plugin.tasks.configure
+          inputs:
+            daemon_client: {}
+            container_config:
+              command: nodejs server.js              
+              image: uric/nodecellar
+              environment:
+                NODECELLAR_PORT: { get_property: [ nodecellar, port ] }
+                MONGO_PORT: { get_property: [ mongod, port ] }
+              ports: 
+                - { get_property: [ nodecellar, port ] }
+        start:
+          implementation: docker.docker_plugin.tasks.run
+          inputs:
+            daemon_client:   {}
+            container_start:               
+              #publish_all_ports: true  
+              port_bindings:                
+                8080: { get_property: [ nodecellar, port ] }
+        stop:
+          implementation: docker.docker_plugin.tasks.stop
+          inputs:
+            daemon_client:  {}
+            container_stop: {}
+        delete:
+          implementation: docker.docker_plugin.tasks.delete
+          inputs:
+            daemon_client:    {}
+            # required in case container to remove is currently running
+            container_stop:   {}
+            container_remove: {}    
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: vm
+      - type: cloudify.relationships.connected_to
+        target: mongod
+        source_interfaces:
+          cloudify.interfaces.relationship_lifecycle:
+            preconfigure: nodecellar-scripts/preconfigure.py        
+
+outputs:
+  endpoint:
+    description: Web application endpoint
+    value:
+      ip_address: { get_attribute: [ vm, ip ] }
+      port: { get_property: [ nodecellar, port ] }
+
+
+
