@@ -57,7 +57,9 @@ function download {
 
 tomcatHome=~/$tomcatVersion
 applicationWar=$tomcatHome/$warFileName
-tomcatContextPathFolder=$tomcatHome/conf/Catalina/localhost
+tomcatConfFolder=$tomcatHome/conf
+serverXml=$tomcatConfFolder/server.xml
+tomcatContextPathFolder=$tomcatConfFolder/Catalina/localhost
 tomcatContextFile=$tomcatContextPathFolder/$applicationName.xml
 
 
@@ -73,6 +75,10 @@ mkdir -p $tomcatContextPathFolder
 # Write the context configuration
 rm -f $tomcatContextFile
 echo "<Context docBase=\"${applicationWar}\" />" > $tomcatContextFile
+
+ctx logger info "${currHostName}:${currFilename} Replacing 8080 with ${newPort} in $serverXml"
+sed -i -e "s/port=\"8080\"/port=\"$newPort\"/g" $serverXml
+
 
 ctx logger info "${currHostName}:${currFilename} End of $0"
 echo "End of $0"

@@ -1,0 +1,74 @@
+tosca_definitions_version: cloudify_dsl_1_0
+
+imports:
+  - http://www.getcloudify.org/spec/cloudify/3.1/types.yaml
+
+inputs:
+  my_ip:
+    default: '127.0.0.1'
+
+  
+node_types:
+  vm_host:
+    derived_from: cloudify.nodes.Compute
+    properties:
+     ip:
+      default: { get_input: my_ip }
+     install_agent: 
+       default: false
+
+  web_server:
+    derived_from: cloudify.nodes.WebServer
+    properties:
+      tomcatVersion:
+        default: ''
+      downloadPath:
+        default: ''
+      warURL:
+        default: ''
+      warFileName:
+        default: ''
+      javaUrl:
+        default: ''
+      applicationName:
+        default: ''
+
+node_templates:  
+  tomcat_vm:
+    type: vm_host    
+    instances:
+      deploy: 1
+
+  tomcat_server:
+    type: web_server
+    properties:
+      port: 80     
+      downloadPath: http://repository.cloudifysource.org/org/apache/tomcat/7.0.23/apache-tomcat-7.0.23.zip
+      warURL: https://repository.cloudifysource.org/org/cloudifysource/examples/helloworld/helloworld.war
+      warFileName: helloworld.war
+      tomcatVersion: apache-tomcat-7.0.23
+      javaUrl: http://repository.cloudifysource.org/com/oracle/java/1.6.0_32/jdk-6u32-linux-x64.bin
+      applicationName: helloworld
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create:
+          implementation: tomcat-scripts/install-tomcat.sh
+          inputs:
+            process:
+              args: [get_input: my_ip]
+        configure: tomcat-scripts/configure-tomcat.sh
+        start: tomcat-scripts/start-tomcat.sh
+        stop: tomcat-scripts/stop-tomcat.sh  
+        uninstall: tomcat-scripts/uninstall-tomcat.sh
+
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: tomcat_vm
+
+outputs:
+  endpoint:
+    description: My application endpoint
+    value:
+      ip_address: { get_attribute: [ tomcat_vm, ip ] }
+      port: { get_property: [ tomcat_server, port ] }      
+      application_url: { get_attribute: [tomcat_server, application_url] }
