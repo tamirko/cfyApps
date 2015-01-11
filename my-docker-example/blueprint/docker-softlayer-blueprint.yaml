@@ -38,6 +38,8 @@ node_types:
         default: 4174
       ssh_keys:
         default: [123456]
+        # Yael's key [123456]
+        # Tamir's key [123456]
       cloudify_agent:
         default:
           user: { get_input: agent_user }

@@ -1,0 +1,185 @@
+tosca_definitions_version: cloudify_dsl_1_0
+
+imports:
+  - http://www.getcloudify.org/spec/cloudify/3.1/types.yaml
+  - https://raw.githubusercontent.com/cloudify-cosmo/cloudify-softlayer-plugin/widget/plugin.yaml
+  - http://getcloudify.org/spec/fabric-plugin/1.1/plugin.yaml
+
+inputs:
+  username:
+    default: ''
+  api_key:
+    default: ''
+  endpoint_url:
+    default: ''
+  location:
+    default: '168642'
+    # 352494 - hong kong 2
+    # 168642 - san jose
+  domain:
+    default: 'tam7i7rko.cfy.org'
+  ram:
+    default: 1155
+  os:
+    default: 4174
+    # 3909 - CentOS X? OS image ID.
+    # 3908 - CentOS 6 OS image ID.
+    # 4248 - OS_WINDOWS_2008_FULL_STD_64_BIT_R2_SP1
+    # 4174 - Ubuntu Linux 12.04 LTS Precise Pangolin - Minimal Install (64 bit)
+  image_template_id:
+    default: ''
+    # '320838'
+  image_template_global_id:
+    default: ''
+  cpu:
+    default: 860
+  disk:
+    default: 3876
+  port_speed:
+    default: 188
+    # 188 - 1 Gbps Public & Private Network Uplinks
+    # 497 - 100 Mbps Private Network Uplink
+    # 187 - 100 Mbps Public & Private Network Uplinks
+  private_network_only:
+    default: false
+  provision_scripts:
+    default:  ['']
+  private_vlan:
+    default: ''
+    # 486330 # Private VLAN 964 on bcr01a.hkg02
+  public_vlan:
+    default: ''
+    # 486454 # Public VLAN 862 on fcr01a.hkg02
+  additional_ids:
+    default: [
+    # 397
+    # McAfee VirusScan Anti-Virus - Windows
+    ]
+  ssh_keys:
+    default: [123456]
+  ssh_key_filename:
+    default: '~/.ssh/id_rsa'
+
+node_types:
+  vm_host:
+    derived_from: cloudify.softlayer.nodes.VirtualServer
+
+  web_server:
+    derived_from: cloudify.nodes.WebServer
+    properties:
+      tomcatVersion:
+        default: ''
+      downloadPath:
+        default: ''
+      warURL:
+        default: ''
+      warFileName:
+        default: ''
+      javaUrl:
+        default: ''
+      applicationName:
+        default: ''
+
+node_templates:  
+  tomcat_vm:
+    type: vm_host
+    properties:
+      api_config: { get_property: [softlayer_configuration, api_config] }
+      location: { get_input: location }
+      domain: { get_input: domain }
+      ram: { get_input: ram }
+      os: { get_input: os }
+      image_template_id: { get_input: image_template_id }
+      image_template_global_id: { get_input: image_template_global_id }
+      cpu: { get_input: cpu }
+      disk: { get_input: disk }
+#      agents_user: { get_input: agents_user }
+      ssh_keys: { get_input: ssh_keys }
+      port_speed: { get_input: port_speed }
+      private_network_only: { get_input: private_network_only }
+      private_vlan: { get_input: private_vlan }
+      public_vlan: { get_input: public_vlan }
+      provision_scripts: { get_input: provision_scripts }
+      additional_ids: { get_input: additional_ids }
+      install_agent: false
+    instances:
+      deploy: 1
+
+  tomcat_server:
+    type: web_server
+    properties:
+      port: 8080      
+      downloadPath: http://repository.cloudifysource.org/org/apache/tomcat/7.0.23/apache-tomcat-7.0.23.zip
+      warURL: https://repository.cloudifysource.org/org/cloudifysource/examples/helloworld/helloworld.war
+      warFileName: helloworld.war
+      tomcatVersion: apache-tomcat-7.0.23
+      javaUrl: http://repository.cloudifysource.org/com/oracle/java/1.6.0_32/jdk-6u32-linux-x64.bin
+      applicationName: helloworld
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create:
+          implementation: fabric.fabric_plugin.tasks.run_commands
+          inputs:
+            commands:
+              - apt-get install -y -q curl
+              - curl -s https://dl.dropboxusercontent.com/u/58809323/install-tomcat.sh | bash
+            fabric_env:
+              host_string: { get_attribute: [tomcat_vm, public_ip] }
+              user: root
+              key_filename: { get_input: ssh_key_filename }
+        configure:
+          implementation: fabric.fabric_plugin.tasks.run_commands
+          inputs:
+            commands: 
+              - curl -s https://dl.dropboxusercontent.com/u/58809323/configure-tomcat.sh | bash
+            fabric_env:
+              host_string: { get_attribute: [tomcat_vm, public_ip] }
+              user: root
+              key_filename: { get_input: ssh_key_filename }
+        start:
+          implementation: fabric.fabric_plugin.tasks.run_commands
+          inputs:
+            commands: 
+              - curl -s https://dl.dropboxusercontent.com/u/58809323/start-tomcat.sh | bash
+            fabric_env:
+              host_string: { get_attribute: [tomcat_vm, public_ip] }
+              user: root
+              key_filename: { get_input: ssh_key_filename }
+        stop:
+          implementation: fabric.fabric_plugin.tasks.run_commands
+          inputs:
+            commands: 
+              - curl -s https://dl.dropboxusercontent.com/u/58809323/stop-tomcat.sh | bash
+            fabric_env:
+              host_string: { get_attribute: [tomcat_vm, public_ip] }
+              user: root
+              key_filename: { get_input: ssh_key_filename }
+        uninstall:
+          implementation: fabric.fabric_plugin.tasks.run_commands
+          inputs:
+            commands: 
+              - curl -s https://dl.dropboxusercontent.com/u/58809323/uninstall-tomcat.sh | bash
+            fabric_env:
+              host_string: { get_attribute: [tomcat_vm, public_ip] }
+              user: root
+              key_filename: { get_input: ssh_key_filename }
+
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: tomcat_vm
+
+  softlayer_configuration:
+    type: softlayer_configuration
+    properties:
+      api_config:
+        username: { get_input: username }
+        api_key: { get_input: api_key }
+        endpoint_url: { get_input: endpoint_url }
+
+outputs:
+  endpoint:
+    description: My application endpoint
+    value:
+      ip_address: { get_attribute: [ tomcat_vm, ip ] }
+      port: { get_property: [ tomcat_server, port ] }
+      public_ip: { get_attribute: [tomcat_vm, public_ip] }
