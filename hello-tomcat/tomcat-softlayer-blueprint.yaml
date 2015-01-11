@@ -108,7 +108,7 @@ node_templates:
   tomcat_server:
     type: web_server
     properties:
-      port: 80      
+      port: 8080      
       downloadPath: http://repository.cloudifysource.org/org/apache/tomcat/7.0.23/apache-tomcat-7.0.23.zip
       warURL: https://repository.cloudifysource.org/org/cloudifysource/examples/helloworld/helloworld.war
       warFileName: helloworld.war
