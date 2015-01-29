@@ -2,7 +2,9 @@ tosca_definitions_version: cloudify_dsl_1_0
 
 imports:
   - http://www.getcloudify.org/spec/cloudify/3.1/types.yaml
-  - http://www.getcloudify.org/spec/diamond-plugin/1.1/plugin.yaml  
+  - http://www.getcloudify.org/spec/diamond-plugin/1.1/plugin.yaml
+  - https://raw.githubusercontent.com/cloudify-cosmo/cloudify-softlayer-plugin/widget/plugin.yaml
+  - http://www.getcloudify.org/spec/fabric-plugin/1.1/plugin.yaml 
 
 inputs:
   docRoot:
@@ -11,47 +13,103 @@ inputs:
     default: 3306
   memcachePort:
     default: 11211
+  username:
+    default: ''
+  api_key:
+    default: ''
+  endpoint_url:
+    default: ''
   agent_user:
-    default: root
-  agent_private_key_path:
+    default: 'root'
+  ssh_keys:
     type: 'string'
-  apache_public_ip:
-    type: string
-  apache_private_ip:
-    type: string
-  memcached_private_ip:
-    type: string
-  mysql_private_ip:
-    type: string
-
+  ssh_key_filename:
+    type: 'string'
+  location:
+    default: '352494'
+    # 352494 - hong kong 2
+    # 168642 - san jose
+  domain:
+    default: 'tamir.cfy.org'
+  ram:
+    default: 1155
+  os:
+    default: 4174
+    # 4248 - OS_WINDOWS_2008_FULL_STD_64_BIT_R2_SP1
+    # 4174 - Ubuntu Linux 12.04 LTS Precise Pangolin - Minimal Install (64 bit)
+  image_template_id:
+    default: ''
+  image_template_global_id:
+    default: ''
+  cpu:
+    default: 860
+  disk:
+    default: 865
+  port_speed:
+    default: 188
+    # 497 - 100 Mbps Private Network Uplink
+    # 187 - 100 Mbps Public & Private Network Uplinks
+  private_network_only:
+    default: false
+  provision_scripts:
+    default:  ['']
+  private_vlan:
+    default: ''
+    # 5078541  935   ams01  NULL  13  0  0  0  No
+    # 5088822  1823  sjc01  NULL  29  0  0  0  No
+    # 5656743  993   hkg02  hkg02.bcr01a.993
+    # 7416864  1101  sjc01  NULL  13  0  1  0  No	
+  public_vlan:
+    default: ''
+    # 4864545 # Public VLAN 862 on fcr01a.hkg02
+  additional_ids:
+    default: [
+    # 397
+    # McAfee VirusScan Anti-Virus - Windows
+    ]
 node_types:
   host:
-    derived_from: cloudify.nodes.Compute
+    derived_from: cloudify.softlayer.nodes.VirtualServer
     properties:
+      location: 
+        default: { get_input: location }
+      domain: 
+        default: { get_input: domain }
+      ram: 
+        default: { get_input: ram }
+      cpu: 
+        default: { get_input: cpu }
+      disk: 
+        default: { get_input: disk }
+      os: 
+        default: { get_input: os }
+      ssh_keys:
+        default: { get_input: ssh_keys }
+      ssh_key_filename:
+        default: { get_input: ssh_key_filename }
       cloudify_agent:
         default:
           user: { get_input: agent_user }
-          key: { get_input: agent_private_key_path }
-
-  apache_host:
-    derived_from: host
-    properties:
-      ip:
-        default: { get_input: apache_private_ip }
-      apache_public_ip:
-        default: { get_input: apache_public_ip }
-
-  mysql_host:
-    derived_from: host
-    properties:
-      ip:
-        default: { get_input: mysql_private_ip }  
-
-  memcached_host:
-    derived_from: host
-    properties:
-      ip:
-        default: { get_input: memcached_private_ip }
+      agents_user:
+          default: { get_input: agent_user }
+      image_template_id:
+        default: { get_input: image_template_id }
+      image_template_global_id:
+        default: { get_input: image_template_global_id }
+      port_speed:
+        default: { get_input: port_speed }
+      private_network_only: 
+        default: { get_input: private_network_only }
+      private_vlan: 
+        default: { get_input: private_vlan }
+      public_vlan: 
+        default: { get_input: public_vlan }
+      provision_scripts: 
+        default: { get_input: provision_scripts }
+      #additional_ids: 
+      #  default:{ get_input: additional_ids }
+      install_agent:
+        default: true
 
   mysql_dbms:
     derived_from: cloudify.nodes.DBMS
@@ -169,7 +227,7 @@ relationships:
 
 node_templates:
   mysql_vm:
-    type: mysql_host
+    type: host
     instances:
       deploy: 1
     interfaces:
@@ -193,7 +251,7 @@ node_templates:
                   DiskUsageCollector: {}
 
   memcached_vm:
-    type: memcached_host
+    type: host
     instances:
       deploy: 1
     interfaces:
@@ -217,7 +275,7 @@ node_templates:
                   DiskUsageCollector: {}
 
   apache_vm:
-    type: apache_host
+    type: host
     instances:
       deploy: 1
     interfaces:
@@ -348,6 +406,14 @@ node_templates:
       - type: drupal_app_connected_to_mysql_drupal_schema
         target: mysql_drupal_schema
 
+  softlayer_configuration:
+    type: softlayer_configuration
+    properties:
+      api_config:
+        username: { get_input: username }
+        api_key: { get_input: api_key }
+        endpoint_url: { get_input: endpoint_url }
+
 plugins:
    drush-plugin:
       executor: central_deployment_agent
@@ -376,12 +442,11 @@ workflows:
 # Syntax without parameters
 # drush_dl: drush-plugin.drush.tasks.drush_download_module
 # drush_en: drush-plugin.drush.tasks.drush_enable_module
-
   
 outputs:
   endpoint:
     description: My application endpoint
     value:
-      apache_public_ip: { get_property: [ apache_vm, apache_public_ip ] }
+      apache_public_ip: { get_attribute: [ apache_vm, public_ip ] }
       ip_address: { get_attribute: [ apache_vm, ip ] }
       port: { get_property: [ drupal_server, base_port ] }

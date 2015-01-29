@@ -1,0 +1,7 @@
+{
+  "agent_private_key_path": "~/.ssh/id_rsa",
+  "apache_public_ip": "REPLACE_WITH_APACHE_IP_ADDRESS",
+  "apache_private_ip": "REPLACE_WITH_APACHE_PRIVATE_IP",
+  "memcached_private_ip": "REPLACE_WITH_MEMCACHED_PRIVATE_IP",
+  "mysql_private_ip": "REPLACE_WITH_MYSQL_PRIVATE_IP"
+}

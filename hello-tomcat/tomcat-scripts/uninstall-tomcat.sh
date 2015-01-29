@@ -3,14 +3,14 @@
 currHostName=`hostname`
 currFilename=$(basename "$0")
 
-tomcatVersion=$(ctx node properties tomcatVersion)
-ctx logger info "${currHostName}:${currFilename} :tomcatVersion ${tomcatVersion}"
+tomcat_version=$(ctx node properties tomcat_version)
+ctx logger info "${currHostName}:${currFilename} :tomcat_version ${tomcat_version}"
 
 installDir=~/installDir
 ctx logger info "${currHostName}:${currFilename} Removing $[installDir}... "
 rm -rf $installDir
 
-tomcatHome=~/$tomcatVersion
+tomcatHome=~/$tomcat_version
 ctx logger info "${currHostName}:${currFilename} Removing ${tomcatHome} ..."
 rm -rf $tomcatHome
 

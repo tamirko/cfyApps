@@ -6,17 +6,17 @@ currFilename=$(basename "$0")
 newPort=$(ctx node properties port)
 ctx logger info "${currHostName}:${currFilename} :newPort ${port}"
 
-warURL=$(ctx node properties warURL)
-ctx logger info "${currHostName}:${currFilename} :warURL ${warURL}"
+war_url=$(ctx node properties war_url)
+ctx logger info "${currHostName}:${currFilename} :war_url ${war_url}"
 
-warFileName=$(ctx node properties warFileName)
-ctx logger info "${currHostName}:${currFilename} :warFileName ${warFileName}"
+war_filename=$(ctx node properties war_filename)
+ctx logger info "${currHostName}:${currFilename} :war_filename ${war_filename}"
 
-tomcatVersion=$(ctx node properties tomcatVersion)
-ctx logger info "${currHostName}:${currFilename} :tomcatVersion ${tomcatVersion}"
+tomcat_version=$(ctx node properties tomcat_version)
+ctx logger info "${currHostName}:${currFilename} :tomcat_version ${tomcat_version}"
 
-applicationName=$(ctx node properties applicationName)
-ctx logger info "${currHostName}:${currFilename} :applicationName ${applicationName}"
+application_name=$(ctx node properties application_name)
+ctx logger info "${currHostName}:${currFilename} :application_name ${application_name}"
 
 if [ -f /usr/bin/wget ]; then
 	DOWNLOADER="wget"
@@ -55,12 +55,12 @@ function download {
 	$DOWNLOADER $Q_FLAG $O_FLAG $3 $LINK_FLAG $2 || error_exit $? "Failed downloading $1"
 }
 
-tomcatHome=~/$tomcatVersion
-applicationWar=$tomcatHome/$warFileName
+tomcatHome=~/$tomcat_version
+applicationWar=$tomcatHome/$war_filename
 tomcatConfFolder=$tomcatHome/conf
 serverXml=$tomcatConfFolder/server.xml
 tomcatContextPathFolder=$tomcatConfFolder/Catalina/localhost
-tomcatContextFile=$tomcatContextPathFolder/$applicationName.xml
+tomcatContextFile=$tomcatContextPathFolder/$application_name.xml
 
 
 ctx logger info "${currHostName}:${currFilename} tomcatHome is ${tomcatHome}"
@@ -68,7 +68,7 @@ ctx logger info "${currHostName}:${currFilename} applicationWar is ${application
 ctx logger info "${currHostName}:${currFilename} tomcatContextPathFolder is ${tomcatContextPathFolder}"
 ctx logger info "${currHostName}:${currFilename} tomcatContextFile is ${tomcatContextFile}"
 
-download "WarFile" $warURL $applicationWar
+download "WarFile" $war_url $applicationWar
 
 mkdir -p $tomcatContextPathFolder
 

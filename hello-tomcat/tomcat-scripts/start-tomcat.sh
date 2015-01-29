@@ -3,8 +3,8 @@
 currHostName=`hostname`
 currFilename=$(basename "$0")
 
-tomcatVersion=$(ctx node properties tomcatVersion)
-ctx logger info "${currHostName}:${currFilename} :tomcatVersion ${tomcatVersion}"
+tomcat_version=$(ctx node properties tomcat_version)
+ctx logger info "${currHostName}:${currFilename} :tomcat_version ${tomcat_version}"
 
 tomcatPort=$(ctx node properties port)
 ctx logger info "${currHostName}:${currFilename} :tomcatPort ${tomcatPort}"
@@ -75,7 +75,7 @@ export PATH=$PATH:/usr/sbin:/sbin:$JAVA_HOME/bin || error_exit $? "Failed on: ex
 export CLASSPATH=
 
 
-tomcatHome=~/$tomcatVersion
+tomcatHome=~/$tomcat_version
 ctx logger info "${currHostName}:${currFilename} Starting Tomcat in ${tomcatHome}..."
 
 COMMAND="$tomcatHome/bin/catalina.sh run"
