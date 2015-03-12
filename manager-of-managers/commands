@@ -1,0 +1,115 @@
+    7  cfy --v
+    8  cfy deployments list -d$dep
+    9  cfy deployments list -d $dep
+   10  cfy deployments list
+   12  cfy executions list -d #dep
+   13  cfy executions list -d $dep
+   14  cfy workflows --h
+   15  cfy workflows list
+   16  cfy workflows list -d $dep
+   17  cfy workflows get
+   18  cfy workflows get -d $dep
+   19  cfy workflows get -d $dep -w drush_install
+   21  cfy workflows get -d $dep -w drush_install
+   29  cfy executions start -d $dep -w -h
+   30  cfy workflows 
+   31  cfy workflows list
+   32  cfy workflows get -w drush_install
+   34  cfy workflows get -d $dep -w drush_install
+   36  cfy workflows get -d $dep -w drush_install
+   37  cfy executions start -h
+   39  cfy executions start -d $dep -p {'project_name':'marinelli'} -w drush_install
+   40  cfy executions start -d $dep -p {"project_name":"marinelli"} -w drush_install
+   41  cfy executions start -d $dep -p '{"project_name":"marinelli"}' -w drush_install
+   43  cfy executions start -d $dep -p '{"theme_default":"marinelli"}' -w drush_setvar
+   45  cfy executions start -d $dep -p '{"variable_name":"theme_dafault","variable_value":"marinelli"}' -w drush_setvar
+   46  cfy events list --include-logs --execution-id a8d42f03-db17-446a-91b0-4c5853dd96d0
+   47  cfy executions start -d $dep -p '{"variable_name":"theme_dafault","variablxe_value":"marinelli"}' -w drush_setvar
+   48  cfy executions start -d $dep -p '{"variable_name":"theme_default","variable_value":"marinelli"}' -w drush_setvar
+   49  cfy executions start -d $dep -p '{"variable_name":"theme_default","variable_value":"seven"}' -w drush_setvar
+   51  cfy executions
+   52  cfy executions start -d $dep -p '{"project_name":"bluez"}' -w drush_install
+   53  cfy events list --include-logs --execution-id 278d81c0-1cde-4160-967b-a1cbe795147c
+   55  cfy executions start -d $dep -p '{"variable_name":"theme_default"","variable_name":"bluez"}' -w drush_setvar
+   56  cfy executions start -d $dep -p '{"variable_name":"theme_default","variable_name":"bluez"}' -w drush_setvar
+   57  cfy executions start -d $dep -p '{"variable_name":"theme_default","variable_value":"bluez"}' -w drush_setvar
+   59  cfy executions start -d $dep -p '{"variable_name":"theme_default","variable_value":"nitobe"}' -w drush_setvar\
+   60  cfy executions start -d $dep -p '{"variable_name":"theme_default","variable_value":"nitobe"}' -w drush_setvar
+   62  cfy executions start -d $dep -p '{"project_name":"Responsive Green"}' -w drush_install
+   63  cfy executions start -d $dep -p '{"variable_name":"theme_default","variable_value":"Responsive Green"}' -w drush_setvar
+   64  cfy executions start -d $dep -p '{"variable_name":"theme_default","variable_value":"nitobe"}' -w drush_setvar
+   65  cfy executions start -d $dep -p '{"variable_name":"theme_default","variable_value":"bluez"}' -w drush_setvar
+   66  cfy executions start -d $dep -p '{"variable_name":"theme_default","variable_value":"nitobe"}' -w drush_setvar
+   68  cfy --v
+   69  cfy deployments -h
+   70  cfy deployments outputs -d $dep
+   71  cfy executions start -h
+   72  cfy executions start -d $dep -p '{"project_name":"bluez"}' -w drush_install
+   73  cfy executions start -d $dep -p '{"variable_name":"theme_default","variable_value":"bluez"}' -w drush_setvar
+   74  cfy local --h
+   75  cfy local init -h
+   76  cfy executions start -d $dep -p '{"variable_name":"theme_default","variable_value":"nitobe"}' -w drush_setvar
+   77  cfy executions start -d $dep -p '{"variable_name":"theme_default","variable_value":"bluez"}' -w drush_setvar
+   79  cfy status
+   81  cfy executions start -d $dep -w uninstall
+   82  cfy deployments --h
+   83  cfy deployments delete
+   84  cfy deployments delete -d $dep
+   85  cfy teardown 
+   86  cfy teardown -d
+   87  cfy teardown -f
+   97  cfy init
+   98  cfy init -r
+  104  cfy bootstrap --h
+  112  cfy bootstrap --install-plugins -p /root/cloudify-manager-blueprints/softlayer/softlayer.yaml -i sl_drupalAndMemcached_blueprint.json
+  117  cfy bootstrap --install-plugins -p /root/cloudify-manager-blueprints/softlayer/softlayer.yaml -i sl_drupalAndMemcached_blueprint.json
+  127  cfy blueprints upload --h
+  128  cfy blueprints upload -p /root/cloudify-manager-blueprints/softlayer/softlayer.yaml -i sl_mngr_blueprint.json 
+  129  cfy blueprints upload -p /root/cloudify-manager-blueprints/softlayer/softlayer.yaml -i sl_mngr_blueprint.json -b cfyMngr
+  130  export bp=cfyMngr
+  131  cfy blueprints upload -p /root/cloudify-manager-blueprints/softlayer/softlayer.yaml -b $bp
+  132  export dep=cfyMngr1
+  133  cfy deployments create --h
+  134  cfy deployments create -d $dep -i sl_mngr_blueprint.json -b $bp
+  137  cfy executions start -d $dep -w install
+  138  cfy ssh
+  141  cfy executions start -d $dep -w uninstall
+  142  cfy executions list -d $dep
+  143  cfy executions -h
+  144  cfy executions cancel -e 845d2ddb-359a-4267-b7a7-1f4bb6a4f129
+  145  cfy executions list -d $dep
+  147  cfy executions start -d $dep -w uninstall
+  148  cfy deployments -h
+  149  cfy deployments delete -d $dep
+  152  export dep=cfyMngr2
+  156  cfy deployments create -d $dep -i sl_mngr_blueprint.json -b $bp
+  157  export dep=cfyMngr3
+  158  cfy deployments create -d $dep -i sl_mngr_blueprint.json -b $bp
+  160  cfy executions start -d $dep -w install
+  164  cfy executions list -d $dep
+  165  cfy executions cancel -e 7a1e1c3a-f7b9-4980-bdda-ca14d36b6b61
+  166  cfy executions cancel -e 7a1e1c3a-f7b9-4980-bdda-ca14d36b6b61 -h
+  167  cfy executions cancel -e 7a1e1c3a-f7b9-4980-bdda-ca14d36b6b61 -f
+  170  cfy deployments delete -d $dep
+  171  cfy deployments delete -d $dep -h
+  172  cfy deployments delete -d $dep -f
+  174  export dep=cfyMngr4
+  182  cfy blueprints upload -p /root/cloudify-manager-blueprints/softlayer/softlayer.yaml -b $bp
+  187  cfy deployments create -d $dep -i sl_mngr_blueprint.json -b $bp
+  190  cfy executions start -d $dep -w install
+  191  cfy blueprints list
+  192  cfy --v
+  193  cfy use -t 119.81.178.105
+  194  cfy blueprints list
+  195  cfy use -t 119.81.178.103
+  196  cfy blueprints list
+  197  history |grep cfy
+  198  history |grep cfy | awk -F"" '{print $1}'
+  199  history |grep cfy | awk -F"" '{print $2}'
+  200  history |grep cfy | awk -f"" '{print $2}'
+  201  history |grep cfy | awk -F" " '{print $2}'
+  202  history |grep cfy | awk -F" " '{$1="" ; print $2}'
+  203  history |grep cfy | awk -F" " '{$1="" ; print $NF}'
+  204  history |grep cfy 
+  206  history |grep cfy 
+  207  history |grep cfy > commands
