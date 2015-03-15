@@ -184,7 +184,7 @@ node_templates:
           inputs:
             commands:
               - printf "discovery.zen.ping.multicast.enabled\x$(printf %x 58) false\n" >> `find / -name "elasticsearch.yml" | grep config | head -1`
-              - mkdir -p /.cloudify/bootstrap/manager
+              - mkdir -p /.cloudify/bootstrap/manager/data
               - service elasticsearch restart
             fabric_env:
               user: { get_input: agents_user }

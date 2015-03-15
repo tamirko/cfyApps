@@ -4,7 +4,7 @@ currHostName=`hostname`
 currFilename=$(basename "$0")
 
 newPort=$(ctx node properties port)
-ctx logger info "${currHostName}:${currFilename} :newPort ${port}"
+ctx logger info "${currHostName}:${currFilename} :newPort ${newPort}"
 
 download_path=$(ctx node properties download_path)
 ctx logger info "${currHostName}:${currFilename} :download_path ${download_path}"

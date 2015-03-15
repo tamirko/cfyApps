@@ -22,8 +22,11 @@ echo AAA cfy init -r
 cfy init -r
 #cp $mainMngrBlueprintFile $mainMngrBlueprintPath
 echo AAA cfy bootstrap --install-plugins -p $mainMngrBlueprintPath -i $mainMngrJsonPath
+date1=$(date +"%s")
 cfy bootstrap --install-plugins -p $mainMngrBlueprintPath -i $mainMngrJsonPath
-
+date2=$(date +"%s")
+diff=$(($date2-$date1))
+echo "TIMEINFO bootstrap took $(($diff / 60)) minutes and $(($diff % 60)) seconds."
 #cp $envMngrBlueprintFile $envMngrBlueprintPath
 echo AAA cfy blueprints upload -p $envMngrBlueprintPath -b $envMngrBlueprintName  
 cfy blueprints upload -p $envMngrBlueprintPath -b $envMngrBlueprintName  
@@ -32,7 +35,8 @@ mainMngrIP=`cfy --v |& grep "Manager" | cut -d= -f2 | sed 's/.$//'`
 echo AAA mainMngrIP is $mainMngrIP
 
 
-declare -a managers=("Dev" "Tests" "QA" "Staging" "Production")
+#declare -a managers=("Dev" "Tests" "QA" "Staging" "Production")
+declare -a managers=("Dev" "Tests")
 declare -a ipAddresses=("${placeHolder}" "${placeHolder}" "${placeHolder}" "${placeHolder}" "${placeHolder}")
 
 echo Iterating on the ${#managers[*]} envs : ${managers[*]}
@@ -45,9 +49,14 @@ do
   sed "s/ENV/${currDeploymentLower}/" ${envOrigMngrJsonPath}  > ${managerEnvJson}
   grep -i domain ${managerEnvJson} | sed 's/[ ",]//g'
   echo AAA cfy deployments create -d $currDeployment -i ${managerEnvJson} -b $envMngrBlueprintName
-  cfy deployments create -d $currDeployment -i ${managerEnvJson} -b $envMngrBlueprintName  
+  cfy deployments create -d $currDeployment -i ${managerEnvJson} -b $envMngrBlueprintName
+  sleep 70s
+  envDate1=$(date +"%s")
   echo AAA cfy executions start -d $currDeployment --timeout 4500 -w install
   cfy executions start -d $currDeployment --timeout 4500 -w install
+  envDate2=$(date +"%s")
+  diff=$(($envDate2-$envDate1))
+  echo "TIMEINFO ${currDeploymentLower} installation took $(($diff / 60)) minutes and $(($diff % 60)) seconds."
   echo "---------------------------------------"
 done
 
@@ -64,8 +73,15 @@ do
       echo Waiting for $currEnvName ...	  
       echo AAA cfy deployments outputs -d $currEnvName | grep Value |  awk -F": " '{print $NF}' | sed 's/.$//'
       cfy deployments outputs -d $currEnvName
-      cfy deployments outputs -d $currEnvName | grep Value |  awk -F": " '{print $NF}' | sed 's/.$//'	  
-      currIp=`cfy deployments outputs -d $currEnvName | grep Value |  awk -F": " '{print $NF}' | sed 's/.$//'`      
+      origCurrIp=`cfy deployments outputs -d $currEnvName | grep Value |  awk -F": " '{print $NF}'`      
+      raw2CurrIp=`cfy deployments outputs -d $currEnvName | grep Value |  awk -F": " '{print $NF}' | sed 's/.$//'`
+      if [ "${origCurrIp}" == "${raw2CurrIp} " ]; then
+        #echo "AAA need to remove last char - space "
+        currIp=$raw2CurrIp
+      else
+        #echo "AAA NO need to remove last char"
+        currIp=$origCurrIp	  
+      fi
       currErrorLevel=$?
       if [ $currErrorLevel -ne 0 ]; then
         echo "XXX Error in 'cfy deployments outputs -d ${currEnvName} ...'"
@@ -87,23 +103,54 @@ do
   sleep 10s
 done
 
-echo Managers IP addresses are:
+#echo Managers IP addresses are:
 for index in ${!managers[*]}
-do  
-  echo ${managers[$index]} : ${ipAddresses[$index]}
+do 
+  currIp=${ipAddresses[$index]}
+  currEnv=${managers[$index]}
+  currEnvLower=`echo $currEnv | tr [A-Z] [a-z]`
+  echo ${currEnv} : ${currIp}	
+  echo ZZZ cfy use -t $currIp
+  cfy use -t $currIp
+  export bp=drupalbp1${currEnvLower}
+  export dep=drupaldep1${currEnvLower}
+  #cfy blueprints upload -p cfyApps/hello-tomcat/tomcat-softlayer-blueprint.yaml -b $bp
+  cfy blueprints upload -p cfyApps/drupalAndMemcached/sl_drupalAndMemcached_blueprint.yaml -b $bp
+  #cfy deployments create -d $dep -i cfyApps/hello-tomcat/tomcat.json -b $bp
+  cfy deployments create -d $dep -i cfyApps/drupalAndMemcached/sl_drupalAndMemcached_blueprint.json -b $bp
+  sleep 70s
+  bpDate1=$(date +"%s")  
+  cfy executions start -d $dep --timeout 4500 -w install
+  bpDate2=$(date +"%s")
+  diff=$(($bpDate2-$bpDate1))
+  echo "TIMEINFO installation of the blueprint on ${currEnv} took $(($diff / 60)) minutes and $(($diff % 60)) seconds."  
+  echo ZZZ for Cleanup us the following
+  # Uninstall all apps
+  echo "ZZZ cfy deployments list | grep ${dep} | awk -F\| '{print \$2}' | sed 's/ //g' | xargs -I file cfy executions list -d file | grep install | grep -v uninstall | grep started |  awk -F\| '{print \$2}' | sed 's/ //g' |  xargs -I file cfy executions cancel -e file -f"
+  echo "ZZZ cfy deployments list | grep ${dep} | awk -F\| '{print \$2}' | sed 's/ //g' | xargs -I file cfy executions start -d file -f -w uninstall"
+  # Delete all deployments
+  echo "ZZZ cfy deployments list | grep ${dep} | awk -F\| '{print \$2}' | sed 's/ //g' | xargs -I file cfy deployments delete -f -d file"
+  # Delete all blueprints
+  echo "ZZZ cfy blueprints list | grep ${dep} | awk -F\| '{print \$2}' | sed 's/ //g' | xargs -I file cfy blueprints delete -b file"
+  echo "ZZZ cfy teardown -f --ignore-deployments"
 done
   
 echo Environments  \: ${#managers[*]}
 echo Live managers \: ${livemanagers}
   
+echo "ZZZ cfy use -t $mainMngrIP"
+# Uninstall all apps
+echo "ZZZ cfy deployments list | grep Env | awk -F\| '{print \$2}' | sed 's/ //g' | xargs -I file cfy executions list -d file | grep install | grep -v uninstall | grep started |  awk -F\| '{print \$2}' | sed 's/ //g' |  xargs -I file cfy executions cancel -e file -f"
+echo "ZZZ cfy deployments list | grep Env | awk -F\| '{print \$2}' | sed 's/ //g' | xargs -I file cfy executions start -d file -f -w uninstall"
+# Delete all deployments
+echo "ZZZ cfy deployments list | grep Env | awk -F\| '{print \$2}' | sed 's/ //g' | xargs -I file cfy deployments delete -f -d file"
+# Delete all blueprints
+echo "ZZZ cfy blueprints list | grep Env | awk -F\| '{print \$2}' | sed 's/ //g' | xargs -I file cfy blueprints delete -b file"
+echo "ZZZ cfy teardown -f --ignore-deployments"
  
+totalDate=$(date +"%s")
+diff=$(($totalDate-$date1))
+echo "TIMEINFO The creation of the whole env took $(($diff / 60)) minutes and $(($diff % 60)) seconds."
 exit 
 
-
-cfy deployments outputs -d dr0503_dep
-
-Getting outputs for deployment: dr0503_dep [manager=119.81.178.105]
- - "endpoint":
-     Description: My application endpoint
-     Value: {u'public_ip': ${placeHolder}}
-  
+cfy executions start -d myDeployment -p '{"variable_name":"site_name", "variable_value":"My_New_Site_Name"}' -w drush_setvar

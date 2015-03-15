@@ -1,0 +1,21 @@
+{
+    "username": "SL_USER_NAME",
+    "api_key":  "SL_API_KEY",
+    "endpoint_url": "",
+    "location": "352494",
+    "domain": "cfy.ENV.mngr",
+    "ram": 1155,
+    "cpu": 860,
+    "disk": 865,
+    "os": 4174,
+    "image_template_global_id": "",
+    "image_template_id": "",
+    "private_network_only": false,
+    "port_speed": 188,
+    "private_vlan": "565674",
+    "public_vlan": "",
+    "provision_scripts": [],
+    "ssh_keys": [1144652],
+    "ssh_key_filename": "~/.ssh/id_rsa"
+}
+

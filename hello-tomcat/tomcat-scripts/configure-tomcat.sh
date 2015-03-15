@@ -4,7 +4,7 @@ currHostName=`hostname`
 currFilename=$(basename "$0")
 
 newPort=$(ctx node properties port)
-ctx logger info "${currHostName}:${currFilename} :newPort ${port}"
+ctx logger info "${currHostName}:${currFilename} :newPort ${newPort}"
 
 war_url=$(ctx node properties war_url)
 ctx logger info "${currHostName}:${currFilename} :war_url ${war_url}"
@@ -67,6 +67,8 @@ ctx logger info "${currHostName}:${currFilename} tomcatHome is ${tomcatHome}"
 ctx logger info "${currHostName}:${currFilename} applicationWar is ${applicationWar}"
 ctx logger info "${currHostName}:${currFilename} tomcatContextPathFolder is ${tomcatContextPathFolder}"
 ctx logger info "${currHostName}:${currFilename} tomcatContextFile is ${tomcatContextFile}"
+
+mkdir -p $tomcatHome
 
 download "WarFile" $war_url $applicationWar
 
