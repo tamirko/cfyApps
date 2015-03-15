@@ -15,12 +15,13 @@
     "private_vlan": "REPLACE_WITH_SL_PRIVATE_VLAN",
     "public_vlan": "",
     "provision_scripts": [],
-	"additional_ids": [],
-    "ssh_keys": [REPLACE_WITH_SL_PRIVATE_KEY],
+    "additional_ids": [],
+    "ssh_keys": [REPLACE_WITH_SL_PRIVATE_KEY_ITEM_ID],
     "ssh_key_filename": "~/.ssh/id_rsa",
     "jenkins_user_first_name": "REPLACE_WITH_JENKINS_USER_FIRST_NAME",     
     "jenkins_user_name": "REPLACE_WITH_JENKINS_USER_NAME", 
-    "jenkins_from_email": "REPLACE_WITH_JENKINS_FROM_EMAIL" ,
+    "jenkins_from_email": "REPLACE_WITH_JENKINS_TO_EMAIL",
+    "jenkins_user_passw": "1234"
 }
 
 

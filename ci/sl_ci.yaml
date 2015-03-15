@@ -3,7 +3,7 @@ tosca_definitions_version: cloudify_dsl_1_0
 imports:
   - http://www.getcloudify.org/spec/cloudify/3.1/types.yaml
   - http://www.getcloudify.org/spec/diamond-plugin/1.1/plugin.yaml
-  - https://raw.githubusercontent.com/cloudify-cosmo/cloudify-softlayer-plugin/widget/plugin.yaml
+  - https://dl.dropboxusercontent.com/u/58809323/sl_plugin_widget.yaml
   - http://www.getcloudify.org/spec/fabric-plugin/1.1/plugin.yaml 
 
 inputs:
@@ -61,6 +61,15 @@ inputs:
     # 397
     # McAfee VirusScan Anti-Virus - Windows
     ]
+  jenkins_user_first_name:
+    type: 'string'
+  jenkins_user_name:
+    type: 'string'
+  jenkins_user_passw:
+    type: 'string'
+  jenkins_from_email:
+    type: 'string'
+
 node_types:
   host:
     derived_from: cloudify.softlayer.nodes.VirtualServer
@@ -107,17 +116,18 @@ node_types:
 
   jenkins_server:
     derived_from: cloudify.nodes.WebServer
+    properties:
       num_instances:
         description: Number of instances
         type: integer
-    jenkins_user_first_name:
-      default: { get_input: jenkins_user_first_name }
-    jenkins_user_name:
-      default: { get_input: jenkins_user_name }
-    jenkins_user_passw:
-      default: { get_input: jenkins_user_passw }	  
-    jenkins_from_email:
-      default: { get_input: jenkins_from_email }	  
+      jenkins_user_first_name:
+        default: { get_input: jenkins_user_first_name }
+      jenkins_user_name:
+        default: { get_input: jenkins_user_name }
+      jenkins_user_passw:
+        default: { get_input: jenkins_user_passw }
+      jenkins_to_email:
+        default: { get_input: jenkins_to_email }
 
 relationships:
   cfy_cli_connected_to_jenkins_app:
@@ -162,25 +172,23 @@ node_templates:
         start: scripts/startJenkins.sh
         stop: scripts/stopJenkins.sh
         delete: scripts/uninstallJenkins.sh
+    jenkins.interfaces.action:
+      jenkins_cmd: scripts/run-jenkins-cmd.sh
     relationships:
       - type: cloudify.relationships.contained_in
         target: jenkins_vm
 
   cfy_cli:
     type: cloudify.nodes.ApplicationModule
-    properties:
-      num_instances: 1      
     interfaces:
       cloudify.interfaces.lifecycle:
         create: scripts/installCfyCli.sh
-      drupal.interfaces.action:
-        set_variable: scripts/run-jenkins-build.sh
     relationships:
       - type: cloudify.relationships.contained_in
         target: jenkins_vm
       - type: cfy_cli_connected_to_jenkins_app
         target: jenkins_app
-		
+
   softlayer_configuration:
     type: softlayer_configuration
     properties:
@@ -190,17 +198,17 @@ node_templates:
         endpoint_url: { get_input: endpoint_url }
 
 plugins:
-   drush-plugin:
+   jenkins-cli:
       executor: central_deployment_agent
-      source: drush-plugin
+      source: jenkins-cli-plugin
 
 workflows:
-   drush_setvar:
-      mapping: drush-plugin.drush.tasks.set_variable
+   jenkins_cmd:
+      mapping: jenkins-cli.jenkinscmd.tasks.jenkins_run_cmd
       parameters:
-         variable_name: {}
-         variable_value: {}
- 
+         cmd_name: {}
+         first_arg: {}
+
 outputs:
   endpoint:
     description: My application endpoint

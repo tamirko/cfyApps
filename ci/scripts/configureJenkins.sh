@@ -12,14 +12,15 @@ jenkinsConfigXml=jenkins_config.xml
 ctx download-resource "config/${jenkinsConfigXml}"
 find / -name "${jenkinsConfigXml}" | xargs -I file mv file config.xml
 
-ctx logger info "${currHostName}:${currFilename} Creating jenkins user (${xxx})..."
+newUserName=$(ctx node properties jenkins_user_name)
+ctx logger info "${currHostName}:${currFilename} Creating jenkins user (${newUserName})..."
 if [ ! -d "users" ]; then
   mkdir users  
 fi
 
 cd users
 newUserFirstName=$(ctx node properties jenkins_user_first_name)
-newUserName=$(ctx node properties jenkins_user_name)
+
 mkdir $newUserName
 cd $newUserName
 
@@ -31,7 +32,7 @@ sed -i -e "s/james/$newUserName/g" config.xml
 cd ../..
 
 
-currentEnv=dev
+currentEnv=Dev
 ctx logger info "${currHostName}:${currFilename} Creating jenkins build (${currentEnv}) ..."
 mkdir -p jobs/${currentEnv}/builds
 cd jobs/${currentEnv}
@@ -55,8 +56,8 @@ popd
 myMsgFile=my.msg
 ctx download-resource "config/${myMsgFile}"
 find / -name "${myMsgFile}" | xargs -I file mv file ~/my.msg
-jenkinsFromEmail=$(ctx node properties jenkins_from_email)
-sed -i -e "s/REPLACE_WITH_MAIL_ADDRESS/$jenkinsFromEmail/g" ~/my.msg
+jenkinsToEmail=$(ctx node properties jenkins_to_email)
+sed -i -e "s/REPLACE_WITH_MAIL_ADDRESS/$jenkinsToEmail/g" ~/my.msg
 
 ctx logger info "${currHostName}:${currFilename} Jenkins has been configured"
 
