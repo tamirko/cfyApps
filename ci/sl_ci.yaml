@@ -67,7 +67,9 @@ inputs:
     type: 'string'
   jenkins_user_passw:
     type: 'string'
-  jenkins_from_email:
+  jenkins_to_email:
+    type: 'string'
+  build_script:
     type: 'string'
 
 node_types:
@@ -128,6 +130,8 @@ node_types:
         default: { get_input: jenkins_user_passw }
       jenkins_to_email:
         default: { get_input: jenkins_to_email }
+      build_script:
+        default: { get_input: build_script }
 
 relationships:
   cfy_cli_connected_to_jenkins_app:
@@ -172,8 +176,8 @@ node_templates:
         start: scripts/startJenkins.sh
         stop: scripts/stopJenkins.sh
         delete: scripts/uninstallJenkins.sh
-    jenkins.interfaces.action:
-      jenkins_cmd: scripts/run-jenkins-cmd.sh
+      jenkins.interfaces.action:
+        jenkins_cmd: scripts/run-jenkins-cmd.sh
     relationships:
       - type: cloudify.relationships.contained_in
         target: jenkins_vm

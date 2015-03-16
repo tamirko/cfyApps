@@ -20,8 +20,9 @@
     "ssh_key_filename": "~/.ssh/id_rsa",
     "jenkins_user_first_name": "REPLACE_WITH_JENKINS_USER_FIRST_NAME",     
     "jenkins_user_name": "REPLACE_WITH_JENKINS_USER_NAME", 
-    "jenkins_from_email": "REPLACE_WITH_JENKINS_TO_EMAIL",
-    "jenkins_user_passw": "1234"
+    "jenkins_to_email": "REPLACE_WITH_JENKINS_TO_EMAIL",
+    "jenkins_user_passw": "1234",
+	"build_script":"build.sh"
 }
 
 

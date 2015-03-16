@@ -13,7 +13,7 @@
   <concurrentBuild>false</concurrentBuild>
   <builders>
     <hudson.tasks.Shell>
-      <command>exec SCRIPT ARG1</command>
+      <command>exec sh -c &quot;y=`date +%s` &amp;&amp; touch /tmp/xxx/dev${y}&quot;</command>
     </hudson.tasks.Shell>
   </builders>
   <publishers/>

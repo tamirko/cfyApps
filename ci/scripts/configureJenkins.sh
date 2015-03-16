@@ -31,22 +31,44 @@ sed -i -e "s/James/$newUserFirstName/g" config.xml
 sed -i -e "s/james/$newUserName/g" config.xml
 cd ../..
 
-
-currentEnv=Dev
-ctx logger info "${currHostName}:${currFilename} Creating jenkins build (${currentEnv}) ..."
-mkdir -p jobs/${currentEnv}/builds
-cd jobs/${currentEnv}
 devConfigXml=dev_config.xml
 ctx download-resource "config/${devConfigXml}"
-find / -name "${devConfigXml}" | xargs -I file mv file config.xml
+buildXml=`find / -name "${devConfigXml}"`
 
-cd builds
-touch legacyIds
-ln -s -- -1 lastFailedBuild
-ln -s -- -1 lastStableBuild
-ln -s -- -1 lastSuccessfulBuild
-ln -s -- -1 lastUnstableBuild
-ln -s -- -1 lastUnsuccessfulBuild
+declare -a builds=("AB1stTest" "AB2ndTest")
+
+ctx logger info "${currHostName}:${currFilename} Iterating on the ${#builds[*]} environments : ${builds[*]}"
+
+buildScriptName=$(ctx node properties build_script)
+ctx logger info "${currHostName}:${currFilename} buildScriptName is ${buildScriptName)"
+ctx download-resource "config/${buildScriptName}"
+buildScriptPath=`find / -name "${buildScriptName}"`
+
+jenkinsLib=/var/lib/jenkins
+ctx logger info "${currHostName}:${currFilename} Copying $buildScriptName to $jenkinsLib ..."
+cp $buildScriptPath ${jenkinsLib}/ 
+chmod +x ${jenkinsLib}/$buildScriptName
+
+for currentTest in "${builds[@]}"
+do
+  pushd $jenkinsLib
+  ctx logger info "${currHostName}:${currFilename} Creating jenkins build (${currentTest}) ..."
+      
+  mkdir -p jobs/${currentTest}/builds
+  cd jobs/${currentTest}   
+  cp $buildXml config.xml
+  sed -i -e "s+SCRIPT+$jenkinsLib/$buildScriptName+g" config.xml 
+  sed -i -e "s/ARG1/$currentTest/g" config.xml
+
+  cd builds
+  touch legacyIds
+  ln -s -- -1 lastFailedBuild
+  ln -s -- -1 lastStableBuild
+  ln -s -- -1 lastSuccessfulBuild
+  ln -s -- -1 lastUnstableBuild
+  ln -s -- -1 lastUnsuccessfulBuild
+  popd
+done  
 
 ctx logger info "${currHostName}:${currFilename} Chowning jenkins folders..."
 cd /var/lib/jenkins/

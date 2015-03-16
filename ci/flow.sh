@@ -34,10 +34,8 @@ cfy blueprints upload -p $envMngrBlueprintPath -b $envMngrBlueprintName
 mainMngrIP=`cfy --v |& grep "Manager" | cut -d= -f2 | sed 's/.$//'`
 echo AAA mainMngrIP is $mainMngrIP
 
-
-#declare -a managers=("Dev" "Tests" "QA" "Staging" "Production")
-declare -a managers=("Dev" "Tests")
-declare -a ipAddresses=("${placeHolder}" "${placeHolder}" "${placeHolder}" "${placeHolder}" "${placeHolder}")
+declare -a managers=("AB1stTest" "AB2ndTest" "Production")
+declare -a ipAddresses=("${placeHolder}" "${placeHolder}" "${placeHolder}")
 
 echo Iterating on the ${#managers[*]} envs : ${managers[*]}
 
