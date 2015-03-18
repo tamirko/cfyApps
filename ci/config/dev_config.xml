@@ -11,6 +11,16 @@
           <description></description>
           <defaultValue>dummy</defaultValue>
         </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>sshItemID</name>
+          <description></description>
+          <defaultValue>REPLACE_WITH_SSH_SL_ITEM_ID</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>midDomainName</name>
+          <description></description>
+          <defaultValue>REPLACE_WITH_MID_DOMAIN_NAME</defaultValue>
+        </hudson.model.StringParameterDefinition>		
       </parameterDefinitions>
     </hudson.model.ParametersDefinitionProperty>
   </properties>

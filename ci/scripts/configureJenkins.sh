@@ -53,11 +53,30 @@ ctx download-resource "config/${buildScriptName}"
 export buildScriptPath=`find / -name "${buildScriptName}"`
 ctx logger info "${currHostName}:${currFilename} buildScriptPath is ${buildScriptPath}"
 
+export appJsonName=app.json
+ctx download-resource "config/app.json"
+export origJppJsonPath=`find / -name "app.json"`
+ctx logger info "${currHostName}:${currFilename} origJppJsonPath is ${origJppJsonPath}"
+
+
+export sshItemID=$(ctx node properties ssh_keys)
+# Comment this line later
+ctx logger info "${currHostName}:${currFilename} sshItemID is ${sshItemID}"
+
+export privateVlan=$(ctx node properties private_vlan)
+# Comment this line later
+ctx logger info "${currHostName}:${currFilename} privateVlan is ${privateVlan}"
+
 
 jenkinsLib=/var/lib/jenkins
 ctx logger info "${currHostName}:${currFilename} Copying $buildScriptName to $jenkinsLib ..."
 cp $buildScriptPath ${jenkinsLib}/ 
 chmod +x ${jenkinsLib}/$buildScriptName
+
+export appJsonPath=${jenkinsLib}/${appJsonName}
+cp $origJppJsonPath $appJsonPath
+sed -i -e "s/REPLACE_WITH_SSH_SL_ITEM_ID/$sshItemID/g" $appJsonPath
+sed -i -e "s/REPLACE_WITH_VLAN_ITEM_ID/$privateVlan/g" $appJsonPath
 
 function createBuildEnv {
   
@@ -76,7 +95,11 @@ function createBuildEnv {
   sed -i -e "s+SCRIPT+$jenkinsLib/$buildScriptName+g" config.xml
   sed -i -e "s/ENV_NAME/$currentTest/g" config.xml
   sed -i -e "s/MANAGER_IP/$mngrIP/g" config.xml
-
+  #midDomainName=`echo $currentTest | tr [A-Z] [a-z]`
+  #sed -i -e "s/REPLACE_WITH_MID_DOMAIN_NAME/$midDomainName/g" config.xml
+  #sed -i -e "s/REPLACE_WITH_SSH_SL_ITEM_ID/$sshItemID/g" config.xml  
+  #sed -i -e "s/REPLACE_WITH_VLAN_ITEM_ID/$privateVlan/g" config.xml  
+                                            
   cd builds
   touch legacyIds
   ln -s -- -1 lastFailedBuild
