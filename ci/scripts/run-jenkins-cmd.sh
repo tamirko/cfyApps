@@ -13,8 +13,16 @@ userPassw=$(ctx node properties jenkins_user_passw)
 java -jar $cliJar -s http://localhost:8080/ login --username $userName --password $userPassw
 
 currCmd=$1
+argValue=""
+keyValue=""
+if [ $# -gt 1 ]; then
+  argValue=$2
+  if [ $# -gt 3 ]; then
+    keyValue="-p $3=$4"
+  fi
+fi
 ctx logger info "${currHostName}:${currFilename} Running Jenkins cmd : ${currCmd} ..."
-java -jar $cliJar -s http://localhost:8080/ $currCmd
+java -jar $cliJar -s http://localhost:8080/ $currCmd $argValue $keyValue
 
 
 currentDate=`date`

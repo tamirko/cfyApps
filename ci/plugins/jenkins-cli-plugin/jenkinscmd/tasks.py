@@ -21,11 +21,12 @@ from cloudify.workflows import ctx
 from cloudify.decorators import workflow
 
 @workflow
-def jenkins_run_cmd(cmd_name,first_arg,**kwargs):
+def jenkins_run_cmd(cmd_name,arg_value="",key1_name="",key1_value="",**kwargs):
     ctx.logger.info("In jenkins_run_cmd {}".format(cmd_name))
     node = ctx.get_node('jenkins_app')
-    ctx.logger.info("jenkins_run_cmd is about to exec on node.id {}".format(node.id))    
+    ctx.logger.info("jenkins_run_cmd is about to exec on node.id {}".format(node.id))
+	
     for instance in node.instances:
-        instance.execute_operation("drupal.interfaces.action.jenkins_run_cmd",
-                                   kwargs={'process': {'args': [cmd_name,first_arg]}})
+        instance.execute_operation("jenkins.interfaces.action.jenkins_cmd",
+                                   kwargs={'process': {'args': [cmd_name,arg_value,key1_name,key1_value]}})
     ctx.logger.info("End of jenkins_run_cmd")

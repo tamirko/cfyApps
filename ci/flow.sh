@@ -101,41 +101,41 @@ do
   sleep 10s
 done
 
-#echo Managers IP addresses are:
-for index in ${!managers[*]}
-do 
-  currIp=${ipAddresses[$index]}
-  currEnv=${managers[$index]}
-  currEnvLower=`echo $currEnv | tr [A-Z] [a-z]`
-  echo ${currEnv} : ${currIp}	
-  echo ZZZ cfy use -t $currIp
-  cfy use -t $currIp
-  export bp=drupalbp1${currEnvLower}
-  export dep=drupaldep1${currEnvLower}
-  #cfy blueprints upload -p cfyApps/hello-tomcat/tomcat-softlayer-blueprint.yaml -b $bp
-  cfy blueprints upload -p cfyApps/drupalAndMemcached/sl_drupalAndMemcached_blueprint.yaml -b $bp
-  #cfy deployments create -d $dep -i cfyApps/hello-tomcat/tomcat.json -b $bp
-  cfy deployments create -d $dep -i cfyApps/drupalAndMemcached/sl_drupalAndMemcached_blueprint.json -b $bp
-  sleep 70s
-  bpDate1=$(date +"%s")  
-  cfy executions start -d $dep --timeout 4500 -w install
-  bpDate2=$(date +"%s")
-  diff=$(($bpDate2-$bpDate1))
-  echo "TIMEINFO installation of the blueprint on ${currEnv} took $(($diff / 60)) minutes and $(($diff % 60)) seconds."  
-  echo ZZZ for Cleanup us the following
-  # Uninstall all apps
-  echo "ZZZ cfy deployments list | grep ${dep} | awk -F\| '{print \$2}' | sed 's/ //g' | xargs -I file cfy executions list -d file | grep install | grep -v uninstall | grep started |  awk -F\| '{print \$2}' | sed 's/ //g' |  xargs -I file cfy executions cancel -e file -f"
-  echo "ZZZ cfy deployments list | grep ${dep} | awk -F\| '{print \$2}' | sed 's/ //g' | xargs -I file cfy executions start -d file -f -w uninstall"
-  # Delete all deployments
-  echo "ZZZ cfy deployments list | grep ${dep} | awk -F\| '{print \$2}' | sed 's/ //g' | xargs -I file cfy deployments delete -f -d file"
-  # Delete all blueprints
-  echo "ZZZ cfy blueprints list | grep ${dep} | awk -F\| '{print \$2}' | sed 's/ //g' | xargs -I file cfy blueprints delete -b file"
-  echo "ZZZ cfy teardown -f --ignore-deployments"
-done
-  
 echo Environments  \: ${#managers[*]}
 echo Live managers \: ${livemanagers}
+
+echo "Installing Jenkins ... "
+export bp=jenkinsBp
+export dep=jenkinsDep
+cfy blueprints upload -p cfyApps/ci/sl_ci.yaml -b $bp
+currJson=cfyApps/ci/sl_ci.json
+testEnvs="${managers[0]} ${managers[1]}"
+testManagers="${ipAddresses[0]} ${ipAddresses[1]}"
+sed -i -e "s/REPLACE_WITH_SPACE_SEPARTED_ENVRIONMENTS/$testEnvs/g" $currJson  
+sed -i -e "s/REPLACE_WITH_SPACE_SEPARTED_IP_ADDRESSES/$testManagers/g" $currJson
+prodEnv="${managers[2]}"
+prodIP="${ipAddresses[2]}"
+sed -i -e "s/REPLACE_WITH_PROD_ENVRIONMENT/$prodEnv/g" $currJson  
+sed -i -e "s/REPLACE_WITH_PROD_IP_ADDRESS/$prodIP/g" $currJson
+cfy deployments create -d $dep -i $currJson -b $bp
+sleep 70s
+bpDate1=$(date +"%s")  
+cfy executions start -d $dep --timeout 4500 -w install
+bpDate2=$(date +"%s")
+diff=$(($bpDate2-$bpDate1))
+echo "TIMEINFO installation of the Jenkins blueprint on ${currEnv} took $(($diff / 60)) minutes and $(($diff % 60)) seconds."
+# All the ZZZ are for the cleanup - It can be used to kill all the vms
+echo ZZZ for Cleanup us the following
+# Uninstall all apps
+echo "ZZZ cfy deployments list | grep ${dep} | awk -F\| '{print \$2}' | sed 's/ //g' | xargs -I file cfy executions list -d file | grep install | grep -v uninstall | grep started |  awk -F\| '{print \$2}' | sed 's/ //g' |  xargs -I file cfy executions cancel -e file -f"
+echo "ZZZ cfy deployments list | grep ${dep} | awk -F\| '{print \$2}' | sed 's/ //g' | xargs -I file cfy executions start -d file -f -w uninstall"
+# Delete all deployments
+echo "ZZZ cfy deployments list | grep ${dep} | awk -F\| '{print \$2}' | sed 's/ //g' | xargs -I file cfy deployments delete -f -d file"
+# Delete all blueprints
+echo "ZZZ cfy blueprints list | grep ${dep} | awk -F\| '{print \$2}' | sed 's/ //g' | xargs -I file cfy blueprints delete -b file"
+echo "ZZZ cfy teardown -f --ignore-deployments"
   
+
 echo "ZZZ cfy use -t $mainMngrIP"
 # Uninstall all apps
 echo "ZZZ cfy deployments list | grep Env | awk -F\| '{print \$2}' | sed 's/ //g' | xargs -I file cfy executions list -d file | grep install | grep -v uninstall | grep started |  awk -F\| '{print \$2}' | sed 's/ //g' |  xargs -I file cfy executions cancel -e file -f"
@@ -151,4 +151,4 @@ diff=$(($totalDate-$date1))
 echo "TIMEINFO The creation of the whole env took $(($diff / 60)) minutes and $(($diff % 60)) seconds."
 exit 
 
-cfy executions start -d myDeployment -p '{"variable_name":"site_name", "variable_value":"My_New_Site_Name"}' -w drush_setvar
+#cfy executions start -d myDeployment -p '{"variable_name":"site_name", "variable_value":"My_New_Site_Name"}' -w drush_setvar

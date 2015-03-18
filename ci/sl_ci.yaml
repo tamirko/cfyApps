@@ -71,6 +71,14 @@ inputs:
     type: 'string'
   build_script:
     type: 'string'
+  build_environments:
+    type: 'string'
+  cfy_managers:
+    type: 'string'
+  prod_environment:
+    type: 'string'
+  prod_mngr_ip:
+    type: 'string'
 
 node_types:
   host:
@@ -132,13 +140,26 @@ node_types:
         default: { get_input: jenkins_to_email }
       build_script:
         default: { get_input: build_script }
+      build_environments:
+        default: { get_input: build_environments }
+      cfy_managers:
+        default: { get_input: cfy_managers }
+      prod_environment:
+        default: { get_input: prod_environment }
+      prod_mngr_ip:
+        default: { get_input: prod_mngr_ip }
+		
 
-relationships:
-  cfy_cli_connected_to_jenkins_app:
-    derived_from: cloudify.relationships.connected_to
-    source_interfaces:
-      cloudify.interfaces.relationship_lifecycle:
-        postconfigure: scripts/configureCfyCli.sh
+  jenkins_cfy_cli:
+    derived_from: cloudify.nodes.ApplicationModule
+    properties:
+      num_instances:
+        description: Number of instances
+        type: integer
+      build_environments:
+        default: { get_input: build_environments }
+      cfy_managers:
+        default: { get_input: cfy_managers }
 
 node_templates:
   jenkins_vm:
@@ -183,14 +204,16 @@ node_templates:
         target: jenkins_vm
 
   cfy_cli:
-    type: cloudify.nodes.ApplicationModule
+    type: jenkins_cfy_cli
+    properties:
+      num_instances: 1
     interfaces:
       cloudify.interfaces.lifecycle:
         create: scripts/installCfyCli.sh
     relationships:
       - type: cloudify.relationships.contained_in
         target: jenkins_vm
-      - type: cfy_cli_connected_to_jenkins_app
+      - type: cloudify.relationships.connected_to
         target: jenkins_app
 
   softlayer_configuration:

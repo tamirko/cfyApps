@@ -22,7 +22,11 @@
     "jenkins_user_name": "REPLACE_WITH_JENKINS_USER_NAME", 
     "jenkins_to_email": "REPLACE_WITH_JENKINS_TO_EMAIL",
     "jenkins_user_passw": "1234",
-	"build_script":"build.sh"
+    "build_script":"build.sh",
+    "build_environments":"REPLACE_WITH_SPACE_SEPARTED_ENVRIONMENTS",
+    "cfy_managers":"REPLACE_WITH_SPACE_SEPARTED_IP_ADDRESSES",
+    "prod_environment":"REPLACE_WITH_PROD_ENVRIONMENT",
+    "prod_mngr_ip":"REPLACE_WITH_PROD_IP_ADDRESS"
 }
 
 
