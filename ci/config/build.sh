@@ -8,7 +8,7 @@ echo "${currHostName}:${currFilename} Jenkins build ${envName}..."
 
 if [ "${currentTask}" == "dummy" ]; then
   if [[ "${envName}" =~ "1stTest" ]]; then
-    currentTheme="bluez"
+    currentTheme="simplecorp"
   else
     currentTheme="selecta"
   fi
