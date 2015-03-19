@@ -33,12 +33,12 @@ cfy init -r
 cfy use -t $managerIP
 cfy deployments list
 
-echo "${currHostName}:${currFilename} Jenkins orig app.json is:"
+#echo "${currHostName}:${currFilename} Jenkins orig app.json is:"
 jenkinsLib=/var/lib/jenkins
 export appJsonName=app.json
 export origJppJsonPath=`find $jenkinsLib -name "${appJsonName}"`
 
-cat $origJppJsonPath
+#cat $origJppJsonPath
 
 midDomainName=`echo $envName | tr [A-Z] [a-z]`
 newAppJson=${jenkinsLib}/app${midDomainName}.json
@@ -46,8 +46,8 @@ cp -f $origJppJsonPath $newAppJson
 
 sed -i -e "s/REPLACE_WITH_MID_DOMAIN_NAME/$midDomainName/g" $newAppJson
 
-echo "${currHostName}:${currFilename} Jenkins newAppJson is:"
-cat $newAppJson
+#echo "${currHostName}:${currFilename} Jenkins newAppJson is:"
+#cat $newAppJson
 
 # ===================================
 function blueprintExist {	
@@ -70,6 +70,12 @@ function executionsExist {
 	fi	
 	# Executions exist	
 	return 1
+}
+
+function copyCurrent2Previous {	
+	pushd $2
+	cp -rp $1/* .
+	popd
 }
 
 export prevFolderPath=`pwd`/prev
@@ -106,10 +112,29 @@ if [ $newBlueprintsExists -gt 0 ]; then
     cfy blueprints delete -b $blueprintName 
   fi
   
+  echo cfy blueprints upload -p ${blueprintFolderName}/${blueprintYamlName} -b $blueprintName
   cfy blueprints upload -p ${blueprintFolderName}/${blueprintYamlName} -b $blueprintName
-  cfy deployments create -d $deploymentName -i $newAppJson -b $blueprintName
-  cfy executions start -d $deploymentName -w install
-  cfy deployments outputs -d $deploymentName
+  if [ $? -eq 0 ]; then
+    echo cfy deployments create -d $deploymentName -i $newAppJson -b $blueprintName
+    cfy deployments create -d $deploymentName -i $newAppJson -b $blueprintName
+	if [ $? -eq 0 ]; then
+	  sleep 70s
+	  echo cfy executions start -d $deploymentName -w install
+	  cfy executions start -d $deploymentName -w install
+	  if [ $? -eq 0 ]; then
+	    copyCurrent2Previous $blueprintFolderName $prevFolderPath
+	    sleep 70s
+	    echo cfy deployments outputs -d $deploymentName
+	    cfy deployments outputs -d $deploymentName
+	  else
+	    echo "cfy executions start failed"
+	  fi
+	else
+	  echo "cfy deployments create failed"
+	fi
+  else
+    echo "cfy blueprints upload failed"
+  fi    
   # set site name - env name ...
   # set theme
 else
