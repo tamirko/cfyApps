@@ -1,7 +1,7 @@
 {
     "endpoint_url": "",
     "location": "352494",
-    "domain": "cfy.REPLACE_WITH_ENV.org",
+    "domain": "cfy.REPLACE_WITH_MID_DOMAIN_NAME.org",
     "ram": 1155,
     "cpu": 860,
     "disk": 865,

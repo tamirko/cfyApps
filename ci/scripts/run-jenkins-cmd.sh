@@ -46,5 +46,8 @@ exit
 
 java -jar $cliJar -s http://localhost:8080/ build JOB_NAME -p KEY1=VAL1 -p KEY2=VAL2 -p KEY3=VAL3
 
+cfy executions start -d $dep -w jenkins_cmd -p '{"cmd_name":"build","arg_value":"Production","key1_name":"x","key1_value":"y"}'
+
+
 
 

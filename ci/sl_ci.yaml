@@ -148,7 +148,10 @@ node_types:
         default: { get_input: prod_environment }
       prod_mngr_ip:
         default: { get_input: prod_mngr_ip }
-		
+      private_vlan:
+        default: { get_input: private_vlan }
+      ssh_keys:
+        default: { get_input: ssh_keys }
 
   jenkins_cfy_cli:
     derived_from: cloudify.nodes.ApplicationModule
@@ -233,8 +236,10 @@ workflows:
    jenkins_cmd:
       mapping: jenkins-cli.jenkinscmd.tasks.jenkins_run_cmd
       parameters:
-         cmd_name: {}
-         first_arg: {}
+        cmd_name: {}
+        arg_value: {}
+        key1_name: {}
+        key1_value: {}
 
 outputs:
   endpoint:

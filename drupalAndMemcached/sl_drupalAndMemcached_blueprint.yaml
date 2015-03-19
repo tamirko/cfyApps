@@ -235,7 +235,7 @@ node_templates:
         start:
           implementation: softlayer.softlayer_plugin.server.start
           inputs:
-            transactions_ended_timeout_secs: 4500	
+            transactions_ended_timeout_secs: 4500
       cloudify.interfaces.monitoring_agent:
         install:
            implementation: diamond.diamond_agent.tasks.install

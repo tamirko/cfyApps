@@ -35,7 +35,7 @@ cd ../..
 export devConfigXml=dev_config.xml
 ctx logger info "${currHostName}:${currFilename} Downloading ${devConfigXml}..."
 ctx download-resource "config/${devConfigXml}"
-export devBuildXml=`find / -name "${devConfigXml}"`
+export devBuildXml=`find / -name "${devConfigXml}" | head -1`
 
 export buildEnvironments=$(ctx node properties build_environments)
 ctx logger info "${currHostName}:${currFilename} buildEnvironments are ${buildEnvironments}"
@@ -50,12 +50,12 @@ declare -a devIPs=($devManagerIPs)
 export buildScriptName=$(ctx node properties build_script)
 ctx logger info "${currHostName}:${currFilename} buildScriptName is ${buildScriptName}"
 ctx download-resource "config/${buildScriptName}"
-export buildScriptPath=`find / -name "${buildScriptName}"`
+export buildScriptPath=`find / -name "${buildScriptName}" | head -1`
 ctx logger info "${currHostName}:${currFilename} buildScriptPath is ${buildScriptPath}"
 
 export appJsonName=app.json
-ctx download-resource "config/app.json"
-export origJppJsonPath=`find / -name "app.json"`
+ctx download-resource "config/${appJsonName}"
+export origJppJsonPath=`find / -name "${appJsonName}" | head -1`
 ctx logger info "${currHostName}:${currFilename} origJppJsonPath is ${origJppJsonPath}"
 
 
@@ -70,7 +70,7 @@ ctx logger info "${currHostName}:${currFilename} privateVlan is ${privateVlan}"
 
 jenkinsLib=/var/lib/jenkins
 ctx logger info "${currHostName}:${currFilename} Copying $buildScriptName to $jenkinsLib ..."
-cp $buildScriptPath ${jenkinsLib}/ 
+cp -f $buildScriptPath ${jenkinsLib}/ 
 chmod +x ${jenkinsLib}/$buildScriptName
 
 export appJsonPath=${jenkinsLib}/${appJsonName}
@@ -111,8 +111,10 @@ function createBuildEnv {
 }
 
 # iterate on env and ips (devIPs) by index
-for currentTest in "${builds[@]}"
+for index in ${!builds[*]}
 do
+  currentTest=${builds[$index]}
+  testManagerIP=${devIPs[$index]}
   createBuildEnv $currentTest $devBuildXml $testManagerIP
 done  
 
