@@ -126,8 +126,28 @@ if [ $newBlueprintsExists -gt 0 ]; then
 	    sleep 70s
 	    echo cfy deployments outputs -d $deploymentName
 	    cfy deployments outputs -d $deploymentName
+		if [ $? -eq 0 ]; then
+		  cfy executions start -d $deploymentName -p '{"variable_name":"site_name", "variable_value":"${midDomainName}"}' -w drush_setvar
+		  if [ $? -eq 0 ]; then
+		    cfy executions start -d $deploymentName  -w drush_install -p '{"project_name":"${currentTheme}"}'
+			if [ $? -eq 0 ]; then
+			  cfy executions start -d $deploymentName -w drush_setvar -p '{"variable_name":"theme_default", "variable_value":"${currentTheme}"}'
+			  if [ $? -eq 0 ]; then
+			    echo "All is well"
+			  else
+			    echo "cfy executions set default theme ${currentTheme} failed"
+			  fi
+			else
+			  echo "cfy executions download of ${currentTheme} failed"
+			fi
+          else
+		    echo "cfy executions set site_name ${midDomainName} failed"
+          fi          
+		else
+		  echo "cfy deployments outputs failed"
+		fi        
 	  else
-	    echo "cfy executions start failed"
+	    echo "cfy executions installation failed"
 	  fi
 	else
 	  echo "cfy deployments create failed"
