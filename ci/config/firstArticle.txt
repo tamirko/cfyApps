@@ -1,4 +1,4 @@
 Title:My 1st article
-Body:Good stuff.
+Body:Hot stuff.
 
 
