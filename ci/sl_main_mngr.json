@@ -1,7 +1,9 @@
 {
+    "username": "SL_USERNAME",
+    "api_key":  "SL_APIKEY",
     "endpoint_url": "",
     "location": "352494",
-    "domain": "cfy.REPLACE_WITH_MID_DOMAIN_NAME.org",
+    "domain": "cfy.main.mngr",
     "ram": 1155,
     "cpu": 860,
     "disk": 865,
@@ -10,9 +12,10 @@
     "image_template_id": "",
     "private_network_only": false,
     "port_speed": 188,
-    "private_vlan": "REPLACE_WITH_VLAN_ITEM_ID",
+    "private_vlan": "REPLACE_WITH_SL_PRIVATE_VLAN",
     "public_vlan": "",
     "provision_scripts": [],
-    "ssh_keys": REPLACE_WITH_SSH_SL_ITEM_ID,
-    "ssh_key_filename": "/root/.ssh/agent_key.pem"
+    "ssh_keys": [REPLACE_WITH_SL_PRIVATE_KEY_ITEM_ID],
+    "ssh_key_filename": "~/.ssh/id_rsa"
 }
+

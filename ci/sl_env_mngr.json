@@ -1,9 +1,9 @@
 {
-    "username": "SL_USER_NAME",
-    "api_key":  "SL_API_KEY",
+    "username": "SL_USERNAME",
+    "api_key":  "SL_APIKEY",
     "endpoint_url": "",
     "location": "352494",
-    "domain": "cfy.ENV.mngr",
+    "domain": "cfy.env.mngr",
     "ram": 1155,
     "cpu": 860,
     "disk": 865,
@@ -12,10 +12,10 @@
     "image_template_id": "",
     "private_network_only": false,
     "port_speed": 188,
-    "private_vlan": "565674",
+    "private_vlan": "REPLACE_WITH_SL_PRIVATE_VLAN",
     "public_vlan": "",
     "provision_scripts": [],
-    "ssh_keys": [1144652],
-    "ssh_key_filename": "~/.ssh/id_rsa"
+    "ssh_keys": [REPLACE_WITH_SL_PRIVATE_KEY_ITEM_ID],
+    "ssh_key_filename": "/root/.ssh/agent_key.pem"
 }
 

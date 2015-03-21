@@ -1,9 +1,7 @@
 {
-    "username": "REPLACE_WITH_SL_ACCOUNT_USER_NAME",
-    "api_key":  "REPLACE_WITH_SL_ACCOUNT_API_KEY",
     "endpoint_url": "",
     "location": "352494",
-    "domain": "vm.aabbcc.org",
+    "domain": "cfy.jenk.vm",
     "ram": 1155,
     "cpu": 860,
     "disk": 865,

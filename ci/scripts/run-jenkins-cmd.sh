@@ -48,6 +48,8 @@ java -jar $cliJar -s http://localhost:8080/ build JOB_NAME -p KEY1=VAL1 -p KEY2=
 
 cfy executions start -d $dep -w jenkins_cmd -p '{"cmd_name":"build","arg_value":"Production","key1_name":"x","key1_value":"y"}'
 
+cfy executions start -d jenkinsDep -w jenkins_cmd -p '{"cmd_name" :"disable-job", "arg_value":"AB2ndTest","key1_name":"","key1_value":""}'
+cfy executions start -d jenkinsDep -w jenkins_cmd -p '{"cmd_name" :"enable-job", "arg_value":"AB2ndTest","key1_name":"","key1_value":""}'
 
 
-
+cfy executions start -d jenkinsDep -w jenkins_cmd -p '{"cmd_name":"build","arg_value":"Production","key1_name":"currentTask","key1_value":"bluez"}'

@@ -9,8 +9,9 @@ pushd /var/lib/jenkins/
 
 ctx logger info "${currHostName}:${currFilename} Downloading jenkins Config Xml..."
 jenkinsConfigXml=jenkins_config.xml
-ctx download-resource "config/${jenkinsConfigXml}"
-find / -name "${jenkinsConfigXml}" | xargs -I file mv file config.xml
+jenkinsConfigXmlPath=$(ctx download-resource "config/${jenkinsConfigXml}")
+ctx logger info "${currHostName}:${currFilename} jenkinsConfigXmlPath downloaded to ${jenkinsConfigXmlPath}"
+mv $jenkinsConfigXmlPath config.xml
 
 newUserName=$(ctx node properties jenkins_user_name)
 ctx logger info "${currHostName}:${currFilename} Creating jenkins user (${newUserName})..."
@@ -26,16 +27,17 @@ cd $newUserName
 
 newUserConfigXml=newuser_config.xml
 ctx logger info "${currHostName}:${currFilename} Downloading ${newUserConfigXml}..."
-ctx download-resource "config/${newUserConfigXml}"
-find / -name "${newUserConfigXml}" | xargs -I file mv file config.xml
+newUserConfigXmlPath=$(ctx download-resource "config/${newUserConfigXml}")
+ctx logger info "${currHostName}:${currFilename} newUserConfigXmlPath downloaded to ${newUserConfigXmlPath}"
+mv $newUserConfigXmlPath config.xml
 sed -i -e "s/James/$newUserFirstName/g" config.xml
 sed -i -e "s/james/$newUserName/g" config.xml
 cd ../..
 
 export devConfigXml=dev_config.xml
 ctx logger info "${currHostName}:${currFilename} Downloading ${devConfigXml}..."
-ctx download-resource "config/${devConfigXml}"
-export devBuildXml=`find / -name "${devConfigXml}" | head -1`
+devBuildXml=$(ctx download-resource "config/${devConfigXml}")
+ctx logger info "${currHostName}:${currFilename} devBuildXml downloaded to ${devBuildXml}"
 
 export buildEnvironments=$(ctx node properties build_environments)
 ctx logger info "${currHostName}:${currFilename} buildEnvironments are ${buildEnvironments}"
@@ -49,13 +51,11 @@ declare -a devIPs=($devManagerIPs)
 
 export buildScriptName=$(ctx node properties build_script)
 ctx logger info "${currHostName}:${currFilename} buildScriptName is ${buildScriptName}"
-ctx download-resource "config/${buildScriptName}"
-export buildScriptPath=`find / -name "${buildScriptName}" | head -1`
+buildScriptPath=$(ctx download-resource "config/${buildScriptName}")
 ctx logger info "${currHostName}:${currFilename} buildScriptPath is ${buildScriptPath}"
 
 export appJsonName=app.json
-ctx download-resource "config/${appJsonName}"
-export origJppJsonPath=`find / -name "${appJsonName}" | head -1`
+export origJppJsonPath=$(ctx download-resource "config/${appJsonName}")
 ctx logger info "${currHostName}:${currFilename} origJppJsonPath is ${origJppJsonPath}"
 
 
@@ -120,8 +120,8 @@ done
 
 export prodConfigXml=prod_config.xml
 ctx logger info "${currHostName}:${currFilename} Downloading ${prodConfigXml}..."
-ctx download-resource "config/${prodConfigXml}"
-export prodBuildXml=`find / -name "${prodConfigXml}"`
+export prodBuildXml=$(ctx download-resource "config/${prodConfigXml}")
+ctx logger info "${currHostName}:${currFilename} prodBuildXml downloaded to ${prodBuildXml}"
 
 productionEnv=$(ctx node properties prod_environment)
 prodManagerIP=$(ctx node properties prod_mngr_ip)
@@ -134,8 +134,10 @@ chown -R jenkins:jenkins *
 popd
 
 myMsgFile=my.msg
-ctx download-resource "config/${myMsgFile}"
-find / -name "${myMsgFile}" | xargs -I file mv file ~/my.msg
+myMsgFilePath=$(ctx download-resource "config/${myMsgFile}")
+ctx logger info "${currHostName}:${currFilename} myMsgFilePath downloaded to ${myMsgFilePath}"
+mv $myMsgFilePath ~/my.msg
+
 jenkinsToEmail=$(ctx node properties jenkins_to_email)
 sed -i -e "s/REPLACE_WITH_MAIL_ADDRESS/$jenkinsToEmail/g" ~/my.msg
 

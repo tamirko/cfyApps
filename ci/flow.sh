@@ -124,27 +124,34 @@ cfy executions start -d $dep --timeout 4500 -w install
 bpDate2=$(date +"%s")
 diff=$(($bpDate2-$bpDate1))
 echo "TIMEINFO installation of the Jenkins blueprint on ${currEnv} took $(($diff / 60)) minutes and $(($diff % 60)) seconds."
-# All the ZZZ are for the cleanup - It can be used to kill all the vms
-echo ZZZ for Cleanup us the following
-# Uninstall all apps
-echo "ZZZ cfy deployments list | grep ${dep} | awk -F\| '{print \$2}' | sed 's/ //g' | xargs -I file cfy executions list -d file | grep install | grep -v uninstall | grep started |  awk -F\| '{print \$2}' | sed 's/ //g' |  xargs -I file cfy executions cancel -e file -f"
-echo "ZZZ cfy deployments list | grep ${dep} | awk -F\| '{print \$2}' | sed 's/ //g' | xargs -I file cfy executions start -d file -f -w uninstall"
-# Delete all deployments
-echo "ZZZ cfy deployments list | grep ${dep} | awk -F\| '{print \$2}' | sed 's/ //g' | xargs -I file cfy deployments delete -f -d file"
-# Delete all blueprints
-echo "ZZZ cfy blueprints list | grep ${dep} | awk -F\| '{print \$2}' | sed 's/ //g' | xargs -I file cfy blueprints delete -b file"
-echo "ZZZ cfy teardown -f --ignore-deployments"
-  
+# The following can be used to kill all the vms
+echo "#!/bin/bash"> cleanFlow.sh
+echo "mkdir -p /.cloudify/bootstrap/manager/data">> cleanFlow.sh
+echo "cfy init -r">> cleanFlow.sh
 
-echo "ZZZ cfy use -t $mainMngrIP"
+for currManagerIP in "${ipAddresses[@]}"
+do
+ echo "cfy use -t ${currManagerIP}" >> cleanFlow.sh
 # Uninstall all apps
-echo "ZZZ cfy deployments list | grep Env | awk -F\| '{print \$2}' | sed 's/ //g' | xargs -I file cfy executions list -d file | grep install | grep -v uninstall | grep started |  awk -F\| '{print \$2}' | sed 's/ //g' |  xargs -I file cfy executions cancel -e file -f"
-echo "ZZZ cfy deployments list | grep Env | awk -F\| '{print \$2}' | sed 's/ //g' | xargs -I file cfy executions start -d file -f -w uninstall"
+ echo "cfy deployments list | grep -i \"drupal\" | awk -F\| '{print \$2}' | sed 's/ //g' | xargs -I file cfy executions list -d file \| grep install \| grep -v uninstall \| grep started |  awk -F\| '{print \$2}' | sed 's/ //g' |  xargs -I file cfy executions cancel -e file -f" >> cleanFlow.sh
+ echo "cfy deployments list | grep -i \"drupal\" | awk -F\| '{print \$2}' | sed 's/ //g' | xargs -I file cfy executions start -d file -f -w uninstall" >> cleanFlow.sh
 # Delete all deployments
-echo "ZZZ cfy deployments list | grep Env | awk -F\| '{print \$2}' | sed 's/ //g' | xargs -I file cfy deployments delete -f -d file"
+ echo "cfy deployments list | grep -i \"drupal\" | awk -F\| '{print \$2}' | sed 's/ //g' | xargs -I file cfy deployments delete -f -d file">> cleanFlow.sh
 # Delete all blueprints
-echo "ZZZ cfy blueprints list | grep Env | awk -F\| '{print \$2}' | sed 's/ //g' | xargs -I file cfy blueprints delete -b file"
-echo "ZZZ cfy teardown -f --ignore-deployments"
+ echo "cfy blueprints list | grep -i \"drupal\" | awk -F\| '{print \$2}' | sed 's/ //g' | xargs -I file cfy blueprints delete -b file">> cleanFlow.sh
+ echo "cfy teardown -f --ignore-deployments">> cleanFlow.sh
+done  
+
+echo "cfy use -t $mainMngrIP">> cleanFlow.sh
+# Uninstall all apps
+echo "cfy deployments list | grep -iE \"Env|jenk\" | awk -F\| '{print \$2}' | sed 's/ //g' | xargs -I file cfy executions list -d file | grep install | grep -v uninstall | grep started |  awk -F\| '{print \$2}' | sed 's/ //g' |  xargs -I file cfy executions cancel -e file -f">> cleanFlow.sh
+echo "cfy deployments list | grep -iE \"Env|jenk\" | awk -F\| '{print \$2}' | sed 's/ //g' | xargs -I file cfy executions start -d file -f -w uninstall">> cleanFlow.sh
+# Delete all deployments
+echo "cfy deployments list | grep -iE \"Env|jenk\" | awk -F\| '{print \$2}' | sed 's/ //g' | xargs -I file cfy deployments delete -f -d file">> cleanFlow.sh
+# Delete all blueprints
+echo "cfy blueprints list | grep -iE \"Env|jenk\" | awk -F\| '{print \$2}' | sed 's/ //g' | xargs -I file cfy blueprints delete -b file">> cleanFlow.sh
+echo "cfy teardown -f --ignore-deployments">> cleanFlow.sh
+echo "echo end of \$0">> cleanFlow.sh
  
 totalDate=$(date +"%s")
 diff=$(($totalDate-$date1))

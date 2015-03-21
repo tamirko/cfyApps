@@ -27,10 +27,16 @@ cd ${newDir}
 echo "${currHostName}:${currFilename} Jenkins currentTheme is ${currentTheme}"
 
 managerIP=$2
+echo dollar 2 is $2
+echo dollar 2 is -$2-
+echo manager IP is $managerIP
+echo manager IP is -${managerIP}-
+
+
 source /myenv/bin/activate
 cfy --v
 cfy init -r
-cfy use -t $managerIP
+cfy use -t ${managerIP}
 cfy deployments list
 
 #echo "${currHostName}:${currFilename} Jenkins orig app.json is:"
@@ -85,30 +91,37 @@ export gitMainfolder=cfyApps
 export blueprintFolderName=drupalAndMemcached
 export blueprintYamlName=sl_drupalAndMemcached_blueprint.yaml
 export blueprintName=drupalAndMemcached
-export deploymentName=drupalAndMemcached
+export deploymentName=drupal${envName}
 
 rm -rf $gitMainfolder
 git clone https://github.com/tamirko/cfyApps.git
 pushd $gitMainfolder
-diff -rq $blueprintFolderName $prevFolderPath
-newBlueprintsExists=$?
+newBlueprintsExists=`diff -rq $blueprintFolderName $prevFolderPath | grep -vc gitignore`
 if [ $newBlueprintsExists -gt 0 ]; then
   echo "Found differences - Building again"
   executionsExist $deploymentName
   execsExists=$?
-  if [ $execsExists -gt 0 ]; then 
+   
+  if [ $execsExists -gt 0 ]; then
+    echo "Cancelling started executions if exist ... "
+    echo "cfy executions list -d $deploymentName \| grep started \| awk -F\\\| '{print $2}' \| sed 's/ //g' \| xargs -I file cfy executions cancel -e file -f"
+    cfy executions list -d $deploymentName | grep started | awk -F\| '{print $2}' | sed 's/ //g' |  xargs -I file cfy executions cancel -e file -f
+
+    echo cfy executions start -d $deploymentName -w uninstall -f
     cfy executions start -d $deploymentName -w uninstall -f
   fi
   
   deploymentExist $deploymentName
   depExists=$?
   if [ $depExists -gt 0 ]; then 
+    echo cfy deployments delete -d $deploymentName
     cfy deployments delete -d $deploymentName
   fi
   
   blueprintExist $blueprintName
   bpExists=$?
   if [ $bpExists -gt 0 ]; then
+    echo cfy blueprints delete -b $blueprintName 
     cfy blueprints delete -b $blueprintName 
   fi
   
@@ -122,16 +135,17 @@ if [ $newBlueprintsExists -gt 0 ]; then
 	  echo cfy executions start -d $deploymentName -w install
 	  cfy executions start -d $deploymentName -w install
 	  if [ $? -eq 0 ]; then
-	    copyCurrent2Previous $blueprintFolderName $prevFolderPath
+	    currFolder=`pwd`
+	    copyCurrent2Previous ${currFolder}/${blueprintFolderName} $prevFolderPath
 	    sleep 70s
 	    echo cfy deployments outputs -d $deploymentName
 	    cfy deployments outputs -d $deploymentName
 		if [ $? -eq 0 ]; then
-		  cfy executions start -d $deploymentName -p '{"variable_name":"site_name", "variable_value":"${midDomainName}"}' -w drush_setvar
+		  cfy executions start -d $deploymentName -p "{\"variable_name\":\"site_name\", \"variable_value\":\"${midDomainName}\"}" -w drush_setvar
 		  if [ $? -eq 0 ]; then
-		    cfy executions start -d $deploymentName  -w drush_install -p '{"project_name":"${currentTheme}"}'
+		    cfy executions start -d $deploymentName  -w drush_install -p "{\"project_name\":\"${currentTheme}\"}"
 			if [ $? -eq 0 ]; then
-			  cfy executions start -d $deploymentName -w drush_setvar -p '{"variable_name":"theme_default", "variable_value":"${currentTheme}"}'
+			  cfy executions start -d $deploymentName -w drush_setvar -p "{\"variable_name\":\"theme_default\", \"variable_value\":\"${currentTheme}\"}"
 			  if [ $? -eq 0 ]; then
 			    echo "All is well"
 			  else
@@ -158,7 +172,7 @@ if [ $newBlueprintsExists -gt 0 ]; then
   # set site name - env name ...
   # set theme
 else
-  echo "Jenkins No differences exists - Aborting build - successfully"  
+  echo "Jenkins No differences exist - Aborting build - successfully"  
 fi
 
 

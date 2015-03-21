@@ -173,7 +173,7 @@ node_templates:
           implementation: cli.cloudify_cli.bootstrap.tasks.creation_validation
           inputs:
             cloudify_packages: { get_property: [manager, cloudify_packages] }
-  
+
   multicast_disabler:
     type: cloudify.nodes.ApplicationModule
 
@@ -183,7 +183,8 @@ node_templates:
           implementation: fabric.fabric_plugin.tasks.run_commands
           inputs:
             commands:
-              - printf "discovery.zen.ping.multicast.enabled\x$(printf %x 58) false\n" >> `find / -name "elasticsearch.yml" | grep config | head -1`              
+              - printf "discovery.zen.ping.multicast.enabled\x$(printf %x 58) false\n" >> `find / -name "elasticsearch.yml" | grep config | head -1`
+              - mkdir -p /.cloudify/bootstrap/manager/data
               - service elasticsearch restart
             fabric_env:
               user: { get_input: agents_user }
@@ -196,8 +197,9 @@ node_templates:
 
 plugins:
   cli:
-    install: false 
+    install: true 
     executor: central_deployment_agent
+    source: https://github.com/cloudify-cosmo/cloudify-cli/archive/3.1.zip
 
 outputs:
   manager_ip:
