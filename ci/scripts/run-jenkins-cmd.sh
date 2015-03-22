@@ -53,3 +53,4 @@ cfy executions start -d jenkinsDep -w jenkins_cmd -p '{"cmd_name" :"enable-job",
 
 
 cfy executions start -d jenkinsDep -w jenkins_cmd -p '{"cmd_name":"build","arg_value":"Production","key1_name":"currentTask","key1_value":"bluez"}'
+cfy executions start -d jenkinsDep -w jenkins_cmd -p '{"cmd_name":"version","arg_value":"","key1_name":"","key1_value":""}'
