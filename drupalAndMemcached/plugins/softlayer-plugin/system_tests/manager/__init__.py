@@ -14,27 +14,12 @@
 #    * limitations under the License.
 
 
-from setuptools import setup
+from cosmo_tester.framework.testenv import bootstrap, teardown
 
-# Replace the place holders with values for your project
 
-setup(
+def setUp():
+    bootstrap(task_retries=30)
 
-    # Do not use underscores in the plugin name.
-    name='drush',
 
-    version='0.1',
-    author='Tamir Korem',
-    author_email='tamir@gigaspaces.com',
-    description='A Drush workflow',
-
-    # This must correspond to the actual packages in the plugin.
-    packages=['drush'],
-
-    license='LICENSE',
-    zip_safe=False,
-    install_requires=[
-        # Necessary dependency for developing plugins, do not remove!
-        "cloudify-plugins-common==3.2a8"
-    ]
-)
+def tearDown():
+    teardown()

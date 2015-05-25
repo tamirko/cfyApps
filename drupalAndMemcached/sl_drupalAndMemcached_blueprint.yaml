@@ -1,10 +1,10 @@
 tosca_definitions_version: cloudify_dsl_1_0
 
 imports:
-  - http://www.getcloudify.org/spec/cloudify/3.1/types.yaml
-  - http://www.getcloudify.org/spec/diamond-plugin/1.1/plugin.yaml
-  - https://raw.githubusercontent.com/cloudify-cosmo/cloudify-softlayer-plugin/widget/plugin.yaml
-  - http://www.getcloudify.org/spec/fabric-plugin/1.1/plugin.yaml 
+  - http://www.getcloudify.org/spec/cloudify/3.2m8/types.yaml
+  - http://www.getcloudify.org/spec/diamond-plugin/1.2m8/plugin.yaml
+  - plugins/softlayer-plugin/plugin.yaml
+  - http://www.getcloudify.org/spec/fabric-plugin/1.2m8/plugin.yaml 
 
 inputs:
   docRoot:
@@ -55,13 +55,13 @@ inputs:
     default:  ['']
   private_vlan:
     default: ''
-    # 5078541  935   ams01  NULL  13  0  0  0  No
-    # 5088822  1823  sjc01  NULL  29  0  0  0  No
-    # 5656743  993   hkg02  hkg02.bcr01a.993
-    # 7416864  1101  sjc01  NULL  13  0  1  0  No	
+    # 507854  935   ams01  NULL  13  0  0  0  No
+    # 508882  1823  sjc01  NULL  29  0  0  0  No
+    # 565674  993   hkg02  hkg02.bcr01a.993
+    # 741686  1101  sjc01  NULL  13  0  1  0  No	
   public_vlan:
     default: ''
-    # 4864545 # Public VLAN 862 on fcr01a.hkg02
+    # 486454 # Public VLAN 862 on fcr01a.hkg02
   additional_ids:
     default: [
     # 397

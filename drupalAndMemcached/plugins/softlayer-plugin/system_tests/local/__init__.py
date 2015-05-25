@@ -12,29 +12,3 @@
 #    * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #    * See the License for the specific language governing permissions and
 #    * limitations under the License.
-
-
-from setuptools import setup
-
-# Replace the place holders with values for your project
-
-setup(
-
-    # Do not use underscores in the plugin name.
-    name='drush',
-
-    version='0.1',
-    author='Tamir Korem',
-    author_email='tamir@gigaspaces.com',
-    description='A Drush workflow',
-
-    # This must correspond to the actual packages in the plugin.
-    packages=['drush'],
-
-    license='LICENSE',
-    zip_safe=False,
-    install_requires=[
-        # Necessary dependency for developing plugins, do not remove!
-        "cloudify-plugins-common==3.2a8"
-    ]
-)

@@ -1,9 +1,9 @@
 {
-    "username": "SL_USER_NAME",
-    "api_key":  "SL_API_KEY",
+    "username": "REPLACE_WITH_SL_ACCOUNT_USER_NAME",
+    "api_key":  "REPLACE_WITH_SL_ACCOUNT_API_KEY",
     "endpoint_url": "",
     "location": "352494",
-    "domain": "cfy.ENV.mngr",
+    "domain": "cfy.vm",
     "ram": 1155,
     "cpu": 860,
     "disk": 865,
@@ -12,17 +12,11 @@
     "image_template_id": "",
     "private_network_only": false,
     "port_speed": 188,
-    "private_vlan": "565674",
+    "private_vlan": "REPLACE_WITH_SL_PRIVATE_VLAN",
     "public_vlan": "",
     "provision_scripts": [],
-    "ssh_keys": [144652],
-    "ssh_key_filename": "/root/.ssh/agent_key.pem",
-    "port": 8080,
-    "download_path": "http://repository.cloudifysource.org/org/apache/tomcat/7.0.23/apache-tomcat-7.0.23.zip",
-    "war_url": "https://repository.cloudifysource.org/org/cloudifysource/examples/helloworld/helloworld.war",
-    "war_filename": "helloworld.war",
-    "tomcat_version": "apache-tomcat-7.0.23",
-    "java_url": "http://repository.cloudifysource.org/com/oracle/java/1.6.0_32/jdk-6u32-linux-x64.bin",
-    "application_name": "helloworld"	
+    "additional_ids": [],
+    "ssh_keys": [REPLACE_WITH_SL_PRIVATE_KEY],
+    "ssh_key_filename": "~/.ssh/id_rsa"
 }
 
