@@ -22,6 +22,9 @@ inputs:
     type: string
   jboss_agent_user:
     type: string
+  jboss_security_group:
+    type: string
+    default: 'jboss_security_group'
 
 node_types:
   JBossApplicationServer:
@@ -94,7 +97,7 @@ node_templates:
     type: cloudify.openstack.nodes.SecurityGroup
     properties:
       security_group:
-        name: jboss_security_group
+        name: { get_input: jboss_security_group }
       rules:
         - remote_ip_prefix: 0.0.0.0/0
           port: { get_property: [ JBoss-Server, JBoss_port ] }
