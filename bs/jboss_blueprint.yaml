@@ -1,0 +1,135 @@
+tosca_definitions_version: cloudify_dsl_1_2
+imports:
+  - 'http://www.getcloudify.org/spec/cloudify/3.3.1/types.yaml'
+  - 'http://www.getcloudify.org/spec/openstack-plugin/1.3.1/plugin.yaml'
+  - 'http://www.getcloudify.org/spec/fabric-plugin/1.3.1/plugin.yaml'
+  - 'http://www.getcloudify.org/spec/diamond-plugin/1.3.1/plugin.yaml'
+
+
+inputs:
+  JBoss_download_url:
+    type: string
+    default: 'http://download.jboss.org/jbossas/7.1/jboss-as-7.1.1.Final/jboss-as-7.1.1.Final.zip'
+  java_rpm_url:
+    type: string
+    default: 'https://dl.dropboxusercontent.com/u/58809323/jre-7u80-linux-x64.rpm'
+  application_war_url:
+    type: string
+    default: 'http://gigaspaces-repository-eu.s3.amazonaws.com/org/cloudify3/examples/helloworld.war'
+  jboss_vm_image:
+    type: string
+  jboss_vm_flavor:
+    type: string
+  jboss_agent_user:
+    type: string
+
+node_types:
+  JBossApplicationServer:
+    derived_from: cloudify.nodes.ApplicationServer
+    properties:
+      JBoss_download_url:
+        type: string
+      java_rpm_url:
+        type: string
+      application_war_url:
+        type: string
+      JBoss_port:
+        type: integer
+        default: 8080
+
+node_templates:
+  JBoss-VM:
+    type: cloudify.openstack.nodes.Server
+    instances:
+      deploy: 1
+    properties:
+      cloudify_agent:
+        user: { get_input: jboss_agent_user }
+      server:
+        image: { get_input: jboss_vm_image }
+        flavor: { get_input: jboss_vm_flavor }
+    interfaces:
+      ###########################################################
+      # We are infact telling cloudify to install a diamond
+      # monitoring agent on the server.
+      #
+      # (see https://github.com/BrightcoveOS/Diamond)
+      ###########################################################
+      cloudify.interfaces.monitoring_agent:
+        install:
+          implementation: diamond.diamond_agent.tasks.install
+          inputs:
+            diamond_config:
+              interval: 1
+        start: diamond.diamond_agent.tasks.start
+        stop: diamond.diamond_agent.tasks.stop
+        uninstall: diamond.diamond_agent.tasks.uninstall
+      cloudify.interfaces.monitoring:
+        start:
+          implementation: diamond.diamond_agent.tasks.add_collectors
+          inputs:
+            collectors_config:
+                CPUCollector: {}
+                MemoryCollector: {}
+                LoadAverageCollector: {}
+                DiskUsageCollector:
+                  config:
+                    devices: x?vd[a-z]+[0-9]*$
+                NetworkCollector: {}
+    relationships:
+      ###########################################################
+      # Attaching an ip address to the JBoss-VM
+      ###########################################################
+      - target: JBoss_ip
+        type: cloudify.openstack.server_connected_to_floating_ip
+
+      ###########################################################
+      # Attaching the JBoss_security_group to
+      # the JBoss-VM
+      ###########################################################
+      - target: JBoss_security_group
+        type: cloudify.openstack.server_connected_to_security_group
+
+  JBoss_security_group:
+    type: cloudify.openstack.nodes.SecurityGroup
+    properties:
+      security_group:
+        name: jboss_security_group
+      rules:
+        - remote_ip_prefix: 0.0.0.0/0
+          port: { get_property: [ JBoss-Server, JBoss_port ] }
+        - remote_ip_prefix: 0.0.0.0/0
+          port: 9990
+        - remote_ip_prefix: 0.0.0.0/0
+          port: 22
+        - remote_ip_prefix: 0.0.0.0/0
+          port: 80
+
+  JBoss_ip:
+    type: cloudify.openstack.nodes.FloatingIP
+
+
+  JBoss-Server:
+    type: JBossApplicationServer
+    instances:
+      deploy: 1
+    properties:
+      JBoss_download_url: { get_input: JBoss_download_url}
+      java_rpm_url: { get_input: java_rpm_url}
+      application_war_url: { get_input: application_war_url}
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: JBoss-VM
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        configure: scripts/configureJBoss.sh
+        start: scripts/startJBoss.sh
+        stop: scripts/stopJBoss.sh
+
+outputs:
+  endpoint:
+    description: Application endpoint
+    value:
+      ip_address: { get_attribute: [ JBoss_ip, floating_ip_address ] }
+      port: { get_property: [ JBoss-Server, JBoss_port ] }
+      url: { concat: ['http://', { get_attribute: [JBoss_ip, floating_ip_address] },':', { get_property: [JBoss-Server, JBoss_port] }] }
