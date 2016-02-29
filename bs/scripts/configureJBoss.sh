@@ -51,7 +51,7 @@ fi
 
 application_war_url=$(ctx node properties application_war_url)
 ctx logger info "application_war_url is $application_war_url"
-war_filename=$(basename "application_war_url")
+war_filename=$(basename "$application_war_url")
 wget ${application_war_url}
 deployments_folder=$jbossHomeDir/standalone/deployments/
 ctx logger info "Moving $war_filename to ${deployments_folder} ..."

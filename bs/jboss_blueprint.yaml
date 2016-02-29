@@ -12,7 +12,7 @@ inputs:
     default: 'http://download.jboss.org/jbossas/7.1/jboss-as-7.1.1.Final/jboss-as-7.1.1.Final.zip'
   java_rpm_url:
     type: string
-    default: 'https://dl.dropboxusercontent.com/u/58809323/jre-7u80-linux-x64.rpm'
+    default: 'http://gigaspaces-repository-eu.s3.amazonaws.com/org/cloudify3/components/jre-7u80-linux-x64.rpm'
   application_war_url:
     type: string
     default: 'http://gigaspaces-repository-eu.s3.amazonaws.com/org/cloudify3/examples/helloworld.war'
