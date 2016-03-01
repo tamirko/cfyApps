@@ -1,0 +1,9 @@
+jenkins_vm_image: '6c3047c6-17b1-4aaf-a657-9229bb481e50'
+jenkins_vm_flavor: '196235bc-7ca5-4085-ac81-7e0242bda3f9'
+jenkins_agent_user: ubuntu
+jenkins_user_first_name: 'REPLACE_WITH_JENKINS_USER_FIRST_NAME'     
+jenkins_user_name: 'REPLACE_WITH_JENKINS_USER_NAME'
+jenkins_to_email: 'REPLACE_WITH_JENKINS_TO_EMAIL'
+jenkins_user_passw: '1234'
+build_script: 'build.sh'
+     

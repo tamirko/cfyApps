@@ -1,0 +1,18 @@
+{
+    "endpoint_url": "",
+    "location": "352494",
+    "domain": "cfy.REPLACE_WITH_MID_DOMAIN_NAME.org",
+    "ram": 1155,
+    "cpu": 860,
+    "disk": 865,
+    "os": 4174,
+    "image_template_global_id": "",
+    "image_template_id": "",
+    "private_network_only": false,
+    "port_speed": 188,
+    "private_vlan": "REPLACE_WITH_VLAN_ITEM_ID",
+    "public_vlan": "",
+    "provision_scripts": [],
+    "ssh_keys": REPLACE_WITH_SSH_SL_ITEM_ID,
+    "ssh_key_filename": "/root/.ssh/agent_key.pem"
+}

@@ -1,0 +1,170 @@
+tosca_definitions_version: cloudify_dsl_1_2
+imports:
+  - 'http://www.getcloudify.org/spec/cloudify/3.3.1/types.yaml'
+  - 'http://www.getcloudify.org/spec/openstack-plugin/1.3.1/plugin.yaml'
+  - 'http://www.getcloudify.org/spec/fabric-plugin/1.3.1/plugin.yaml'
+  - 'http://www.getcloudify.org/spec/diamond-plugin/1.3.1/plugin.yaml'
+
+inputs:
+  jenkins_vm_image:
+    type: string
+  jenkins_vm_flavor:
+    type: string
+  jenkins_agent_user:
+    type: string
+  jenkins_security_group:
+    type: string
+    default: 'jenkins_security_group'
+  jenkins_user_first_name:
+    type: 'string'
+  jenkins_user_name:
+    type: 'string'
+  jenkins_user_passw:
+    type: 'string'
+  jenkins_to_email:
+    type: 'string'
+  build_script:
+    type: 'string'
+
+node_types:
+  JenkinsServer:
+    derived_from: cloudify.nodes.WebServer
+    properties:
+      num_instances:
+        description: Number of instances
+        type: integer
+      jenkins_port:
+        type: integer
+        default: 8080
+      jenkins_user_first_name:
+        default: { get_input: jenkins_user_first_name }
+      jenkins_user_name:
+        default: { get_input: jenkins_user_name }
+      jenkins_user_passw:
+        default: { get_input: jenkins_user_passw }
+      jenkins_to_email:
+        default: { get_input: jenkins_to_email }
+      build_script:
+        default: { get_input: build_script }
+
+  jenkins_cfy_cli:
+    derived_from: cloudify.nodes.ApplicationModule
+    properties:
+      num_instances:
+        description: Number of instances
+        type: integer
+      build_environments:
+        default: { get_input: build_environments }
+      cfy_managers:
+        default: { get_input: cfy_managers }
+
+node_templates:
+  Jenkins-VM:
+    type: cloudify.openstack.nodes.Server
+    instances:
+      deploy: 1
+    properties:
+      cloudify_agent:
+        user: { get_input: jenkins_agent_user }
+      server:
+        image: { get_input: jenkins_vm_image }
+        flavor: { get_input: jenkins_vm_flavor }
+    interfaces:
+      ###########################################################
+      # We are infact telling cloudify to install a diamond
+      # monitoring agent on the server.
+      #
+      # (see https://github.com/BrightcoveOS/Diamond)
+      ###########################################################
+      cloudify.interfaces.monitoring_agent:
+        install:
+          implementation: diamond.diamond_agent.tasks.install
+          inputs:
+            diamond_config:
+              interval: 1
+        start: diamond.diamond_agent.tasks.start
+        stop: diamond.diamond_agent.tasks.stop
+        uninstall: diamond.diamond_agent.tasks.uninstall
+      cloudify.interfaces.monitoring:
+        start:
+          implementation: diamond.diamond_agent.tasks.add_collectors
+          inputs:
+            collectors_config:
+                CPUCollector: {}
+                MemoryCollector: {}
+                LoadAverageCollector: {}
+                DiskUsageCollector:
+                  config:
+                    devices: x?vd[a-z]+[0-9]*$
+                NetworkCollector: {}
+    relationships:
+      ###########################################################
+      # Attaching an ip address to the Jenkins-VM
+      ###########################################################
+      - target: Jenkins_ip
+        type: cloudify.openstack.server_connected_to_floating_ip
+
+      ###########################################################
+      # Attaching the Jenkins_security_group to
+      # the Jenkins-VM
+      ###########################################################
+      - target: Jenkins_security_group
+        type: cloudify.openstack.server_connected_to_security_group
+
+
+  Jenkins_security_group:
+    type: cloudify.openstack.nodes.SecurityGroup
+    properties:
+      security_group:
+        name: { get_input: jenkins_security_group }
+      rules:
+        - remote_ip_prefix: 0.0.0.0/0
+          port: 8080
+        - remote_ip_prefix: 0.0.0.0/0
+          port: 8081
+        - remote_ip_prefix: 0.0.0.0/0
+          port: 22
+        - remote_ip_prefix: 0.0.0.0/0
+          port: 80
+
+
+  Jenkins_ip:
+    type: cloudify.openstack.nodes.FloatingIP
+
+  JenkinsApplication:
+    type: JenkinsServer
+    properties:
+      num_instances: 1      
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create: scripts/installJenkins.sh
+        configure: scripts/configureJenkins.sh
+        start: scripts/startJenkins.sh
+        stop: scripts/stopJenkins.sh
+        delete: scripts/uninstallJenkins.sh
+      jenkins.interfaces.action:
+        jenkins_cmd: scripts/run-jenkins-cmd.sh
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: Jenkins-VM
+
+plugins:
+   jenkins-cli:
+      executor: central_deployment_agent
+      source: jenkins-cli-plugin
+
+workflows:
+   jenkins_cmd:
+      mapping: jenkins-cli.jenkinscmd.tasks.jenkins_run_cmd
+      parameters:
+        cmd_name: {}
+        arg_value: {}
+        key1_name: {}
+        key1_value: {}
+
+outputs:
+  endpoint:
+    description: My application endpoint
+    value:
+      jenkins_public_ip: { get_attribute: [ Jenkins_ip, floating_ip_address ] }
+      url: { concat: ['http://', { get_attribute: [Jenkins_ip, floating_ip_address] },':', { get_property: [JenkinsApplication, jenkins_port] }] }
