@@ -11,7 +11,7 @@ currentDate=`date`
 msgID=`date|md5sum|cut -c -10`
 currMsgFile=my${msgID}.msg
 cp ~/my.msg $currMsgFile
-sed -i -e "s/REPLACE_WITH_SUBJECT/Jenkins started $currentDate/g" $currMsgFile
+sed -i -e "s/REPLACE_WITH_SUBJECT/Jenkins started $currentDate - on $currHostName/g" $currMsgFile
 sed -i -e "s/REPLACE_WITH_BODY/Jenkins is now ready for action\nHave fun/g" $currMsgFile
 
 ctx logger info "${currHostName}:${currFilename} Sending an email from Jenkins (Jenkins started)..."

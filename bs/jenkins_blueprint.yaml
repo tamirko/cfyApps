@@ -12,8 +12,8 @@ inputs:
     type: string
   jenkins_agent_user:
     type: string
-  jenkins_security_group:
     type: string
+  jenkins_security_group:
     default: 'jenkins_security_group'
   jenkins_user_first_name:
     type: 'string'
@@ -167,4 +167,4 @@ outputs:
     description: My application endpoint
     value:
       jenkins_public_ip: { get_attribute: [ Jenkins_ip, floating_ip_address ] }
-      url: { concat: ['http://', { get_attribute: [Jenkins_ip, floating_ip_address] },':', { get_property: [JenkinsApplication, jenkins_port] }] }
+      jenkins_url: { concat: ['http://', { get_attribute: [Jenkins_ip, floating_ip_address] },':', { get_property: [JenkinsApplication, jenkins_port] }] }

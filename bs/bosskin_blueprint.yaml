@@ -1,0 +1,412 @@
+tosca_definitions_version: cloudify_dsl_1_2
+imports:
+  - 'http://www.getcloudify.org/spec/cloudify/3.3.1/types.yaml'
+  - 'http://www.getcloudify.org/spec/openstack-plugin/1.3.1/plugin.yaml'
+  - 'http://www.getcloudify.org/spec/fabric-plugin/1.3.1/plugin.yaml'
+  - 'http://www.getcloudify.org/spec/diamond-plugin/1.3.1/plugin.yaml'
+
+inputs:
+  jenkins_vm_image:
+    type: string
+  jenkins_vm_flavor:
+    type: string
+  jenkins_agent_user:
+    type: string
+  jenkins_security_group:
+    type: string
+    default: 'jenkins_security_group'
+  jenkins_user_first_name:
+    type: 'string'
+  jenkins_user_name:
+    type: 'string'
+  jenkins_user_passw:
+    type: 'string'
+  jenkins_to_email:
+    type: 'string'
+  build_script:
+    type: 'string'
+  JBoss_download_url:
+    type: string
+    default: 'http://download.jboss.org/jbossas/7.1/jboss-as-7.1.1.Final/jboss-as-7.1.1.Final.zip'
+  java_rpm_url:
+    type: string
+    default: 'http://gigaspaces-repository-eu.s3.amazonaws.com/org/cloudify3/components/jre-7u80-linux-x64.rpm'
+  application_war_url:
+    type: string
+    default: 'http://gigaspaces-repository-eu.s3.amazonaws.com/org/cloudify3/examples/helloworld.war'
+  jboss_vm_image:
+    type: string
+  jboss_vm_flavor:
+    type: string
+  jboss_agent_user:
+    type: string
+  jboss_security_group:
+    type: string
+    default: 'jboss_security_group'
+
+node_types:
+  JenkinsServer:
+    derived_from: cloudify.nodes.WebServer
+    properties:
+      num_instances:
+        description: Number of instances
+        type: integer
+      jenkins_port:
+        type: integer
+        default: 8080
+      jenkins_user_first_name:
+        default: { get_input: jenkins_user_first_name }
+      jenkins_user_name:
+        default: { get_input: jenkins_user_name }
+      jenkins_user_passw:
+        default: { get_input: jenkins_user_passw }
+      jenkins_to_email:
+        default: { get_input: jenkins_to_email }
+      build_script:
+        default: { get_input: build_script }
+
+  jenkins_cfy_cli:
+    derived_from: cloudify.nodes.ApplicationModule
+    properties:
+      num_instances:
+        description: Number of instances
+        type: integer
+      build_environments:
+        default: { get_input: build_environments }
+      cfy_managers:
+        default: { get_input: cfy_managers }
+
+  JBossApplicationServer:
+    derived_from: cloudify.nodes.ApplicationServer
+    properties:
+      JBoss_download_url:
+        type: string
+      java_rpm_url:
+        type: string
+      application_war_url:
+        type: string
+      JBoss_port:
+        type: integer
+        default: 8080
+
+  P4S_ITEMS:
+    derived_from: cloudify.nodes.SoftwareComponent
+    properties:
+      item1:
+        type: string
+
+node_templates:
+  Jenkins-VM:
+    type: cloudify.openstack.nodes.Server
+    instances:
+      deploy: 1
+    properties:
+      cloudify_agent:
+        user: { get_input: jenkins_agent_user }
+      server:
+        image: { get_input: jenkins_vm_image }
+        flavor: { get_input: jenkins_vm_flavor }
+    interfaces:
+      ###########################################################
+      # We are infact telling cloudify to install a diamond
+      # monitoring agent on the server.
+      #
+      # (see https://github.com/BrightcoveOS/Diamond)
+      ###########################################################
+      cloudify.interfaces.monitoring_agent:
+        install:
+          implementation: diamond.diamond_agent.tasks.install
+          inputs:
+            diamond_config:
+              interval: 1
+        start: diamond.diamond_agent.tasks.start
+        stop: diamond.diamond_agent.tasks.stop
+        uninstall: diamond.diamond_agent.tasks.uninstall
+      cloudify.interfaces.monitoring:
+        start:
+          implementation: diamond.diamond_agent.tasks.add_collectors
+          inputs:
+            collectors_config:
+                CPUCollector: {}
+                MemoryCollector: {}
+                LoadAverageCollector: {}
+                DiskUsageCollector:
+                  config:
+                    devices: x?vd[a-z]+[0-9]*$
+                NetworkCollector: {}
+    relationships:
+      ###########################################################
+      # Attaching an ip address to the Jenkins-VM
+      ###########################################################
+      - target: Jenkins_ip
+        type: cloudify.openstack.server_connected_to_floating_ip
+
+      ###########################################################
+      # Attaching the Jenkins_security_group to
+      # the Jenkins-VM
+      ###########################################################
+      - target: Jenkins_security_group
+        type: cloudify.openstack.server_connected_to_security_group
+
+
+  Jenkins_security_group:
+    type: cloudify.openstack.nodes.SecurityGroup
+    properties:
+      security_group:
+        name: { get_input: jenkins_security_group }
+      rules:
+        - remote_ip_prefix: 0.0.0.0/0
+          port: 8080
+        - remote_ip_prefix: 0.0.0.0/0
+          port: 8081
+        - remote_ip_prefix: 0.0.0.0/0
+          port: 22
+        - remote_ip_prefix: 0.0.0.0/0
+          port: 80
+
+
+  Jenkins_ip:
+    type: cloudify.openstack.nodes.FloatingIP
+
+  JenkinsApplication:
+    type: JenkinsServer
+    properties:
+      num_instances: 1      
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create: scripts/installJenkins.sh
+        configure: scripts/configureJenkins.sh
+        start: scripts/startJenkins.sh
+        stop: scripts/stopJenkins.sh
+        delete: scripts/uninstallJenkins.sh
+      jenkins.interfaces.action:
+        jenkins_cmd: scripts/run-jenkins-cmd.sh
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: Jenkins-VM
+
+  PRE_HOST:
+    type: cloudify.openstack.nodes.Server
+    instances:
+      deploy: 1
+    properties:
+      cloudify_agent:
+        user: { get_input: jboss_agent_user }
+      server:
+        image: { get_input: jboss_vm_image }
+        flavor: { get_input: jboss_vm_flavor }
+    interfaces:
+      ###########################################################
+      # We are infact telling cloudify to install a diamond
+      # monitoring agent on the server.
+      #
+      # (see https://github.com/BrightcoveOS/Diamond)
+      ###########################################################
+      cloudify.interfaces.monitoring_agent:
+        install:
+          implementation: diamond.diamond_agent.tasks.install
+          inputs:
+            diamond_config:
+              interval: 1
+        start: diamond.diamond_agent.tasks.start
+        stop: diamond.diamond_agent.tasks.stop
+        uninstall: diamond.diamond_agent.tasks.uninstall
+      cloudify.interfaces.monitoring:
+        start:
+          implementation: diamond.diamond_agent.tasks.add_collectors
+          inputs:
+            collectors_config:
+                CPUCollector: {}
+                MemoryCollector: {}
+                LoadAverageCollector: {}
+                DiskUsageCollector:
+                  config:
+                    devices: x?vd[a-z]+[0-9]*$
+                NetworkCollector: {}
+    relationships:
+      ###########################################################
+      # Attaching an ip address to the PRE_HOST
+      ###########################################################
+      - target: PRE_HOST_ip
+        type: cloudify.openstack.server_connected_to_floating_ip
+
+      ###########################################################
+      # Attaching the JBoss_security_group to
+      # the PRE_HOST
+      ###########################################################
+      - target: PRE_HOST_security_group
+        type: cloudify.openstack.server_connected_to_security_group
+
+  PRE_HOST_security_group:
+    type: cloudify.openstack.nodes.SecurityGroup
+    properties:
+      security_group:
+        name: { get_input: jboss_security_group }
+      rules:
+        - remote_ip_prefix: 0.0.0.0/0
+          port: { get_property: [ AFP_PRESENTATION, JBoss_port ] }
+        - remote_ip_prefix: 0.0.0.0/0
+          port: 9990
+        - remote_ip_prefix: 0.0.0.0/0
+          port: 22
+        - remote_ip_prefix: 0.0.0.0/0
+          port: 80
+
+  PRE_HOST_ip:
+    type: cloudify.openstack.nodes.FloatingIP
+
+
+  AFP_PRESENTATION:
+    type: JBossApplicationServer
+    instances:
+      deploy: 1
+    properties:
+      JBoss_download_url: { get_input: JBoss_download_url}
+      java_rpm_url: { get_input: java_rpm_url}
+      application_war_url: { get_input: application_war_url}
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: PRE_HOST
+      - target: JenkinsApplication
+        type: cloudify.relationships.connected_to
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        configure: scripts/configureJBoss.sh
+        start: scripts/startJBoss.sh
+        stop: scripts/stopJBoss.sh
+
+
+  PRE_AGENTS:
+    type: P4S_ITEMS
+    instances:
+      deploy: 1
+    properties:
+      item1: 'dummyValue1'
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: PRE_HOST
+
+  APP_HOST:
+    type: cloudify.openstack.nodes.Server
+    instances:
+      deploy: 1
+    properties:
+      cloudify_agent:
+        user: { get_input: jboss_agent_user }
+      server:
+        image: { get_input: jboss_vm_image }
+        flavor: { get_input: jboss_vm_flavor }
+    interfaces:
+      ###########################################################
+      # We are infact telling cloudify to install a diamond
+      # monitoring agent on the server.
+      #
+      # (see https://github.com/BrightcoveOS/Diamond)
+      ###########################################################
+      cloudify.interfaces.monitoring_agent:
+        install:
+          implementation: diamond.diamond_agent.tasks.install
+          inputs:
+            diamond_config:
+              interval: 1
+        start: diamond.diamond_agent.tasks.start
+        stop: diamond.diamond_agent.tasks.stop
+        uninstall: diamond.diamond_agent.tasks.uninstall
+      cloudify.interfaces.monitoring:
+        start:
+          implementation: diamond.diamond_agent.tasks.add_collectors
+          inputs:
+            collectors_config:
+                CPUCollector: {}
+                MemoryCollector: {}
+                LoadAverageCollector: {}
+                DiskUsageCollector:
+                  config:
+                    devices: x?vd[a-z]+[0-9]*$
+                NetworkCollector: {}
+    relationships:
+      ###########################################################
+      # Attaching an ip address to the APP_HOST
+      ###########################################################
+      - target: APP_HOST_ip
+        type: cloudify.openstack.server_connected_to_floating_ip
+
+      ###########################################################
+      # Attaching the JBoss_security_group to
+      # the APP_HOST
+      ###########################################################
+      - target: APP_HOST_security_group
+        type: cloudify.openstack.server_connected_to_security_group
+
+  APP_HOST_security_group:
+    type: cloudify.openstack.nodes.SecurityGroup
+    properties:
+      security_group:
+        name: { get_input: jboss_security_group }
+      rules:
+        - remote_ip_prefix: 0.0.0.0/0
+          port: { get_property: [ AFP_APPLICATION, JBoss_port ] }
+        - remote_ip_prefix: 0.0.0.0/0
+          port: 9990
+        - remote_ip_prefix: 0.0.0.0/0
+          port: 22
+        - remote_ip_prefix: 0.0.0.0/0
+          port: 80
+
+  APP_HOST_ip:
+    type: cloudify.openstack.nodes.FloatingIP
+
+
+  AFP_APPLICATION:
+    type: JBossApplicationServer
+    instances:
+      deploy: 1
+    properties:
+      JBoss_download_url: { get_input: JBoss_download_url}
+      java_rpm_url: { get_input: java_rpm_url}
+      application_war_url: { get_input: application_war_url}
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: APP_HOST
+      - target: JenkinsApplication
+        type: cloudify.relationships.connected_to
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        configure: scripts/configureJBoss.sh
+        start: scripts/startJBoss.sh
+        stop: scripts/stopJBoss.sh
+
+
+  APP_AGENTS:
+    type: P4S_ITEMS
+    instances:
+      deploy: 1
+    properties:
+      item1: 'dummyValue2'
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: APP_HOST
+
+
+plugins:
+   jenkins-cli:
+      executor: central_deployment_agent
+      source: jenkins-cli-plugin
+
+workflows:
+   jenkins_cmd:
+      mapping: jenkins-cli.jenkinscmd.tasks.jenkins_run_cmd
+      parameters:
+        cmd_name: {}
+        arg_value: {}
+        key1_name: {}
+        key1_value: {}
+
+outputs:
+  endpoint:
+    description: My application endpoint
+    value:
+      jenkins_public_ip: { get_attribute: [ Jenkins_ip, floating_ip_address ] }
+      jenkins_url: { concat: ['http://', { get_attribute: [Jenkins_ip, floating_ip_address] },':', { get_property: [JenkinsApplication, jenkins_port] }] }
+      PRE_HOST_ip_address: { get_attribute: [ PRE_HOST_ip, floating_ip_address ] }
+      APP_HOST_ip_address: { get_attribute: [ APP_HOST_ip, floating_ip_address ] }
