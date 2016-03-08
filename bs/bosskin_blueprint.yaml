@@ -626,18 +626,18 @@ node_templates:
 
 
 plugins:
-   jenkins-cli:
-      executor: central_deployment_agent
-      source: jenkins-cli-plugin
+  jenkins-cli:
+    executor: central_deployment_agent
+    source: jenkins-cli-plugin
 
 workflows:
-   jenkins_cmd:
-      mapping: jenkins-cli.jenkinscmd.tasks.jenkins_run_cmd
-      parameters:
-        cmd_name: {}
-        arg_value: {}
-        key1_name: {}
-        key1_value: {}
+  jenkins_cmd:
+    mapping: jenkins-cli.jenkinscmd.tasks.jenkins_run_cmd
+    parameters:
+      cmd_name: {}
+      arg_value: {}
+      key1_name: {}
+      key1_value: {}
 
 outputs:
   endpoint:

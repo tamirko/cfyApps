@@ -17,7 +17,7 @@ sudo mv $jenkinsConfigXmlPath config.xml
 newUserName=$(ctx node properties jenkins_user_name)
 ctx logger info "${currHostName}:${currFilename} Creating jenkins user (${newUserName})..."
 if [ ! -d "users" ]; then
-  mkdir -p users
+  sudo mkdir -p users
   currStatus=$?
   ctx logger info "${currHostName}:${currFilename} Ran mkdir -p users - Action status is ${currStatus}"
 fi
@@ -26,15 +26,26 @@ cd users
 newUserFirstName=$(ctx node properties jenkins_user_first_name)
 ctx logger info "${currHostName}:${currFilename} newUserFirstName is ${newUserFirstName}" 
 sudo mkdir -p $newUserName
+currStatus=$?
+ctx logger info "${currHostName}:${currFilename} Ran mkdir -p $newUserName - Action status is ${currStatus}"
 cd $newUserName
 
 newUserConfigXml=newuser_config.xml
 ctx logger info "${currHostName}:${currFilename} Downloading ${newUserConfigXml}..."
 newUserConfigXmlPath=$(ctx download-resource "config/${newUserConfigXml}")
+currStatus=$?
+ctx logger info "${currHostName}:${currFilename} Ran ctx download-resource config/${newUserConfigXml} - Action status is ${currStatus}"
 ctx logger info "${currHostName}:${currFilename} newUserConfigXmlPath downloaded to ${newUserConfigXmlPath}"
 sudo mv $newUserConfigXmlPath config.xml
+
 sudo sed -i -e "s/James/$newUserFirstName/g" config.xml
+currStatus=$?
+ctx logger info "${currHostName}:${currFilename} Ran sudo sed -i -e James $newUserFirstName g config.xml - Action status is ${currStatus}"
+
 sudo sed -i -e "s/james/$newUserName/g" config.xml
+currStatus=$?
+ctx logger info "${currHostName}:${currFilename} Ran sudo sed -i -e james $newUserName g config.xml - Action status is ${currStatus}"
+
 cd ../..
 
 export buildScriptName=$(ctx node properties build_script)
