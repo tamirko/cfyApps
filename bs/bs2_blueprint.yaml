@@ -40,12 +40,26 @@ inputs:
     type: string
   jboss_agent_user:
     type: string
-  jboss_security_group_pre:
+  jboss_security_group:
     type: string
-    default: 'jboss_security_group_pre'
-  jboss_security_group_app:
+    default: 'jboss_security_group'
+  medusa_vm_image:
     type: string
-    default: 'jboss_security_group_app'
+  medusa_vm_flavor:
+    type: string
+  medusa_agent_user:
+    type: string
+  medusa_security_group:
+    type: string
+    default: 'medusa_security_group'
+  amq_vm_image:
+    type: string
+  amq_vm_flavor:
+    type: string
+  amq_agent_user:
+    type: string
+  amq_security_group:
+    type: string
 
 
 node_types:
@@ -92,6 +106,33 @@ node_types:
       JBoss_port:
         type: integer
         default: 8080
+
+
+  Medusa:
+    derived_from: cloudify.nodes.ApplicationServer
+    properties:
+      medusa_item:
+        type: string
+      Medusa_port:
+        type: integer
+        default: 80
+
+
+  AMQ:
+    derived_from: cloudify.nodes.SoftwareComponent
+    properties:
+      amq_item:
+        type: string
+      activemq_port:
+        type: integer
+        default: 61616
+
+
+  P4S_ITEMS:
+    derived_from: cloudify.nodes.SoftwareComponent
+    properties:
+      p4s_item:
+        type: string
 
 
 node_templates:
@@ -182,7 +223,7 @@ node_templates:
       jenkins.interfaces.action:
         jenkins_cmd: scripts/run-jenkins-cmd.sh
       file.interfaces.action:
-        createNewFile: scripts/createFile.sh
+        fileutils: scripts/createFile.sh
     relationships:
       - type: cloudify.relationships.contained_in
         target: Jenkins-VM
@@ -243,7 +284,7 @@ node_templates:
     type: cloudify.openstack.nodes.SecurityGroup
     properties:
       security_group:
-        name: { get_input: jboss_security_group_pre }
+        name: { get_input: jboss_security_group }
       rules:
         - remote_ip_prefix: 0.0.0.0/0
           port: { get_property: [ JBOSS_AFP_PRESENTATION, JBoss_port ] }
@@ -271,13 +312,25 @@ node_templates:
         target: PRE_HOST
       - target: JenkinsApplication
         type: cloudify.relationships.connected_to
+      - target: JBOSS_AFP_APPLICATION
+        type: cloudify.relationships.connected_to
     interfaces:
       cloudify.interfaces.lifecycle:
         configure: scripts/configureJBoss.sh
         start: scripts/startJBoss.sh
         stop: scripts/stopJBoss.sh
-      file.interfaces.action:
-        createNewFile: scripts/createFile.sh
+
+
+  PRE_HOST_AGENTS:
+    type: P4S_ITEMS
+    instances:
+      deploy: 1
+    properties:
+      p4s_item: 'dummyP4S_Value1'
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: PRE_HOST
+
 
   APP_HOST:
     type: cloudify.openstack.nodes.Server
@@ -336,7 +389,7 @@ node_templates:
     type: cloudify.openstack.nodes.SecurityGroup
     properties:
       security_group:
-        name: { get_input: jboss_security_group_app }
+        name: { get_input: jboss_security_group }
       rules:
         - remote_ip_prefix: 0.0.0.0/0
           port: { get_property: [ JBOSS_AFP_APPLICATION, JBoss_port ] }
@@ -364,22 +417,224 @@ node_templates:
         target: APP_HOST
       - target: JenkinsApplication
         type: cloudify.relationships.connected_to
+      - target: AFP_AUTHENTICATION
+        type: cloudify.relationships.connected_to
     interfaces:
       cloudify.interfaces.lifecycle:
         configure: scripts/configureJBoss.sh
         start: scripts/startJBoss.sh
         stop: scripts/stopJBoss.sh
       file.interfaces.action:
-        createNewFile: scripts/createFile.sh
+        fileutils: scripts/createFile.sh
+
+
+  JBOSS_AFP_SYNCRONIZATION:
+    type: JBossApplicationServer
+    instances:
+      deploy: 1
+    properties:
+      JBoss_download_url: { get_input: JBoss_download_url}
+      java_rpm_url: { get_input: java_rpm_url}
+      application_war_url: { get_input: application_war_url}
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: APP_HOST
+      - target: JenkinsApplication
+        type: cloudify.relationships.connected_to
+      - target: AFP_ActiveMQ
+        type: cloudify.relationships.connected_to
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        configure: scripts/configureJBoss.sh
+        start: scripts/startJBoss.sh
+        stop: scripts/stopJBoss.sh
+      file.interfaces.action:
+        fileutils: scripts/createFile.sh
+
+
+  APP_HOST_AGENTS:
+    type: P4S_ITEMS
+    instances:
+      deploy: 1
+    properties:
+      p4s_item: 'dummyP4s_Value2'
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: APP_HOST
+
+
+  MED_HOST:
+    type: cloudify.openstack.nodes.Server
+    instances:
+      deploy: 1
+    properties:
+      cloudify_agent:
+        user: { get_input: medusa_agent_user }
+      server:
+        image: { get_input: medusa_vm_image }
+        flavor: { get_input: medusa_vm_flavor }
+    interfaces:
+      ###########################################################
+      # We are infact telling cloudify to install a diamond
+      # monitoring agent on the server.
+      #
+      # (see https://github.com/BrightcoveOS/Diamond)
+      ###########################################################
+      cloudify.interfaces.monitoring_agent:
+        install:
+          implementation: diamond.diamond_agent.tasks.install
+          inputs:
+            diamond_config:
+              interval: 1
+        start: diamond.diamond_agent.tasks.start
+        stop: diamond.diamond_agent.tasks.stop
+        uninstall: diamond.diamond_agent.tasks.uninstall
+      cloudify.interfaces.monitoring:
+        start:
+          implementation: diamond.diamond_agent.tasks.add_collectors
+          inputs:
+            collectors_config:
+                CPUCollector: {}
+                MemoryCollector: {}
+                LoadAverageCollector: {}
+                DiskUsageCollector:
+                  config:
+                    devices: x?vd[a-z]+[0-9]*$
+                NetworkCollector: {}
+    relationships:
+      ###########################################################
+      # Attaching an ip address to the MED_HOST
+      ###########################################################
+      - target: MED_HOST_ip
+        type: cloudify.openstack.server_connected_to_floating_ip
+
+      ###########################################################
+      # Attaching the Medusa_security_group to
+      # the MED_HOST
+      ###########################################################
+      - target: MED_HOST_security_group
+        type: cloudify.openstack.server_connected_to_security_group
+
+
+  MED_HOST_security_group:
+    type: cloudify.openstack.nodes.SecurityGroup
+    properties:
+      security_group:
+        name: { get_input: medusa_security_group }
+      rules:
+        - remote_ip_prefix: 0.0.0.0/0
+          port: { get_property: [ AFP_AUTHENTICATION, Medusa_port ] }
+        - remote_ip_prefix: 0.0.0.0/0
+          port: 9990
+        - remote_ip_prefix: 0.0.0.0/0
+          port: 22
+        - remote_ip_prefix: 0.0.0.0/0
+          port: 80
+
+
+  MED_HOST_ip:
+    type: cloudify.openstack.nodes.FloatingIP
+
+
+  AFP_AUTHENTICATION:
+    type: Medusa
+    instances:
+      deploy: 1
+    properties:
+      medusa_item: 'dummy_medusa_item'
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: MED_HOST
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        configure: scripts/configureMedusa.sh
+        start: scripts/startMedusa.sh
+        stop: scripts/stopMedusa.sh
+
+
+  AMQ_HOST:
+    type: cloudify.openstack.nodes.Server
+    instances:
+      deploy: 1
+    properties:
+      cloudify_agent:
+        user: { get_input: amq_agent_user }
+      server:
+        image: { get_input: amq_vm_image }
+        flavor: { get_input: amq_vm_flavor }
+    interfaces:
+      ###########################################################
+      # We are infact telling cloudify to install a diamond
+      # monitoring agent on the server.
+      #
+      # (see https://github.com/BrightcoveOS/Diamond)
+      ###########################################################
+      cloudify.interfaces.monitoring_agent:
+        install:
+          implementation: diamond.diamond_agent.tasks.install
+          inputs:
+            diamond_config:
+              interval: 1
+        start: diamond.diamond_agent.tasks.start
+        stop: diamond.diamond_agent.tasks.stop
+        uninstall: diamond.diamond_agent.tasks.uninstall
+      cloudify.interfaces.monitoring:
+        start:
+          implementation: diamond.diamond_agent.tasks.add_collectors
+          inputs:
+            collectors_config:
+                CPUCollector: {}
+                MemoryCollector: {}
+                LoadAverageCollector: {}
+                DiskUsageCollector:
+                  config:
+                    devices: x?vd[a-z]+[0-9]*$
+                NetworkCollector: {}
+    relationships:
+      ###########################################################
+      # Attaching an ip address to the AMQ_HOST
+      ###########################################################
+      - target: AMQ_HOST_ip
+        type: cloudify.openstack.server_connected_to_floating_ip
+
+      ###########################################################
+      # Attaching the JBoss_security_group to
+      # the AMQ_HOST
+      ###########################################################
+      - target: AMQ_HOST_security_group
+        type: cloudify.openstack.server_connected_to_security_group
+
+
+  AMQ_HOST_security_group:
+    type: cloudify.openstack.nodes.SecurityGroup
+    properties:
+      security_group:
+        name: { get_input: amq_security_group }
+      rules:
+        - remote_ip_prefix: 0.0.0.0/0
+          port: { get_property: [ AFP_ActiveMQ, activemq_port ] }
+        - remote_ip_prefix: 0.0.0.0/0
+          port: 22
+
+  AMQ_HOST_ip:
+    type: cloudify.openstack.nodes.FloatingIP
+
+
+  AFP_ActiveMQ:
+    type: AMQ
+    instances:
+      deploy: 1
+    properties:
+      amq_item: 'dummy_amq_item'
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: AMQ_HOST
+
 
 plugins:
   jenkins-cli:
     executor: central_deployment_agent
     source: jenkins-cli-plugin
-  file-plugin:
-    executor: central_deployment_agent
-    source: file-plugin
-
 
 workflows:
   jenkins_cmd:
@@ -389,13 +644,6 @@ workflows:
       arg_value: {}
       key1_name: {}
       key1_value: {}
-  create_new_File:
-    mapping: file-plugin.fileutils.tasks.create_file
-    parameters:
-      file_name: {}
-      input_str: {}
-      input_type: {}
-
 
 outputs:
   endpoint:
@@ -405,3 +653,4 @@ outputs:
       jenkins_url: { concat: ['http://', { get_attribute: [Jenkins_ip, floating_ip_address] },':', { get_property: [JenkinsApplication, jenkins_port] }] }
       PRE_HOST_ip_address: { get_attribute: [ PRE_HOST_ip, floating_ip_address ] }
       APP_HOST_ip_address: { get_attribute: [ APP_HOST_ip, floating_ip_address ] }
+      MEDUSA_HOST_ip_address: { get_attribute: [ MED_HOST_ip, floating_ip_address ] }
