@@ -37,5 +37,25 @@ def create_file(file_name,input_str,input_type,**kwargs):
                 for instance in node.instances:
                     instance.execute_operation("file.interfaces.action.createNewFile",kwargs={'process': {'args': [file_name]}})
 
-
     ctx.logger.info("End of create_file")
+
+
+@workflow
+def run_security_update(security_update_number,input_str,input_type,**kwargs):
+    ctx.logger.info("In run_security_update {}".format(security_update_number))
+    ctx.logger.info("input_str {}".format(input_str))
+    ctx.logger.info("input_type {}".format(input_type))
+    if input_type == 'name':
+        node = ctx.get_node(input_str)
+        ctx.logger.info( "*** run_security_update is about to be performed on node.id {}".format(node.id))
+        for instance in node.instances:
+            instance.execute_operation("file.interfaces.action.runSecurityUpdate",kwargs={'process': {'args': [security_update_number]}})
+    else:
+        for node in ctx.nodes:
+            if input_str == node.type:
+                ctx.logger.info( "*** run_security_update is about to be performed on node.id {}".format(node.id))
+                for instance in node.instances:
+                    instance.execute_operation("file.interfaces.action.runSecurityUpdate",kwargs={'process': {'args': [security_update_number]}})
+
+
+    ctx.logger.info("End of run_security_update")

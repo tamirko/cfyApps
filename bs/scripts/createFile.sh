@@ -5,6 +5,8 @@ currFilename=$(basename "$0")
 currentDate=`date`
 
 ctx logger info "${currHostName}:${currFilename} Start ... "
+DPLID=$(ctx deployment id)
+ctx logger info "${currHostName}:${currFilename} deployment id is ${DPLID}"
 
 export file_name_to_create=$1
 ctx logger info "${currHostName}:${currFilename} About to create ${file_name_to_create} ... "

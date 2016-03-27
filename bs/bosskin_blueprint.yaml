@@ -183,6 +183,7 @@ node_templates:
         jenkins_cmd: scripts/run-jenkins-cmd.sh
       file.interfaces.action:
         createNewFile: scripts/createFile.sh
+        runSecurityUpdate: scripts/performSecurityUpdate.sh
     relationships:
       - type: cloudify.relationships.contained_in
         target: Jenkins-VM
@@ -278,6 +279,7 @@ node_templates:
         stop: scripts/stopJBoss.sh
       file.interfaces.action:
         createNewFile: scripts/createFile.sh
+        runSecurityUpdate: scripts/performSecurityUpdate.sh
 
   APP_HOST:
     type: cloudify.openstack.nodes.Server
@@ -371,6 +373,7 @@ node_templates:
         stop: scripts/stopJBoss.sh
       file.interfaces.action:
         createNewFile: scripts/createFile.sh
+        runSecurityUpdate: scripts/performSecurityUpdate.sh
 
 plugins:
   jenkins-cli:
@@ -393,6 +396,12 @@ workflows:
     mapping: file-plugin.fileutils.tasks.create_file
     parameters:
       file_name: {}
+      input_str: {}
+      input_type: {}
+  security_update:
+    mapping: file-plugin.fileutils.tasks.run_security_update
+    parameters:
+      security_update_number: {}
       input_str: {}
       input_type: {}
 
