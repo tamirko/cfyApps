@@ -1,15 +1,15 @@
-tosca_definitions_version: cloudify_dsl_1_1
+tosca_definitions_version: cloudify_dsl_1_2
 ###########################################################
 # This Blueprint installs the nodecellar application
 # on any cloud environment.**
 ###########################################################
 
 imports:
-  - http://www.getcloudify.org/spec/cloudify/3.2/types.yaml
-  - http://www.getcloudify.org/spec/diamond-plugin/1.2/plugin.yaml
+  - http://www.getcloudify.org/spec/cloudify/3.3.1/types.yaml
+  - http://www.getcloudify.org/spec/diamond-plugin/1.3.1/plugin.yaml
   - types/nodecellar.yaml
   - types/multicloud/aws-ec2-types.yaml
-  # - types/multicloud/openstack-types.yaml
+  - types/multicloud/openstack-types.yaml
   # - types/multicloud/softlayer-types.yaml
   # - types/multicloud/vcloud-types.yaml
   # - types/multicloud/cloudstack-types.yaml
