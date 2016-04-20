@@ -13,6 +13,7 @@ currVenv=/root/${DPLID}/env
 
 sudo crontab -l | grep -v ${currVenv} > ${crontab_file}
 sudo crontab ${crontab_file}
+sudo rm ${crontab_file}
 
 status_code=$?
 ctx logger info "crontab ${crontab_file} status code is ${status_code}"
