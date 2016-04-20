@@ -1,5 +1,7 @@
 #! /bin/bash
 
+current_user=`whoami`
+
 DPLID=$(ctx deployment id)
 read PID < /tmp/pid_file_${DPLID}
 kill -9 $PID
@@ -7,7 +9,7 @@ rm /tmp/pid_file_${DPLID}
 
 # cleanup cron
 crontab_file=/tmp/mycron
-currVenv=~/${DPLID}/env
+currVenv=/home/${current_user}/${DPLID}/env
 
 sudo crontab -l | grep -v ${currVenv} > ${crontab_file}
 sudo crontab ${crontab_file}

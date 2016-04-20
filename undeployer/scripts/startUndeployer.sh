@@ -2,12 +2,14 @@
 
 ctx logger info "Starting $0 ..."
 
+current_user=`whoami`
+
 allowed_days="$(ctx node properties allowed_days)"
 ctx logger info "allowed_days = ${allowed_days}"
 allowed_hours="$(ctx node properties allowed_hours)"
 ctx logger info "allowed_hours = ${allowed_hours}"
 DPLID=$(ctx deployment id)
-currVenv=~/${DPLID}/env
+currVenv=/home/${current_user}/${DPLID}/env
 ctx logger info "deployment_id = ${DPLID}, virtual env is ${currVenv}"
 pipPath=${currVenv}/bin/pip
 
@@ -29,4 +31,4 @@ status_code=$?
 ctx logger info "crontab ${crontab_file} status code is ${status_code}"
 currCrontab=`sudo crontab -l`
 ctx logger info "currCrontab is ${currCrontab}"
-ctx logger info "Done adding the task to the crontab - Starting the healing dog"
+ctx logger info "Done adding the task to the crontab - Starting the undeployer"
