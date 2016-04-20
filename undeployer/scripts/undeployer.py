@@ -54,13 +54,13 @@ def check_deployments(current_deployment_id, allowed_days, allowed_hours):
 def main(argv):
     for i in range(len(argv)):
         print ("argv={0}\n".format(argv[i]))
-    current_deployment_id = argv[0]
+    current_deployment_id = argv[1]
     pid_file = open(PID_FILE_PATH + current_deployment_id, 'w')
     pid_file.write('%i' % getpid())
     pid_file.close()
 
-    allowed_days = argv[1]
-    allowed_hours = argv[2]
+    allowed_days = argv[2]
+    allowed_hours = argv[3]
     check_deployments(current_deployment_id, allowed_days, allowed_hours)
 
 if __name__ == '__main__':
