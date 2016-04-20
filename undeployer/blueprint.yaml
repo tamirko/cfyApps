@@ -35,4 +35,4 @@ node_templates:
       deploy: 1
     relationships:
       - type: cloudify.relationships.contained_in
-        target: UNDEPLOYER_VM
+        target: UNDEP_CONTAINER
