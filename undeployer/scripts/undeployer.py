@@ -8,7 +8,7 @@ from os import path
 import time
 import datetime
 
-LOG_FILE_PATH = '~/undeployer.log'
+LOG_FILE_PATH = '/tmp/undeployer_'
 PID_FILE_PATH = '/tmp/pid_file_'
 
 def get_time_diff(orig_time):
@@ -18,7 +18,7 @@ def get_time_diff(orig_time):
     return time_diff
 
 def check_deployments(current_deployment_id, allowed_days, allowed_hours):
-    log_file = open(LOG_FILE_PATH, 'w')
+    log_file = open(LOG_FILE_PATH + current_deployment_id + '.log', 'w')
     try: 
         log_file.write('check_deployments:\n')
         cloudify_client = CloudifyClient('localhost')
