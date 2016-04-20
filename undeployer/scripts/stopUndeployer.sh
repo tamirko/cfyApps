@@ -9,7 +9,7 @@ rm /tmp/pid_file_${DPLID}
 
 # cleanup cron
 crontab_file=/tmp/mycron
-currVenv=/home/${current_user}/${DPLID}/env
+currVenv=/root/${DPLID}/env
 
 sudo crontab -l | grep -v ${currVenv} > ${crontab_file}
 sudo crontab ${crontab_file}

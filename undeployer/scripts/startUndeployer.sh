@@ -9,7 +9,7 @@ ctx logger info "allowed_days = ${allowed_days}"
 allowed_hours="$(ctx node properties allowed_hours)"
 ctx logger info "allowed_hours = ${allowed_hours}"
 DPLID=$(ctx deployment id)
-currVenv=/home/${current_user}/${DPLID}/env
+currVenv=/root/${DPLID}/env
 ctx logger info "deployment_id = ${DPLID}, virtual env is ${currVenv}"
 pipPath=${currVenv}/bin/pip
 
