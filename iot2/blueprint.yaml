@@ -33,16 +33,10 @@ node_templates:
     type: ROOM
     instances:
       deploy: 1
-    relationships:
-      - type: cloudify.relationships.contained_in
-        target: APARTMENT
   KITCHEN:
     type: ROOM
     instances:
       deploy: 1
-    relationships:
-      - type: cloudify.relationships.contained_in
-        target: APARTMENT
   TV_LIVING_ROOM:
     type: APPLIANCE
     relationships:
@@ -83,9 +77,6 @@ node_templates:
     type: ROOM
     instances:
       deploy: 1
-    relationships:
-      - type: cloudify.relationships.contained_in
-        target: APARTMENT
   TV_BEDROOM:
     type: APPLIANCE
     relationships:
