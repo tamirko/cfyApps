@@ -134,9 +134,6 @@ node_templates:
     type: ROOM
     instances:
       deploy: 1
-    relationships:
-      - type: cloudify.relationships.contained_in
-        target: APARTMENT
   THE_INTERNET:
     type: ROOM
     instances:
