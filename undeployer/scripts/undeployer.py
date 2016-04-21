@@ -7,6 +7,7 @@ from os import getpid
 from os import path
 import time
 import datetime
+from datetime import datetime
 
 LOG_FILE_PATH = '/tmp/undeployer_'
 PID_FILE_PATH = '/tmp/pid_file_'
