@@ -1,0 +1,143 @@
+tosca_definitions_version: cloudify_dsl_1_2
+imports:
+  - 'http://www.getcloudify.org/spec/cloudify/3.3.1/types.yaml'
+  - 'http://www.getcloudify.org/spec/diamond-plugin/1.3.1/plugin.yaml'
+
+node_types:
+  ROOM:
+    derived_from: cloudify.nodes.Compute
+    properties:
+      agent_config:
+        default: {"install_method":"none"}
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create:
+          implementation: scripts/createRoom.sh
+          executor: central_deployment_agent
+        start:
+          implementation: scripts/startRoom.sh
+          executor: central_deployment_agent
+  APPLIANCE:
+    derived_from: cloudify.nodes.Root
+    properties: {}
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        configure:
+          implementation: scripts/createAppliance.sh
+          executor: central_deployment_agent
+        start:
+          implementation: scripts/startAppliance.sh
+          executor: central_deployment_agent
+node_templates:
+  LIVING_ROOM:
+    type: ROOM
+    instances:
+      deploy: 1
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: APARTMENT
+  KITCHEN:
+    type: ROOM
+    instances:
+      deploy: 1
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: APARTMENT
+  TV_LIVING_ROOM:
+    type: APPLIANCE
+    relationships:
+      - type: cloudify.relationships.connected_to
+        target: ELECTRICITY
+      - type: cloudify.relationships.connected_to
+        target: ROUTER
+      - type: cloudify.relationships.contained_in
+        target: LIVING_ROOM
+    instances:
+      deploy: 1
+  FRIDGE:
+    type: APPLIANCE
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: KITCHEN
+      - type: cloudify.relationships.connected_to
+        target: ELECTRICITY
+      - type: cloudify.relationships.connected_to
+        target: ROUTER
+    instances:
+      deploy: 1
+  LAPTOP_LIVING_ROOM:
+    type: APPLIANCE
+    relationships:
+      - type: cloudify.relationships.connected_to
+        target: ELECTRICITY
+      - type: cloudify.relationships.contained_in
+        target: LIVING_ROOM
+      - type: cloudify.relationships.connected_to
+        target: ROUTER
+  ELECTRICITY:
+    type: ROOM
+    instances:
+      deploy: 1
+    relationships: []
+  BEDROOM:
+    type: ROOM
+    instances:
+      deploy: 1
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: APARTMENT
+  TV_BEDROOM:
+    type: APPLIANCE
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: BEDROOM
+      - type: cloudify.relationships.connected_to
+        target: ELECTRICITY
+      - type: cloudify.relationships.connected_to
+        target: ROUTER
+    instances:
+      deploy: 1
+  AIRCONDITION_BEDROOM:
+    type: APPLIANCE
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: BEDROOM
+      - type: cloudify.relationships.connected_to
+        target: ELECTRICITY
+      - type: cloudify.relationships.connected_to
+        target: ROUTER
+    instances:
+      deploy: 1
+  AIRCONDITION_LIVING_ROOM:
+    type: APPLIANCE
+    relationships:
+      - type: cloudify.relationships.connected_to
+        target: ELECTRICITY
+      - type: cloudify.relationships.connected_to
+        target: ROUTER
+      - type: cloudify.relationships.contained_in
+        target: LIVING_ROOM
+    instances:
+      deploy: 1
+  ROUTER:
+    type: APPLIANCE
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: HALL
+      - type: cloudify.relationships.connected_to
+        target: ELECTRICITY
+      - type: cloudify.relationships.connected_to
+        target: THE_INTERNET
+    instances:
+      deploy: 1
+  HALL:
+    type: ROOM
+    instances:
+      deploy: 1
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: APARTMENT
+  THE_INTERNET:
+    type: ROOM
+    instances:
+      deploy: 1

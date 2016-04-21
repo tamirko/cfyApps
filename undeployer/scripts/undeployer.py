@@ -29,7 +29,7 @@ def check_deployments(current_deployment_id, allowed_days, allowed_hours):
             all_executions = cloudify_client.executions.list(deployment_id=deployment_id)
             all_executions_ended = all([str(_e['status']) in Execution.END_STATES for _e in all_executions])
             if all_executions_ended:
-                log_file.write("Deployment {0} has no live executions\ns".format(deployment_id))
+                log_file.write("Deployment {0} has no live executions\n".format(deployment_id))
         
             for execution in all_executions:
                 wf_Id = execution.workflow_id
