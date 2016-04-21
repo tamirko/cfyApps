@@ -23,6 +23,8 @@ def check_deployments(current_deployment_id, allowed_days, allowed_hours):
     try: 
         log_file.write('check_deployments:\n')
         cloudify_client = CloudifyClient('localhost')
+        allowed_seconds = (int(allowed_days) * 86400) + (int(allowed_hours) * 3600) 
+        log_file.write("allowed_days {0}, allowed_hours {1}, allowed_seconds {2}\n".format(allowed_days, allowed_hours, allowed_seconds))
 
         for deployment in cloudify_client.deployments.list():
             deployment_id = deployment.id
@@ -37,10 +39,10 @@ def check_deployments(current_deployment_id, allowed_days, allowed_hours):
                     time_diff = get_time_diff(execution.created_at)
                     days_diff = time_diff.days
                     hours_diff = (time_diff.seconds/3600)
-                    log_file.write('Deployment {0} created_at: {1}, - {2} days and {3} hours ago\n'.format(deployment_id, execution.created_at, days_diff, hours_diff))
-                    allowed_days = 5
-                    allowed_hours = 23
-                    if days_diff > allowed_days or hours_diff > allowed_hours:
+                    seconds_diff = time_diff.total_seconds()
+                    log_file.write('Deployment {0} created_at: {1}, - {2} days and {3} hours ago. A total of {4} seconds\n'.format(deployment_id, execution.created_at, days_diff, hours_diff, seconds_diff))
+                    
+                    if allowed_seconds < seconds_diff:
                         log_file.write("xxxxxxxxxx Killing deployment {0} now ....\n".format(deployment_id))
                     else:
                         log_file.write("Leave deployment {0} alive\n".format(deployment_id))
