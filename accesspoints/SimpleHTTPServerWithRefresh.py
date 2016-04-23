@@ -182,10 +182,12 @@ class SimpleHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         f.write('<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">')
         #f.write("<html>\n<title>Cloudify Deployments %s </title>\n" % displaypath)
         f.write("<html>\n<title>Cloudify Deployments</title>\n")
-        f.write("<body>\n<h2>Cloudify Deployments and Executions</h2>\n")
+        f.write("<body>\n<h2>Cloudify Deployments and Executions v2</h2>\n")
         f.write("<hr>\n<ol>\n")
         
-        cloudify_client = CloudifyClient('185.98.148.83')
+        #cloudify_client = CloudifyClient('185.98.148.83')
+        cloudify_client = CloudifyClient('40.117.99.135')
+        
         for deployment in cloudify_client.deployments.list():
             deployment_id = deployment.id
             f.write("<li><span>{0}</span></li>\n".format(deployment_id))
@@ -198,6 +200,22 @@ class SimpleHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
                 f.write("<li><span>wf_Id {0}, created_at {1}</span></li>\n".format(wf_Id, created_at))
                 #print "  <span>wf_Id {0}, created_at {1}</span>\n".format(wf_Id, created_at)
             f.write("</ul>\n")
+            f.write("<span>--{0}--</span>\n".format('inputs'))
+            current_inputs = cloudify_client.deployments.get(deployment_id)['inputs']
+            if current_inputs:
+                f.write("<hr>\n<ul>\n")
+                for key in current_inputs:
+                    f.write("<li><span>{0}:{1}</span></li>\n".format(key, current_inputs.get(key)))
+                f.write("</ul>\n")
+
+            f.write("<span>--{0}--</span>\n".format('outputs'))
+            current_outputs = cloudify_client.deployments.get(deployment_id)['outputs']
+            if current_outputs:
+                f.write("<hr>\n<ul>\n")
+                for key in current_outputs:
+                    f.write("<li><span>{0}:{1}</span></li>\n".format(key, current_outputs.get(key)))
+                f.write("</ul>\n")
+
 
         f.write("</ol>\n<hr>\n</body>\n</html>\n")
         length = f.tell()
