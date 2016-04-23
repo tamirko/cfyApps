@@ -21,6 +21,8 @@ import cgi
 import shutil
 import mimetypes
 import re
+import datetime
+from datetime import datetime
 from cloudify_rest_client import CloudifyClient
 from cloudify_rest_client.executions import Execution
 try:
@@ -181,12 +183,13 @@ class SimpleHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         f = StringIO()
         f.write('<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">')
         #f.write("<html>\n<title>Cloudify Deployments %s </title>\n" % displaypath)
-        f.write("<html>\n<title>Cloudify Deployments</title>\n")
-        f.write("<body>\n<h2>Cloudify Deployments and Executions v2</h2>\n")
-        f.write("<hr>\n<ol>\n")
+        f.write("<html>")
+        f.write("<head><title>Cloudify Deployments Page</title><meta http-equiv=\"refresh\" content=\"30\"></head>")
+        f.write("<body>\n<h2>Cloudify Deployments and Executions v3 {0}</h2>".format(datetime.now()))
+        f.write("<hr><ol>")
         
-        #cloudify_client = CloudifyClient('185.98.148.83')
-        cloudify_client = CloudifyClient('40.117.99.135')
+        cloudify_client = CloudifyClient('185.98.148.83')
+        #cloudify_client = CloudifyClient('40.117.99.135')
         
         for deployment in cloudify_client.deployments.list():
             deployment_id = deployment.id
@@ -209,7 +212,7 @@ class SimpleHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
                 f.write("</ul>\n")
 
             f.write("<span>--{0}--</span>\n".format('outputs'))
-            current_outputs = cloudify_client.deployments.get(deployment_id)['outputs']
+            current_outputs = cloudify_client.deployments.outputs.get(deployment_id)['outputs']
             if current_outputs:
                 f.write("<hr>\n<ul>\n")
                 for key in current_outputs:
