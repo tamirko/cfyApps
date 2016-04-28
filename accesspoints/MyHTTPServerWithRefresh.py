@@ -48,6 +48,7 @@ class SimpleHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 
     server_version = "SimpleHTTPWithUpload/" + __version__
 
+
     def do_GET(self):
         """Serve a GET request."""
         f = self.send_head()
@@ -206,6 +207,7 @@ class SimpleHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         interface the same as for send_head().
 
         """
+        self.geo_list = []
         f = StringIO()
         f.write('<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">')
         #f.write("<html>\n<title>Cloudify Deployments %s </title>\n" % displaypath)
@@ -216,20 +218,62 @@ class SimpleHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         f.write("<script type=\"text/javascript\" src=\"https://maps.googleapis.com/maps/api/js?sensor=false\"></script>")
         f.write("<script type=\"text/javascript\" src=\"js/map.js\"></script>")
 
+        cloudify_client = CloudifyClient('185.98.148.83')
+        #cloudify_client = CloudifyClient('40.117.99.135')
+        blueprint_id = "accesspoint3"
+        required_inputs = ["longtitude", "altitude"]
+
+        deployment_str = ""
+        deployment_str += "<hr>"
+        deployment_str += "<ol>"
+        for deployment in cloudify_client.deployments.list(blueprint_id=blueprint_id):
+            deployment_id = deployment.id
+            deployment_str += "<li><span>{0}</span></li>\n".format(deployment_id)
+            all_executions = cloudify_client.executions.list(deployment_id=deployment_id)
+            deployment_str += "<hr><ul>"
+            for execution in all_executions:
+                wf_Id = execution.workflow_id
+                created_at = execution.created_at
+                deployment_str += "<li><span>wf_Id {0}, created_at {1}</span></li>\n".format(wf_Id, created_at)
+            deployment_str += "</ul>\n"
+            deployment_str += "<span>--{0}--</span>\n".format('inputs')
+            current_inputs = cloudify_client.deployments.get(deployment_id)['inputs']
+            #if current_inputs:
+            #    deployment_str +="<hr><ul>"
+            #    for key in current_inputs:
+            #        deployment_str += "<li><span>{0}:{1}</span></li>".format(key, current_inputs.get(key))
+            #    deployment_str += "</ul>"
+
+
+            curr_geo = {}
+            for required_input in required_inputs:
+                curr_geo[required_input] = current_inputs[required_input]
+            self.geo_list.append(curr_geo.copy())
+
+            deployment_str += "<span>--{0}--</span>\n".format('outputs')
+            current_outputs = cloudify_client.deployments.outputs.get(deployment_id)['outputs']
+            if current_outputs:
+                deployment_str += "<hr><ul>"
+                for key in current_outputs:
+                    deployment_str += "<li><span>{0}:{1}</span></li>\n".format(key, current_outputs.get(key))
+                    deployment_str += "</ul>\n"
+
+        deployment_str += "</ol><hr>"
+
         f.write("<script>")
         f.write("markersData = [")
         curr_str = ""
-        for curr_index in range(1, 14, 1):
-            name = "my name {0}".format(curr_index)
-            addr1 = "addr1 {0}".format(curr_index)
-            addr2 = "addr2 {0}".format(curr_index)
-            post_code = "po code {0}".format(curr_index)
-            lat = 48.85899+random.random()/2
-            lng = 2.339858+random.random()/2
+        for item in self.geo_list:
+            lat = float(item.get("longtitude"))
+            lng = float(item.get("altitude"))
+            name = "lat,lng {0},{1}".format(lat, lng)
+            addr1 = "addr1 {0}".format(lat)
+            addr2 = "addr2 {0}".format(lat)
+            post_code = "po code {0}".format(lat)
             prefix = "TA {0}".format(lat)
             curr_str += self.get_marker_str(lat, lng, prefix, name, addr1, addr2, post_code)
             curr_str += ","
-        #print curr_str
+
         f.write(curr_str[:-1])
         f.write("];")
         f.write("google.maps.event.addDomListener(window, 'load', initialize);")
@@ -238,43 +282,8 @@ class SimpleHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         f.write("</head>")
         f.write("<body>\n<h2>Cloudify Deployments and Executions v2604 {0}</h2>".format(datetime.now()))
         f.write("<hr>")
-        f.write("<hr>")
-        f.write("<ol>")
 
-
-        cloudify_client = CloudifyClient('185.98.148.83')
-        #cloudify_client = CloudifyClient('40.117.99.135')
-        
-        for deployment in cloudify_client.deployments.list():
-            deployment_id = deployment.id
-            f.write("<li><span>{0}</span></li>\n".format(deployment_id))
-            #print "<span>deployment_id {0}</span>\n".format(deployment_id)
-            all_executions = cloudify_client.executions.list(deployment_id=deployment_id)
-            f.write("<hr>\n<ul>\n")
-            for execution in all_executions:
-                wf_Id = execution.workflow_id
-                created_at = execution.created_at
-                f.write("<li><span>wf_Id {0}, created_at {1}</span></li>\n".format(wf_Id, created_at))
-                #print "  <span>wf_Id {0}, created_at {1}</span>\n".format(wf_Id, created_at)
-            f.write("</ul>\n")
-            f.write("<span>--{0}--</span>\n".format('inputs'))
-            current_inputs = cloudify_client.deployments.get(deployment_id)['inputs']
-            if current_inputs:
-                f.write("<hr>\n<ul>\n")
-                for key in current_inputs:
-                    f.write("<li><span>{0}:{1}</span></li>\n".format(key, current_inputs.get(key)))
-                f.write("</ul>\n")
-
-            f.write("<span>--{0}--</span>\n".format('outputs'))
-            current_outputs = cloudify_client.deployments.outputs.get(deployment_id)['outputs']
-            if current_outputs:
-                f.write("<hr>\n<ul>\n")
-                for key in current_outputs:
-                    f.write("<li><span>{0}:{1}</span></li>\n".format(key, current_outputs.get(key)))
-                f.write("</ul>\n")
-
-
-        f.write("</ol>\n<hr>")
+        f.write(deployment_str)
         f.write("<div id=\"map-canvas\"")
         f.write("</body></html>")
         length = f.tell()

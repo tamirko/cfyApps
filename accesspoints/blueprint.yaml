@@ -18,8 +18,10 @@ node_types:
   OBJECT_NODE:
     derived_from: cloudify.nodes.Root
     properties:
-      longtitude: { get_input: longtitude }
-      altitude: { get_input: altitude }
+      longtitude:
+        type: string
+      altitude:
+        type: string
     interfaces:
       cloudify.interfaces.lifecycle:
         start:
@@ -33,8 +35,11 @@ node_templates:
     type: OBJECT_VM
     instances:
       deploy: 1
-  UNDEPLOYER:
+  OBJECT_NODE:
     type: OBJECT_NODE
+    properties:
+      longtitude: { get_input: longtitude }
+      altitude: { get_input: altitude }
     instances:
       deploy: 1
     relationships:
