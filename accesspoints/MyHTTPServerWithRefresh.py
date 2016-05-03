@@ -218,9 +218,9 @@ class SimpleHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         f.write("<script type=\"text/javascript\" src=\"https://maps.googleapis.com/maps/api/js?sensor=false\"></script>")
         f.write("<script type=\"text/javascript\" src=\"js/map.js\"></script>")
 
-        cloudify_client = CloudifyClient('185.98.148.83')
-        #cloudify_client = CloudifyClient('40.117.99.135')
-        blueprint_id = "accesspoint3"
+        cloudify_client = CloudifyClient('185.43.218.204')
+        #cloudify_client = CloudifyClient('xxxxxxxxxxxx')
+        blueprint_id = "accesspoints"
         required_inputs = ["longtitude", "altitude"]
 
         deployment_str = ""

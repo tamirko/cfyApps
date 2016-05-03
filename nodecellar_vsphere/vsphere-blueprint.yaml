@@ -1,0 +1,194 @@
+tosca_definitions_version: cloudify_dsl_1_2
+
+description: >
+  This Blueprint installs the nodecellar application
+  on an vsphere environment.
+
+imports:
+  - http://www.getcloudify.org/spec/cloudify/3.3.1/types.yaml
+# - http://www.getcloudify.org/spec/vsphere-plugin/1.3.1/plugin.yaml
+  - vsphere-plugin.yaml
+  - http://www.getcloudify.org/spec/diamond-plugin/1.3.1/plugin.yaml
+  - types/healing-types.yaml
+  - types/nodecellar.yaml
+  - types/vsphere-types.yaml
+  - types/haproxy/haproxy.yaml
+  - types/scale/scale.yaml
+
+#####################################################################################
+# inputs section allows the user to use same
+# blueprint for creating different deployments, each one
+# with its own parameters.
+# to specify deployment inputs run:
+#   - cfy deployments create -b <blueprint_id> -d <deployment_id> -i inputs.json
+#####################################################################################
+
+inputs:
+
+  template_name:
+    default: "ubuntu-server-14.04.4-x86_64-LTS-tmpl"
+    description: >
+      Template to clone VMs from
+
+  agent_user:
+    default: "ubuntu"
+    description: >
+      User for connecting to application VMs
+
+  management_network:
+    default: "cfy_mng"
+    description: >
+      Which network to deploy the VM on
+
+  external_network:
+    default: "external"
+    description: >
+      Which network to deploy the VM on
+
+node_templates:
+
+  healing_container:
+    type: cloudify.nodes.Compute
+    properties:
+      agent_config:
+        install_method: none
+
+  nodecellar:
+    type: nodecellar.nodes.NodecellarApplicationModule
+    relationships:
+
+      ################################
+      # Setting the mongo connection
+      ################################
+
+      - type: node_connected_to_mongo
+        target: mongod
+
+      ################################
+      # Setting the nodejs connection
+      ################################
+
+      - type: node_contained_in_nodejs
+        target: nodejs
+
+      ################################
+      # Setting the haproxy connection
+      ################################
+
+      - type: app_connected_to_haproxy
+        target: haproxy
+
+  mongod:
+    type: nodecellar.nodes.MonitoredMongoDatabase
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: mongod_host
+
+  nodejs:
+    type: nodecellar.nodes.NodeJSServer
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: nodejs_host
+
+  healing_dog:
+    type: healing_node_type
+    relationships:
+      - target: mongod_host
+        type: cloudify.relationships.depends_on
+      - target: nodejs_host
+        type: cloudify.relationships.depends_on
+      - target: haproxy_frontend_host
+        type: cloudify.relationships.depends_on
+      - target: healing_container
+        type: cloudify.relationships.contained_in
+    properties:
+      nodes_to_monitor:
+        - mongod_host
+        - nodejs_host
+        - haproxy_frontend_host
+
+  ########################################
+  # Note: only ubuntu haproxy installation
+  # is supported.
+  ########################################
+
+  haproxy:
+    type: nodecellar.nodes.MonitoredHAProxy
+    properties:
+      backend_app_port: { get_property: [ nodecellar, port ] }
+    relationships:
+      - target: haproxy_frontend_host
+        type: cloudify.relationships.contained_in
+
+  mongod_host:
+    type: nodecellar.nodes.MonitoredServer
+
+  nodejs_host:
+    type: nodecellar.nodes.MonitoredServer
+
+    ###########################################################
+    # Setting the nodejs_host initial number of instances to 2.
+    # The default values for instances.deploy is 1.
+    ###########################################################
+
+    instances:
+      deploy: 2
+
+  haproxy_frontend_host:
+    type: nodecellar.nodes.MonitoredServer
+
+###########################################################
+# This outputs section exposes the application endpoint.
+# You can access it by running:
+#   - cfy deployments -d <deployment_id> outputs
+###########################################################
+
+outputs:
+  endpoint:
+    description: Web application endpoint
+    value:
+      ip_address: { get_attribute: [ haproxy_frontend_host, public_ip ] }
+      port: { get_property: [haproxy, frontend_port] }
+      nodecellar_url: { concat: ['http://', { get_attribute: [haproxy_frontend_host, public_ip] },':', { get_property: [nodecellar, port] }] }
+
+groups:
+
+  scale_up_group:
+    members: [haproxy]
+    policies:
+      auto_scale_up:
+        type: scale_policy_type
+        properties:
+          scale_limit: 3
+          scale_direction: "<"
+          scale_threshold: 3
+          service_selector: .*haproxy.servers.backend.rate$
+        triggers:
+          execute_scale_workflow:
+            type: cloudify.policies.triggers.execute_workflow
+            parameters:
+              workflow: scale
+              workflow_parameters:
+                delta: 1
+                node_id: nodecellar
+                scale_compute: true
+
+  scale_down_group:
+    members: [haproxy]
+    policies:
+      auto_scale_down:
+        type: scale_policy_type
+        properties:
+          scale_limit: 2
+          scale_direction: ">"
+          scale_threshold: 1
+          service_selector: .*haproxy.servers.backend.rate$
+        triggers:
+          execute_scale_workflow:
+            type: cloudify.policies.triggers.execute_workflow
+            parameters:
+              workflow: scale
+              workflow_parameters:
+                delta: -1
+                node_id: nodecellar
+                scale_compute: true
