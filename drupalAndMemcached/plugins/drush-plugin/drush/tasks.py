@@ -23,30 +23,30 @@ import os
 
 @workflow
 def install_project(project_name,**kwargs):
-    ctx.logger.info("xxx install_project {}".format(project_name))
+    ctx.logger.info("install_project {}".format(project_name))
 
     # I can use this instead ,but for the exercise I used something else
     # node = ctx.get_node('drupal_app')
 
     for node in ctx.nodes:
         if node.id == 'drupal_app':
-            ctx.logger.info("xxx install_project is about to exec on node.id {}".format(node.id))
+            ctx.logger.info("install_project is about to exec on node.id {}".format(node.id))
             # See docs http://getcloudify.org/guide/3.1/plugin-script.html
             for instance in node.instances:
                 instance.execute_operation("drupal.interfaces.action.install_project",
                                            kwargs={'process': {'args': [project_name]}})
-    ctx.logger.info("xxx End of install_project")
+    ctx.logger.info("End of install_project")
 
 @workflow
 def set_variable(variable_name,variable_value,**kwargs):
-    ctx.logger.info("xxx set_variable variable_name is  {}".format(variable_name))
-    ctx.logger.info("xxx set_variable variable_value is {}".format(variable_value))
+    ctx.logger.info("set_variable variable_name is  {}".format(variable_name))
+    ctx.logger.info("set_variable variable_value is {}".format(variable_value))
 
     for node in ctx.nodes:
         if node.id == 'drupal_app':
-            ctx.logger.info("xxx set_variable is about to exec on node.id {}".format(node.id))
+            ctx.logger.info("set_variable is about to exec on node.id {}".format(node.id))
             # See docs http://getcloudify.org/guide/3.1/plugin-script.html
             for instance in node.instances:
                 instance.execute_operation("drupal.interfaces.action.set_variable",
                                            kwargs={'process': {'args': [variable_name, variable_value]}})
-    ctx.logger.info("xxx End of set_variable")
+    ctx.logger.info("End of set_variable")

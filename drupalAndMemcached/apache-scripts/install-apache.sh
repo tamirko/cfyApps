@@ -129,8 +129,18 @@ do
 			ctx logger info "${currHostName}:${currFilename} Replacing $origPort with $newPort in ${portsConf}..."
 			sudo sed -i -e "s/$origPort/$newPort/g" ${portsConf} || error_exit $? "Failed on: sudo sed -i -e $origPort/$newPort in ${portsConf}"			
 			ctx logger info "${currHostName}:$0 End of ${portsConf} replacements"
-								
-			defaultFile="$i/sites-available/default"
+
+            defaultFile="$i/sites-available/default.conf"
+            if [ ! -f "${defaultFile}" ] ; then
+			    defaultFile="$i/sites-available/000-default.conf"
+			    if [ ! -f "${defaultFile}" ] ; then
+			        defaultFile="$i/sites-available/default"
+			        if [ ! -f "${defaultFile}" ] ; then
+                        defaultFile="$i/sites-available/000-default"
+                    fi
+			    fi
+			fi
+			ctx logger info "${currHostName}:${currFilename} defaultFile is ${defaultFile} "
 			ctx logger info "${currHostName}:${currFilename} Replacing $origPort with $newPort in ${defaultFile}..."
 			sudo sed -i -e "s/$origPort/$newPort/g" ${defaultFile} || error_exit $? "Failed on: sudo sed -i -e $origPort/$newPort in ${defaultFile}"
 			ctx logger info "${currHostName}:${currFilename} Replacing AllowOverride None with AllowOverride All in ${defaultFile}..."

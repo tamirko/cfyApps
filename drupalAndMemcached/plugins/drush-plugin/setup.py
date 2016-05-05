@@ -23,7 +23,7 @@ setup(
     # Do not use underscores in the plugin name.
     name='drush',
 
-    version='0.1',
+    version='0.2',
     author='Tamir Korem',
     author_email='tamir@gigaspaces.com',
     description='A Drush workflow',
@@ -35,6 +35,6 @@ setup(
     zip_safe=False,
     install_requires=[
         # Necessary dependency for developing plugins, do not remove!
-        "cloudify-plugins-common==3.2a8"
+        "cloudify-plugins-common==3.3.1"
     ]
 )
