@@ -20,7 +20,7 @@ ctx logger info "LOC is ${LOC}"
 COMMAND="sudo ${currVenv}/bin/python ${LOC} ${DPLID} ${allowed_hours}"
 crontab_file=/tmp/mycron
 ctx logger info "Adding ${COMMAND} to ${crontab_file} ..."
-echo "*/3 * * * * ${COMMAND}" >> ${crontab_file}
+echo "*/10 * * * * ${COMMAND}" >> ${crontab_file}
 status_code=$?
 ctx logger info "echo ${COMMAND} code is ${status_code}"
 ctx logger info "Adding the task to the crontab : crontab ${crontab_file} ..."
