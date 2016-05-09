@@ -20,39 +20,40 @@ def get_time_diff(orig_time):
     return time_diff
 
 
-def check_deployments(current_deployment_id, allowed_days, allowed_hours):
+def check_deployments(current_deployment_id, allowed_hours):
     log_file = open(LOG_FILE_PATH + current_deployment_id + '.log', 'w')
     try: 
         log_file.write('check_deployments:\n')
         cloudify_client = CloudifyClient('localhost')
-        allowed_seconds = (int(allowed_days) * 86400) + (int(allowed_hours) * 3600) 
-        log_file.write("allowed_days {0}, allowed_hours {1}, allowed_seconds {2}\n".format(allowed_days, allowed_hours,
-                                                                                           allowed_seconds))
+        allowed_seconds = (int(allowed_hours) * 3600)
+        log_file.write("allowed_hours {0} = allowed_seconds {1}\n".
+                       format(allowed_hours, allowed_seconds))
 
         for deployment in cloudify_client.deployments.list():
             deployment_id = deployment.id
-            all_executions = cloudify_client.executions.list(deployment_id=deployment_id)
-            all_executions_ended = all([str(_e['status']) in Execution.END_STATES for _e in all_executions])
-            if all_executions_ended:
-                log_file.write("Deployment {0} has no live executions\n".format(deployment_id))
+            if deployment_id != current_deployment_id:
+                all_executions = cloudify_client.executions.list(deployment_id=deployment_id)
+                all_executions_ended = all([str(_e['status']) in Execution.END_STATES for _e in all_executions])
+                if all_executions_ended:
+                    log_file.write("Deployment {0} has no live executions\n".format(deployment_id))
         
-            for execution in all_executions:
-                wf_Id = execution.workflow_id
-                if wf_Id == "create_deployment_environment":
-                    time_diff = get_time_diff(execution.created_at)
-                    days_diff = time_diff.days
-                    hours_diff = (time_diff.seconds/3600)
-                    seconds_diff = time_diff.total_seconds()
-                    log_file.write('Deployment {0} created_at: {1}, - {2} days and {3} hours ago. \ '
-                                   'A total of {4} seconds\n'.format(deployment_id, execution.created_at, days_diff,
-                                                                     hours_diff, seconds_diff))
+                for execution in all_executions:
+                    wf_Id = execution.workflow_id
+                    if wf_Id == "create_deployment_environment":
+                        time_diff = get_time_diff(execution.created_at)
+                        days_diff = time_diff.days
+                        hours_diff = (time_diff.seconds/3600)
+                        seconds_diff = time_diff.total_seconds()
+                        log_file.write('Deployment {0} created_at: {1}, - {2} days and {3} hours ago. '
+                                       'A total of {4} seconds ago\n'.format(deployment_id, execution.created_at,
+                                                                         days_diff, hours_diff, seconds_diff))
                     
-                    if allowed_seconds < seconds_diff:
-                        log_file.write("xxxxxxxxxx Killing deployment {0} now ....\n".format(deployment_id))
-                    else:
-                        log_file.write("Leave deployment {0} alive\n".format(deployment_id))
+                        if allowed_seconds < seconds_diff:
+                            log_file.write("xxxxxxxxxx Killing deployment {0} now ....\n".format(deployment_id))
+                        else:
+                            log_file.write("Leave deployment {0} alive\n".format(deployment_id))
     
-            log_file.write("------------------------------------------------------\n")
+                log_file.write("------------------------------------------------------\n")
 
     except Exception as e:
          log_file.write(str(e))
@@ -66,9 +67,8 @@ def main(argv):
     pid_file.write('%i' % getpid())
     pid_file.close()
 
-    allowed_days = argv[2]
-    allowed_hours = argv[3]
-    check_deployments(current_deployment_id, allowed_days, allowed_hours)
+    allowed_hours = argv[2]
+    check_deployments(current_deployment_id, allowed_hours)
 
 if __name__ == '__main__':
     main(sys.argv)

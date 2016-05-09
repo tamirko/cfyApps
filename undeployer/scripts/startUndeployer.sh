@@ -4,8 +4,6 @@ ctx logger info "Starting $0 ..."
 
 current_user=`whoami`
 
-allowed_days="$(ctx node properties allowed_days)"
-ctx logger info "allowed_days = ${allowed_days}"
 allowed_hours="$(ctx node properties allowed_hours)"
 ctx logger info "allowed_hours = ${allowed_hours}"
 DPLID=$(ctx deployment id)
@@ -19,7 +17,7 @@ status_code=$?
 ctx logger info "ctx download-resource status code is ${status_code}"
 ctx logger info "LOC is ${LOC}"
 
-COMMAND="sudo ${currVenv}/bin/python ${LOC} ${DPLID} ${allowed_days} ${allowed_hours}"
+COMMAND="sudo ${currVenv}/bin/python ${LOC} ${DPLID} ${allowed_hours}"
 crontab_file=/tmp/mycron
 ctx logger info "Adding ${COMMAND} to ${crontab_file} ..."
 echo "*/3 * * * * ${COMMAND}" >> ${crontab_file}
