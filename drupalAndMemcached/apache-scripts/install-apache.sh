@@ -146,7 +146,18 @@ do
 			ctx logger info "${currHostName}:${currFilename} Replacing AllowOverride None with AllowOverride All in ${defaultFile}..."
 			sudo sed -i -e "s/AllowOverride None/AllowOverride All/g" ${defaultFile} || error_exit $? "Failed on: sudo sed -i -e AllowOverride None/AllowOverride All in ${defaultFile}"				
 			ctx logger info "${currHostName}:${currFilename} End of ${defaultFile} replacements"			
-			
+
+            apacheConf=$i/apache2.conf"
+            if [ -f "${apacheConf}" ] ; then
+                ctx logger info "${currHostName}:${currFilename} Replacing AllowOverride None with AllowOverride All in ${apacheConf}..."
+			    sudo sed -i -e "s/AllowOverride None/AllowOverride All/g" $apacheConf
+			    ctx logger info "${currHostName}:${currFilename} Replacing Require all denied with Require all granted in ${apacheConf}..."
+                sudo sed -i -e "s/Require all denied/Require all granted/g" $apacheConf
+            else
+                ctx logger info "${currHostName}:${currFilename} ${apacheConf} does not exist"
+            fi
+
+
 			ctx logger info "${currHostName}:${currFilename} :sudo a2enmod rewrite"
 			sudo a2enmod rewrite
 			currStat=$?
