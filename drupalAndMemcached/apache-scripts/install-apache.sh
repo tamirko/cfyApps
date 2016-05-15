@@ -147,7 +147,7 @@ do
 			sudo sed -i -e "s/AllowOverride None/AllowOverride All/g" ${defaultFile} || error_exit $? "Failed on: sudo sed -i -e AllowOverride None/AllowOverride All in ${defaultFile}"				
 			ctx logger info "${currHostName}:${currFilename} End of ${defaultFile} replacements"			
 
-            apacheConf=$i/apache2.conf"
+            apacheConf="$i/apache2.conf"
             if [ -f "${apacheConf}" ] ; then
                 ctx logger info "${currHostName}:${currFilename} Replacing AllowOverride None with AllowOverride All in ${apacheConf}..."
 			    sudo sed -i -e "s/AllowOverride None/AllowOverride All/g" $apacheConf
