@@ -7,7 +7,7 @@ imports:
 
 inputs:
   docRoot:
-    default: /var/www
+    default: /var/www/html
   dbPort:
     default: 3306
   memcachePort:
@@ -203,6 +203,8 @@ node_templates:
           port: 22
         - remote_ip_prefix: 0.0.0.0/0
           port: 80
+        - remote_ip_prefix: 0.0.0.0/0
+          port: 3306
 
   apache_ip:
     type: cloudify.openstack.nodes.FloatingIP
@@ -375,7 +377,7 @@ outputs:
   endpoint:
     description: My application endpoint
     value:
-      drupal_url: { concat: ['http://', { get_attribute: [apache_vm, apache_ip] },':', { get_property: [drupal_server, base_port] }] }
-      apache_public_ip: { get_attribute: [ apache_vm, apache_ip ] }
+      drupal_url: { concat: ['http://', { get_attribute: [apache_ip, floating_ip_address] },':', { get_property: [drupal_server, base_port] }] }
+      apache_public_ip: { get_attribute: [ apache_ip, floating_ip_address ] }
       ip_address: { get_attribute: [ apache_vm, ip ] }
       port: { get_property: [ drupal_server, base_port ] }

@@ -30,3 +30,12 @@ popd
 
 ctx logger info "${currHostName}:${currFilename} :End of ${currHostName}:${currFilename}"
 echo "End of ${currHostName}:${currFilename}"
+
+
+exit
+
+export dep=myDeployment
+cfy executions start -d $dep  -w drush_install -p '{"project_name":"example"}'
+
+This is how you invoke it from the drush_setvar workflow from the CFY CLI :
+cfy executions start -d $dep  -w drush_setvar -p '{"variable_name":"theme_default", "variable_value":"example"}'
