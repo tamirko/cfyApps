@@ -377,7 +377,7 @@ outputs:
   endpoint:
     description: My application endpoint
     value:
-      drupal_url: { concat: ['http://', { get_attribute: [apache_ip, floating_ip_address] },':', { get_property: [drupal_server, base_port] }] }
+      drupal_url: { concat: ['http://', { get_attribute: [apache_ip, floating_ip_address] },':', { get_property: [drupal_server, newPort] }] }
       apache_public_ip: { get_attribute: [ apache_ip, floating_ip_address ] }
       ip_address: { get_attribute: [ apache_vm, ip ] }
-      port: { get_property: [ drupal_server, base_port ] }
+      port: { get_property: [ drupal_server, newPort ] }
