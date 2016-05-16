@@ -389,9 +389,6 @@ outputs:
     description: My application endpoint
     value:
       drupal_url: { concat: ['http://', { get_attribute: [apache_ip, floating_ip_address] },':', { get_property: [drupal_server, newPort] }] }
-      apache_public_ip: { get_attribute: [ apache_ip, floating_ip_address ] }
-      ip_address: { get_attribute: [ apache_vm, ip ] }
-      port: { get_property: [ drupal_server, newPort ] }
 
 
 groups:
@@ -447,8 +444,8 @@ groups:
       simple_autoheal_policy:
         type: cloudify.policies.types.host_failure
         properties:
-          service:
-            - .*memcached_vm.*.cpu.total.system
+          service: ['cpu.total.system']
+            #- .*memcached_vm.*.cpu.total.system
           interval_between_workflows: 300
         triggers:
           auto_heal_trigger:
