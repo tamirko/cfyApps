@@ -12,9 +12,6 @@ inputs:
     type: string
   jenkins_agent_user:
     type: string
-  jenkins_security_group:
-    type: string
-    default: 'jenkins_security_group'
   jenkins_user_first_name:
     type: 'string'
   jenkins_user_name:
@@ -40,12 +37,8 @@ inputs:
     type: string
   jboss_agent_user:
     type: string
-  jboss_security_group_pre:
+  jenkins_security_group:
     type: string
-    default: 'jboss_security_group_pre'
-  jboss_security_group_app:
-    type: string
-    default: 'jboss_security_group_app'
 
 
 node_types:
@@ -162,6 +155,8 @@ node_templates:
           port: 22
         - remote_ip_prefix: 0.0.0.0/0
           port: 80
+        - remote_ip_prefix: 0.0.0.0/0
+          port: 9990
 
 
   Jenkins_ip:
@@ -237,23 +232,9 @@ node_templates:
       # Attaching the JBoss_security_group to
       # the PRE_HOST
       ###########################################################
-      - target: PRE_HOST_security_group
+      - target: Jenkins_security_group
         type: cloudify.openstack.server_connected_to_security_group
 
-  PRE_HOST_security_group:
-    type: cloudify.openstack.nodes.SecurityGroup
-    properties:
-      security_group:
-        name: { get_input: jboss_security_group_pre }
-      rules:
-        - remote_ip_prefix: 0.0.0.0/0
-          port: { get_property: [ JBOSS_AFP_PRESENTATION, JBoss_port ] }
-        - remote_ip_prefix: 0.0.0.0/0
-          port: 9990
-        - remote_ip_prefix: 0.0.0.0/0
-          port: 22
-        - remote_ip_prefix: 0.0.0.0/0
-          port: 80
 
   PRE_HOST_ip:
     type: cloudify.openstack.nodes.FloatingIP
@@ -330,24 +311,8 @@ node_templates:
       # Attaching the JBoss_security_group to
       # the APP_HOST
       ###########################################################
-      - target: APP_HOST_security_group
+      - target: Jenkins_security_group
         type: cloudify.openstack.server_connected_to_security_group
-
-
-  APP_HOST_security_group:
-    type: cloudify.openstack.nodes.SecurityGroup
-    properties:
-      security_group:
-        name: { get_input: jboss_security_group_app }
-      rules:
-        - remote_ip_prefix: 0.0.0.0/0
-          port: { get_property: [ JBOSS_AFP_APPLICATION, JBoss_port ] }
-        - remote_ip_prefix: 0.0.0.0/0
-          port: 9990
-        - remote_ip_prefix: 0.0.0.0/0
-          port: 22
-        - remote_ip_prefix: 0.0.0.0/0
-          port: 80
 
   APP_HOST_ip:
     type: cloudify.openstack.nodes.FloatingIP

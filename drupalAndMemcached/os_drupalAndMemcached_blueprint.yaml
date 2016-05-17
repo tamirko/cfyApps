@@ -404,7 +404,7 @@ groups:
           scale_direction: '<'
           scale_threshold: 40
           #service_selector: .*apache_vm.*.process.node.cpu.percent
-          service_selector: .*apache_vm.*.cpu.total.system
+          service_selector: .*apache_vm.*.cpu.total.user
           cooldown_time: 60
         triggers:
           execute_scale_workflow:
@@ -426,7 +426,7 @@ groups:
           scale_direction: '>'
           scale_threshold: 20
           #service_selector: .*apache_vm.*.process.node.cpu.percent
-          service_selector: .*apache_vm.*.cpu.total.system
+          service_selector: .*apache_vm.*.cpu.total.user
           cooldown_time: 60
         triggers:
           execute_scale_workflow:
@@ -444,8 +444,8 @@ groups:
       simple_autoheal_policy:
         type: cloudify.policies.types.host_failure
         properties:
-          service: ['cpu.total.system']
-            #- .*memcached_vm.*.cpu.total.system
+          service: ['cpu.total.user']
+            #- .*memcached_vm.*.cpu.total.user
           interval_between_workflows: 300
         triggers:
           auto_heal_trigger:

@@ -1,8 +1,6 @@
 jboss_vm_image: '74ff4015-aee1-4e02-aaa8-1c77b2650394'
 jboss_vm_flavor: '196235bc-7ca5-4085-ac81-7e0242bda3f9'
 jboss_agent_user: centos
-jboss_security_group_pre: 'jboss_security_group_pre'
-jboss_security_group_app: 'jboss_security_group_app'
 jenkins_vm_image: '6c3047c6-17b1-4aaf-a657-9229bb481e50'
 jenkins_vm_flavor: '196235bc-7ca5-4085-ac81-7e0242bda3f9'
 jenkins_agent_user: ubuntu
