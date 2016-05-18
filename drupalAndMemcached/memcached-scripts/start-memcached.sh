@@ -24,11 +24,11 @@ ctx logger info "xxx ${currHostName}:${currFilename} :curr memcached memcachePsE
 #/usr/bin/memcached -m 64 -p 11211 -u memcache -l 127.0.0.1
 
 host_id2=$(ctx instance host_id)
-ctx logger info "aaa host_id2 is ${host_id2}"
+#ctx logger info "aaa host_id2 is ${host_id2}"
 host_id3=$(ctx instance runtime_properties host_id)
-ctx logger info "aaa host_id3 is ${host_id3}"
+#ctx logger info "aaa host_id3 is ${host_id3}"
 host_id4=$(ctx _node_instance host_id)
-ctx logger info "aaa host_id4 is ${host_id4}"
+#ctx logger info "aaa host_id4 is ${host_id4}"
 host_id=$(ctx instance _node_instance host_id)
 ctx logger info "aaa host_id is ${host_id}"
 all_logs=`sudo find / -name "*.log" | grep -E "${host_id}/work/${host_id}"`

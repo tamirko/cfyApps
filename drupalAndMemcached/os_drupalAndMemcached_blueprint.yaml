@@ -399,11 +399,17 @@ groups:
       auto_scale_up:
         type: scale_policy_type
         properties:
+          # If there is more than one member and policy_operates_on_group is set to true,
+          # then the threshold is checked against the SUM of all the relevant metrics from all the memebers.
+          # E.g.:
+          #  policy_operates_on_group is set to true and the members are aaa,bbb and ccc
+          #  threshold is 10
+          # aaa has 3, bbb has 4 and ccc is 5, then together they are more than 10 , hence the threshold will be breached.
+          # if policy_operates_on_group is set to false, then if and only if at least one of them (aaa,bbb or ccc) is greater than 10, the threshold will be breached.
           policy_operates_on_group: true
-          scale_limit: 6
+          scale_limit: 5
           scale_direction: '<'
           scale_threshold: 40
-          #service_selector: .*apache_vm.*.process.node.cpu.percent
           service_selector: .*apache_vm.*.cpu.total.user
           cooldown_time: 60
         triggers:
@@ -422,10 +428,9 @@ groups:
       auto_scale_down:
         type: scale_policy_type
         properties:
-          scale_limit: 2
+          scale_limit: 1
           scale_direction: '>'
           scale_threshold: 20
-          #service_selector: .*apache_vm.*.process.node.cpu.percent
           service_selector: .*apache_vm.*.cpu.total.user
           cooldown_time: 60
         triggers:
