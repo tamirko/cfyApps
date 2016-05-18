@@ -19,7 +19,7 @@ ctx logger info "${currHostName}:${currFilename} :Configuring the listening host
 origIP=127.0.0.1
 sudo sed -i -e "s/${origIP}/${memcachedHost}/g" /etc/memcached.conf
 
-memcachePsEf=`ps -ef | grep -iE "memcache" | grep -ivE "cfy|cloudify|grep|${currFilename}"`
+memcachePsEf=`ps -ef | grep -iE "memcache" | grep -ivE "diamond|cfy|cloudify|grep|${currFilename}"`
 ctx logger info "${currHostName}:${currFilename} :curr memcached memcachePsEf ${memcachePsEf}"
 
 echo "${currHostName}:${currFilename} End of ${currFilename}"

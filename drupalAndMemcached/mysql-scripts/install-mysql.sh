@@ -29,10 +29,10 @@ function error_exit {
 function killMySqlProcess {
 	ctx logger info "${currHostName}:${currFilename} sudo service mysql stop..."
 	sudo service mysql stop
-	ps -ef | grep -iE "mysqld" | grep -ivE "grep|cfy|cloudify"
+	ps -ef | grep -iE "mysqld" | grep -ivE "diamond|grep|cfy|cloudify"
 	if [ $? -eq 0 ] ; then 
 		ctx logger info "${currHostName}:${currFilename} xargs sudo kill -9 mysql..."
-		ps -ef | grep -iE "mysqld" | grep -ivE "grep|cfy|cloudify" | awk '{print $2}' | xargs sudo kill -9
+		ps -ef | grep -iE "mysqld" | grep -ivE "diamond|grep|cfy|cloudify" | awk '{print $2}' | xargs sudo kill -9
 	fi  
 }
 

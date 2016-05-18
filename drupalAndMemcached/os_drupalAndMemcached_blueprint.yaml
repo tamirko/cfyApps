@@ -446,7 +446,7 @@ groups:
         properties:
           service: ['cpu.total.user']
             #- .*memcached_vm.*.cpu.total.user
-          interval_between_workflows: 300
+          interval_between_workflows: 60
         triggers:
           auto_heal_trigger:
             type: cloudify.policies.triggers.execute_workflow

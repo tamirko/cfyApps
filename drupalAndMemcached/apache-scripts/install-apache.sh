@@ -26,9 +26,9 @@ function error_exit {
 
 
 function killApacheProcess {
-	ps -ef | grep -iE "apache2" | grep -viE "grep|cfy|cloudify"
+	ps -ef | grep -iE "apache2" | grep -viE "diamond|grep|cfy|cloudify"
 	if [ $? -eq 0 ] ; then 
-		ps -ef | grep -iE "apache2" | grep -viE "grep|cfy|cloudify" | awk '{print $2}' | xargs sudo kill -9
+		ps -ef | grep -iE "apache2" | grep -viE "diamond|grep|cfy|cloudify" | awk '{print $2}' | xargs sudo kill -9
 	fi  
 }
 

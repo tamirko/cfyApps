@@ -20,10 +20,10 @@ function error_exit {
 function killMemcachdProcess {
 	ctx logger info "${currHostName}:${currFilename} sudo service memcached stop..."
 	sudo service memcached stop
-	ps -ef | grep -iE "memcache" | grep -ivE "grep|cfy|cloudify|${currFilename}"
+	ps -ef | grep -iE "memcache" | grep -ivE "diamond|grep|cfy|cloudify|${currFilename}"
 	if [ $? -eq 0 ] ; then 
 		ctx logger info "${currHostName}:${currFilename} xargs sudo kill -9 memcached..."
-		ps -ef | grep -iE "memcache" | grep -ivE "grep|cfy|cloudify|${currFilename}" | awk '{print $2}' | xargs sudo kill -9		
+		ps -ef | grep -iE "memcache" | grep -ivE "diamond|grep|cfy|cloudify|${currFilename}" | awk '{print $2}' | xargs sudo kill -9
 	fi  
 }
 
@@ -50,7 +50,7 @@ sudo apt-get install -y -q memcached || error_exit $? "Failed on: sudo apt-get i
 ctx logger info "${currHostName}:${currFilename} #2 Killing old memcached process if exists..."
 killMemcachdProcess
 
-memcachePsEf=`ps -ef | grep -iE "memcache" | grep -ivE "cfy|cloudify|grep|${currFilename}"`
+memcachePsEf=`ps -ef | grep -iE "memcache" | grep -ivE "diamond|cfy|cloudify|grep|${currFilename}"`
 ctx logger info "${currHostName}:${currFilename} :curr memcached memcachePsEf ${memcachePsEf}"
 
 echo "${currFilename} End of ${currFilename}"
