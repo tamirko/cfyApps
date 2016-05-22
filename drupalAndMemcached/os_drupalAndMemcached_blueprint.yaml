@@ -40,6 +40,8 @@ node_types:
           image: { get_input: vm_image }
           flavor: { get_input: vm_flavor }
     interfaces:
+      utils.ops:
+        restart_vm_op: utils-scripts/restart_vm.sh
       ###########################################################
       # We are infact telling cloudify to install a diamond
       # monitoring agent on the server.
@@ -355,18 +357,36 @@ node_templates:
       - type: drupal_app_connected_to_mysql_drupal_schema
         target: mysql_drupal_schema
 
+
 plugins:
    drush-plugin:
       executor: central_deployment_agent
       source: drush-plugin
 
+   utils-plugin:
+      executor: central_deployment_agent
+      source: utils-plugin
+
+
 workflows:
+   restart_vms:
+      mapping: utils-plugin.vms.tasks.restart_vms
+      parameters:
+        node_id:
+          description: The node id whose instance will be restarted
+        node_instance_id:
+          description: The node instance id which will be restarted - default(null) = All instances...
+          default: null
+        my_input:
+          description: Additional input
+          default: null
+
    drush_install:
       mapping: drush-plugin.drush.tasks.install_project
       parameters:
          project_name: {}
    
-   # See Built-in Workflows in http://getcloudify.org/guide/3.1/guide-workflows.html#built-in-workflows
+   # See Built-in Workflows in http://getcloudify.org/guide/3.3.1/guide-workflows.html#built-in-workflows
 #   drushinstall:
 #      mapping: default_workflows.cloudify.plugins.workflows.execute_operation
 #      parameters:
