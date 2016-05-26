@@ -20,8 +20,9 @@ def get_time_diff(orig_time):
     return time_diff
 
 
-def check_blueprints(allowed_seconds):
+def check_blueprints(allowed_hours):
     cloudify_client = CloudifyClient('localhost')
+    allowed_seconds = (int(allowed_hours) * 3600)
     for blueprint in cloudify_client.blueprints.list():
         deployment_list = cloudify_client.deployments.list(blueprint_id=blueprint.id)
         if deployment_list is None or len(deployment_list) == 0:
@@ -31,9 +32,9 @@ def check_blueprints(allowed_seconds):
             if allowed_seconds < seconds_diff:
                 print "Deleting blueprint {0} ...".format(blueprint.id)
                 cloudify_client.blueprints.delete(blueprint.id)
-                #else:
-                #for deployment in deployment_list:
-                #print "deployment_id is {0}".format(deployment.id)
+            #else:
+            #for deployment in deployment_list:
+            #print "deployment_id is {0}".format(deployment.id)
 
 
 def check_deployments(current_deployment_id, allowed_hours):
