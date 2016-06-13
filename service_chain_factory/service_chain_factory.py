@@ -27,94 +27,85 @@ OUTER_SUFFIX = "_AAA"
 INTERNAL_DELIM = "_XXX_"
 
 
-min_tiers_count = 3
+min_tiers_count = 2
 max_tiers_count = 4
 
 relevant_blueprints = []
+main_combinations_map = {}
+all_permutations = []
 
 
-def _get_excluded_blueprints():
-    excluded_complex_blueprints_counter = 0
-    excluded_raw_blueprints = []
-    orig_raw_excluded_blueprints = ServiceChainDictionary.excluded_real_blueprints_combinations
-    for current_raw_excluded_blueprint in orig_raw_excluded_blueprints:
-        permutations = itertools.permutations(current_raw_excluded_blueprint, len(current_raw_excluded_blueprint))
+def _get_excluded_blueprints_sets():
+    excluded_complex_blueprints_sets_counter = 0
+    excluded_raw_blueprints_sets = []
+    orig_raw_excluded_blueprints_sets = ServiceChainDictionary.excluded_real_blueprints_sets
+    for current_raw_excluded_blueprint_set in orig_raw_excluded_blueprints_sets:
+        permutations = itertools.permutations(current_raw_excluded_blueprint_set, len(current_raw_excluded_blueprint_set))
         current_list_of_excluded_permutations = list(permutations)
         for exclude_permutation in current_list_of_excluded_permutations:
-            excluded_raw_blueprints.append(exclude_permutation)
-            excluded_complex_blueprints_counter += 1
-    print "Excluded complex blueprints {0}".format(excluded_complex_blueprints_counter)
-    return excluded_raw_blueprints
+            excluded_raw_blueprints_sets.append(exclude_permutation)
+            excluded_complex_blueprints_sets_counter += 1
+    print "Excluded complex blueprints sets: {0}".format(excluded_complex_blueprints_sets_counter)
+    return excluded_raw_blueprints_sets
 
 
-def get_relevant_combinations():
-    excluded_permutations_counter = 0
-    excluded_internal_counter = 0
+def should_b_included(combination, excluded_raw_blueprints_sets, orig_excluded_relationships, current_blueprints_count):
+    if combination not in excluded_raw_blueprints_sets:
+        combination_str = "".join(combination)
+        sorted_combination_str = "".join(sorted(combination))
+        for excluded_raw_blueprint_set in excluded_raw_blueprints_sets:
+            #print "excluded_raw_blueprint_set {0}".format(excluded_raw_blueprint_set)
+            sorted_excluded_raw_blueprint_set_str = "".join(sorted(excluded_raw_blueprint_set))
+            if sorted_excluded_raw_blueprint_set_str in sorted_combination_str:
+                #print "xxxxxx111 {0}".format(combination_str)
+                return False
+
+            all_excluded_are_included_in_combination = True
+            excluded_raw_blueprint_set_list = list(excluded_raw_blueprint_set)
+            for raw_blueprint_part in excluded_raw_blueprint_set_list:
+                if raw_blueprint_part not in combination:
+                    all_excluded_are_included_in_combination = False
+                    break
+
+            if all_excluded_are_included_in_combination:
+                #print "xxxxxx22 {0}".format(combination_str)
+                return False
+
+    return True
+
+
+def get_main_combinations():
+    excluded_combinations_counter = 0
     orig_excluded_relationships = ServiceChainDictionary.excluded_relationships
-    excluded_raw_blueprints = _get_excluded_blueprints()
-    total_permutations_counter = 0
-    actual_permutations_counter = 0
-    all_internal_relevant_permutations = {}
-    for current_blueprints_count in xrange(min_tiers_count, max_tiers_count):
-        permutations = itertools.permutations(ServiceChainDictionary.blueprints_real_names, current_blueprints_count)
-        list_of_permutations = list(permutations)
-        total_permutations_counter += len(list_of_permutations)
-        for permutation in list_of_permutations:
-            current_internal_relevant_permutations = []
+    excluded_raw_blueprints_sets = _get_excluded_blueprints_sets()
+    print "Excluded real blueprints sets:"
+    for curr_set in excluded_raw_blueprints_sets:
+        print " {0}".format(curr_set)
+    total_combinations_counter = 0
+    actual_combinations_counter = 0
+    for current_blueprints_count in range(min_tiers_count, max_tiers_count):
+        blueprints_combinations = itertools.combinations(ServiceChainDictionary.blueprints_real_names, current_blueprints_count)
+        list_of_blueprints_combinations = list(blueprints_combinations)
+        total_combinations_counter += len(list_of_blueprints_combinations)
+        for blueprint_combination in list_of_blueprints_combinations:
+            include_it = should_b_included(blueprint_combination,
+                excluded_raw_blueprints_sets, orig_excluded_relationships, current_blueprints_count)
 
-            if permutation not in excluded_raw_blueprints:
-                use_this_permutation = True
-                for excluded_raw_blueprint in excluded_raw_blueprints:
-                    if "".join(excluded_raw_blueprint) in "".join(permutation):
-                        use_this_permutation = False
-                        break
-                for current_excluded_relationship in orig_excluded_relationships:
-                    if "".join(current_excluded_relationship) in "".join(permutation):
-                        use_this_permutation = False
-                        break
-                if use_this_permutation:
-                    for current_internal_node_count in xrange(1, current_blueprints_count):
-                        internal_permutations = itertools.permutations(permutation, current_internal_node_count)
-                        for internal_permutation in list(internal_permutations):
-                            if internal_permutation not in excluded_raw_blueprints:
-                                use_this_permutation = True
-                                for excluded_raw_blueprint in excluded_raw_blueprints:
-                                    if "".join(excluded_raw_blueprint) in "".join(internal_permutation):
-                                        use_this_permutation = False
-                                        break
-                            if use_this_permutation:
-                                for current_excluded_relationship in orig_excluded_relationships:
-                                    if "".join(current_excluded_relationship) in "".join(internal_permutation):
-                                        use_this_permutation = False
-                                        break
+            if include_it:
+                combination_key = "".join(blueprint_combination)
 
-                            if use_this_permutation:
-                                #print " --- {0}".format(internal_permutation)
-                                current_internal_relevant_permutations.append(internal_permutation)
-                            else:
-                                excluded_internal_counter +=1
-
-                if use_this_permutation:
-                    #print permutation
-                    relevant_blueprints.append(permutation)
-                    permutation_key = "".join(permutation)
-                    all_internal_relevant_permutations[permutation_key] = \
-                        copy.deepcopy(current_internal_relevant_permutations)
-                    actual_permutations_counter += 1
-                else:
-                    excluded_permutations_counter += 1
-                #print "---------------------------------------------------------------------------------------------------"
+                if not main_combinations_map.has_key(combination_key):
+                    main_combinations_map[combination_key] = blueprint_combination
+                actual_combinations_counter += 1
             else:
-                excluded_permutations_counter += 1
+                excluded_combinations_counter += 1
         #print "---------------------------------------------------------------------------------------------------"
-    print "Maximum {1} permutations where order matters. -#blueprints: {0}". \
-            format(current_blueprints_count, total_permutations_counter)
-    print "Excluded permutations {0}".format(excluded_permutations_counter)
-    print "Actual permutations {0}".format(actual_permutations_counter)
-    print "Excluded internals {0}".format(excluded_internal_counter)
+    print "Maximum {1} combinations where order does NOT matter. -#blueprints: {0}". \
+            format(current_blueprints_count, total_combinations_counter)
+    print "Excluded combinations: {0}".format(excluded_combinations_counter)
+    print "Actual combinations: {0}".format(actual_combinations_counter)
     print "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
-    return relevant_blueprints, all_internal_relevant_permutations, actual_permutations_counter, \
-           excluded_internal_counter
+    return actual_combinations_counter
 
 
 def are_all_parts_in(current_perm, curr_combination, curr_combination_len):
@@ -128,78 +119,92 @@ def are_all_parts_in(current_perm, curr_combination, curr_combination_len):
 
 
 def is_there_circle(current_perm, curr_perm_str, curr_combination, curr_combination_len):
-    print "is_there_circle"
     for curr_node_template in current_perm:
-        if curr_node_template[::-1] not in current_perm:
-            print "reverse not in current_perm"
-            quit()
+        if curr_node_template[::-1] in current_perm:
+            #print "    reverse in current_perm"
+            #return True
+            #quit()
+            break
 
     return False
 
 
 def is_there_a_contradiction(current_perm, curr_perm_str, curr_combination, curr_combination_len):
-    print "is_there_a_contradiction"
-    parts_in_counter = 0
-    for curr_part in curr_combination:
-        if curr_part in current_perm:
-            parts_in_counter += 1
+    #print "is_there_a_contradiction"
 
-    return parts_in_counter == curr_combination_len
+    #for curr_part in curr_combination:
+    #    if curr_part in current_perm:
+    #        parts_in_counter += 1
+
+    return False
 
 
 def iterate_over_current_permutation(current_perm, list_permutations, curr_combination, curr_combination_str, curr_combination_len):
     #print "   +++ {0}".format(list_permutations)
     joint_perm = ""
     for curr_node_template in current_perm:
-        print "    ++++ {0}".format(curr_node_template)
+        #print "    ++++ {0}".format(curr_node_template)
         curr_node_template_str = INTERNAL_DELIM.join(curr_node_template)
         joint_perm += "{0}{1}".format(curr_node_template_str, INTERNAL_DELIM)
     joint_perm = joint_perm[:-1]
     curr_perm_str = "{0}{1}{2}".format(OUTER_PREFIX, joint_perm, OUTER_SUFFIX)
     if are_all_parts_in(list(current_perm), curr_combination, curr_combination_len):
-        print "xxxxx b4 is_there_a_contradiction"
-        quit()
         if is_there_a_contradiction(current_perm, curr_perm_str, curr_combination, curr_combination_len):
             return
-        print "xxxxx b4 is_there_circle"
+
         if is_there_circle(current_perm, curr_perm_str, curr_combination, curr_combination_len):
             return
 
-    if len(current_perm) > 3:
+        #print "   ++ current_perm {0}".format(current_perm)
+    #else:
+    #    print "    not all parts are in xxxxxxxxxxx"
+
+    if len(current_perm) > 664:
         quit()
+
+
+def digest_main_combination(combination_key, combination_len, curr_combination):
+    max_length = len(curr_combination)
+    combination_list = []
+    for curr_length in range(1, max_length+1):
+        permutations = itertools.permutations(curr_combination, curr_length)
+        current_list_of_permutations = list(permutations)
+        for permutation in current_list_of_permutations:
+            combination_list.append(permutation)
+
+    curr_permutations = []
+    for curr_len in range(2, combination_len):
+        all_permutation_of_curr_combination = itertools.permutations(combination_list, curr_len)
+        for permutation in all_permutation_of_curr_combination:
+            #print "{0}: {1}".format(curr_len, permutation)
+            curr_permutations.append(permutation)
+
+    all_permutations.append(curr_permutations)
+    return curr_permutations
+
+
+def filer_out_permutation(combination_key, curr_permutations):
+    #print "combination_key: {0}".format(combination_key)
+    if len(curr_permutations) < 4:
+        print "combination_key: {0}".format(combination_key)
+        print "  less than 4"
+    elif 1==2:
+        for x in curr_permutations:
+            print x
+        print "++++++++++++++++++++"
 
 
 def iterate_over_combinations():
-    current_relevant_combinations, all_internal_relevant_permutations, current_permutations_counter, \
-        excluded_internal_counter = get_relevant_combinations()
-    if current_permutations_counter != len(current_relevant_combinations):
-        print "Error: Wrong number of blueprints {0}".format(current_permutations_counter)
+    actual_combinations_counter = get_main_combinations()
+    if actual_combinations_counter != len(main_combinations_map):
+        print "Error: Wrong number of blueprints {0}".format(actual_combinations_counter)
         quit()
 
-    for curr_combination in current_relevant_combinations:
-        print "Current combination: {0}".format(curr_combination)
-        permutation_key = "".join(curr_combination)
-        current_internal_combinations = all_internal_relevant_permutations[permutation_key]
-        print "  Current internal combinations {0}:".format(len(current_internal_combinations))
-        #for current_keys in current_internal_combinations:
-        #    print "  +{0}".format(current_keys)
-        #print "---------------------------"
-        curr_combination_str = "{0}{1}{2}".format(OUTER_PREFIX, INTERNAL_DELIM.join(curr_combination), OUTER_SUFFIX)
-        curr_combination_len = len(curr_combination)
-        for current_internal_combinations_count in xrange(2, len(current_internal_combinations)):
-            permutations = itertools.permutations(current_internal_combinations, current_internal_combinations_count)
-            list_permutations = list(permutations)
-            print "  Iterating over {0} permutations:".format(len(list_permutations))
-            for current_perm in list_permutations:
-                if 'PaloAxlto' not in curr_combination_str:
-                    print "  curr_combination_str {0}".format(curr_combination_str)
-                    print "  curr_combination {0}".format(curr_combination)
-                    print "  ++ current_perm {0}".format(current_perm)
-                    iterate_over_current_permutation(current_perm, list_permutations, curr_combination, curr_combination_str, curr_combination_len)
-                #quit()
-            #quit()
-
-
+    for combination_key in main_combinations_map.keys():
+        curr_combination = main_combinations_map[combination_key]
+        #print "{0}: {1}".format(combination_key, curr_combination)
+        curr_permutations = digest_main_combination(combination_key, len(curr_combination), curr_combination)
+        filer_out_permutation(combination_key, curr_permutations)
 
 def main(argv):
     for i in range(len(argv)):
