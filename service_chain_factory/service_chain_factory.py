@@ -28,12 +28,14 @@ INTERNAL_DELIM = "_XXX_"
 
 
 min_tiers_count = 2
-max_tiers_count = 4
+max_tiers_count = 5
 
 relevant_blueprints = []
 main_combinations_map = {}
 all_permutations = []
 
+all_permutations_map = {}
+excluded_complex_blueprints_sets_counter = 0
 
 def _get_excluded_blueprints_sets():
     excluded_complex_blueprints_sets_counter = 0
@@ -151,26 +153,17 @@ def is_there_circle(current_perm, curr_perm_str, curr_combination, curr_combinat
     return False
 
 
-def is_there_a_contradiction(current_perm, curr_perm_str, curr_combination, curr_combination_len):
-    #print "is_there_a_contradiction"
-
-    #for curr_part in curr_combination:
-    #    if curr_part in current_perm:
-    #        parts_in_counter += 1
-
-    return False
-
-
 def digest_main_combination(combination_key, combination_len, curr_combination):
     combination_list = []
-    for curr_length in range(1, combination_len+1):
+    combination_len_p1 = combination_len+1
+    for curr_length in range(1, combination_len_p1):
         permutations = itertools.permutations(curr_combination, curr_length)
         current_list_of_permutations = list(permutations)
         for permutation in current_list_of_permutations:
             combination_list.append(permutation)
 
     curr_permutations = []
-    for curr_len in range(2, max(3, combination_len)):
+    for curr_len in range(2, max(3, combination_len_p1)):
         all_permutation_of_curr_combination = itertools.permutations(combination_list, curr_len)
         for permutation in all_permutation_of_curr_combination:
             curr_permutations.append(permutation)
@@ -179,12 +172,46 @@ def digest_main_combination(combination_key, combination_len, curr_combination):
     return curr_permutations
 
 
+def get_permutation_key(curr_perm, get_reversed=False):
+    if get_reversed:
+        perm = curr_perm
+    else:
+        perm = curr_perm[::-1]
+    curr_key_raw = str(perm).strip('[]')
+    curr_key = curr_key_raw.replace(',', '')
+    return curr_key
+
+
+def permutation_doesnt_exist(curr_perm, check_reversed=True):
+    curr_key = get_permutation_key(curr_perm)
+    if curr_key in all_permutations_map:
+        if check_reversed:
+            reversed_key = get_permutation_key(curr_perm)
+            return reversed_key not in all_permutations_map
+        else:
+            return True
+
+    if check_reversed:
+        reversed_key = get_permutation_key(curr_perm)
+        return reversed_key not in all_permutations_map
+
+
+def add_permutation_to_map(curr_perm, add_reversed=True):
+    curr_key = get_permutation_key(curr_perm)
+    all_permutations_map[curr_key] = curr_perm
+    if add_reversed:
+        reversed_key = get_permutation_key(curr_perm, True)
+        all_permutations_map[reversed_key] = curr_perm
+
+
 def filer_out_permutation(combination_key, curr_permutations, curr_combination, combination_len):
     print "combination_key: {0}".format(combination_key)
     for curr_perm in curr_permutations:
         if are_all_parts_in(combination_key, curr_perm, curr_combination, combination_len):
             if there_is_no_redundancy(combination_key, curr_perm, curr_combination, combination_len):
-                print "    {0}".format(curr_perm)
+                if permutation_doesnt_exist(curr_perm):
+                    add_permutation_to_map(curr_perm)
+                    print "    {0}".format(curr_perm)
 
     #print "++++++++++++++++++++"
 
@@ -203,21 +230,13 @@ def iterate_over_combinations():
         curr_permutations = digest_main_combination(combination_key, combination_len, curr_combination)
         filer_out_permutation(combination_key, curr_permutations, curr_combination, combination_len)
 
+    print "\n"
+    print "max tiers : {0}, permutations {1}".format(max_tiers_count, len(all_permutations_map))
 
 def main(argv):
     for i in range(len(argv)):
         print ("argv{0}={1}\n".format(i, argv[i]))
 
-   # ttt = ('Nominum', 'PaloAlto')
-    #t1 = ('Nominum',)
-
-   # print len(ttt)
-   # for xx in ttt:
-        #print xx
-   #     print "{0} : {1}".format(xx, t1[0] == xx)
-
-    #print t1 in ttt
-    #quit()
     iterate_over_combinations()
 
 
