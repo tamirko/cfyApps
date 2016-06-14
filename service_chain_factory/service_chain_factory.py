@@ -83,7 +83,7 @@ def get_main_combinations():
         print " {0}".format(curr_set)
     total_combinations_counter = 0
     actual_combinations_counter = 0
-    for current_blueprints_count in range(min_tiers_count, max_tiers_count):
+    for current_blueprints_count in range(min_tiers_count, max_tiers_count+1):
         blueprints_combinations = itertools.combinations(ServiceChainDictionary.blueprints_real_names, current_blueprints_count)
         list_of_blueprints_combinations = list(blueprints_combinations)
         total_combinations_counter += len(list_of_blueprints_combinations)
@@ -111,7 +111,6 @@ def get_main_combinations():
 def are_all_parts_in(combination_key, current_perm, curr_combination, curr_combination_len):
     parts_in_counter = 0
     for curr_part in curr_combination:
-        curr_part_key = "".join(curr_part)
         tuple_curr_part = (curr_part,)
         if tuple_curr_part in current_perm:
             parts_in_counter += 1
@@ -124,10 +123,21 @@ def are_all_parts_in(combination_key, current_perm, curr_combination, curr_combi
                         if tuple_curr_part[0] == curr_elem:
                             parts_in_counter += 1
 
-    #print parts_in_counter, curr_combination_len
-    #if parts_in_counter != curr_combination_len:
     #    print "xxx Removing {0} for {1}".format(current_perm, combination_key)
     return parts_in_counter == curr_combination_len
+
+
+def there_is_no_redundancy(combination_key, current_perm, curr_combination, curr_combination_len):
+    for curr_sub_perm1 in current_perm:
+        if len(curr_sub_perm1) == 1:
+            for curr_sub_perm2 in current_perm:
+                if len(curr_sub_perm2) != 1:
+                    if curr_sub_perm1 in curr_sub_perm2:
+                        #print "xxxx combination_key {0} 1:x {1}:{2}".format(combination_key, curr_sub_perm1, curr_sub_perm2)
+                        return False
+                    if curr_sub_perm1[0] in curr_sub_perm2:
+                        return False
+    return True
 
 
 def is_there_circle(current_perm, curr_perm_str, curr_combination, curr_combination_len):
@@ -149,30 +159,6 @@ def is_there_a_contradiction(current_perm, curr_perm_str, curr_combination, curr
     #        parts_in_counter += 1
 
     return False
-
-
-def iterate_over_current_permutation(current_perm, list_permutations, curr_combination, curr_combination_str, curr_combination_len):
-    #print "   +++ {0}".format(list_permutations)
-    joint_perm = ""
-    for curr_node_template in current_perm:
-        #print "    ++++ {0}".format(curr_node_template)
-        curr_node_template_str = INTERNAL_DELIM.join(curr_node_template)
-        joint_perm += "{0}{1}".format(curr_node_template_str, INTERNAL_DELIM)
-    joint_perm = joint_perm[:-1]
-    curr_perm_str = "{0}{1}{2}".format(OUTER_PREFIX, joint_perm, OUTER_SUFFIX)
-    if are_all_parts_in(list(current_perm), curr_combination, curr_combination_len):
-        if is_there_a_contradiction(current_perm, curr_perm_str, curr_combination, curr_combination_len):
-            return
-
-        if is_there_circle(current_perm, curr_perm_str, curr_combination, curr_combination_len):
-            return
-
-        #print "   ++ current_perm {0}".format(current_perm)
-    #else:
-    #    print "    not all parts are in xxxxxxxxxxx"
-
-    if len(current_perm) > 664:
-        quit()
 
 
 def digest_main_combination(combination_key, combination_len, curr_combination):
@@ -197,7 +183,8 @@ def filer_out_permutation(combination_key, curr_permutations, curr_combination, 
     print "combination_key: {0}".format(combination_key)
     for curr_perm in curr_permutations:
         if are_all_parts_in(combination_key, curr_perm, curr_combination, combination_len):
-            print "    {0}".format(curr_perm)
+            if there_is_no_redundancy(combination_key, curr_perm, curr_combination, combination_len):
+                print "    {0}".format(curr_perm)
 
     #print "++++++++++++++++++++"
 
