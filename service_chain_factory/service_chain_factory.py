@@ -28,7 +28,7 @@ INTERNAL_DELIM = "_XXX_"
 
 
 min_tiers_count = 2
-max_tiers_count = 5
+max_tiers_count = 8
 
 relevant_blueprints = []
 main_combinations_map = {}
