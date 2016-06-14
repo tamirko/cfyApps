@@ -108,13 +108,25 @@ def get_main_combinations():
     return actual_combinations_counter
 
 
-def are_all_parts_in(current_perm, curr_combination, curr_combination_len):
+def are_all_parts_in(combination_key, current_perm, curr_combination, curr_combination_len):
     parts_in_counter = 0
     for curr_part in curr_combination:
+        curr_part_key = "".join(curr_part)
         tuple_curr_part = (curr_part,)
         if tuple_curr_part in current_perm:
             parts_in_counter += 1
+        else:
+            for curr_sub_perm in current_perm:
+                if tuple_curr_part in curr_sub_perm:
+                    parts_in_counter += 1
+                else:
+                    for curr_elem in curr_sub_perm:
+                        if tuple_curr_part[0] == curr_elem:
+                            parts_in_counter += 1
+
     #print parts_in_counter, curr_combination_len
+    #if parts_in_counter != curr_combination_len:
+    #    print "xxx Removing {0} for {1}".format(current_perm, combination_key)
     return parts_in_counter == curr_combination_len
 
 
@@ -164,34 +176,30 @@ def iterate_over_current_permutation(current_perm, list_permutations, curr_combi
 
 
 def digest_main_combination(combination_key, combination_len, curr_combination):
-    max_length = len(curr_combination)
     combination_list = []
-    for curr_length in range(1, max_length+1):
+    for curr_length in range(1, combination_len+1):
         permutations = itertools.permutations(curr_combination, curr_length)
         current_list_of_permutations = list(permutations)
         for permutation in current_list_of_permutations:
             combination_list.append(permutation)
 
     curr_permutations = []
-    for curr_len in range(2, combination_len):
+    for curr_len in range(2, max(3, combination_len)):
         all_permutation_of_curr_combination = itertools.permutations(combination_list, curr_len)
         for permutation in all_permutation_of_curr_combination:
-            #print "{0}: {1}".format(curr_len, permutation)
             curr_permutations.append(permutation)
 
     all_permutations.append(curr_permutations)
     return curr_permutations
 
 
-def filer_out_permutation(combination_key, curr_permutations):
-    #print "combination_key: {0}".format(combination_key)
-    if len(curr_permutations) < 4:
-        print "combination_key: {0}".format(combination_key)
-        print "  less than 4"
-    elif 1==2:
-        for x in curr_permutations:
-            print x
-        print "++++++++++++++++++++"
+def filer_out_permutation(combination_key, curr_permutations, curr_combination, combination_len):
+    print "combination_key: {0}".format(combination_key)
+    for curr_perm in curr_permutations:
+        if are_all_parts_in(combination_key, curr_perm, curr_combination, combination_len):
+            print "    {0}".format(curr_perm)
+
+    #print "++++++++++++++++++++"
 
 
 def iterate_over_combinations():
@@ -202,14 +210,27 @@ def iterate_over_combinations():
 
     for combination_key in main_combinations_map.keys():
         curr_combination = main_combinations_map[combination_key]
-        #print "{0}: {1}".format(combination_key, curr_combination)
-        curr_permutations = digest_main_combination(combination_key, len(curr_combination), curr_combination)
-        filer_out_permutation(combination_key, curr_permutations)
+        print "------------------"
+        #print "curr_combination {0}: {1}".format(combination_key, curr_combination)
+        combination_len = len(curr_combination)
+        curr_permutations = digest_main_combination(combination_key, combination_len, curr_combination)
+        filer_out_permutation(combination_key, curr_permutations, curr_combination, combination_len)
+
 
 def main(argv):
     for i in range(len(argv)):
         print ("argv{0}={1}\n".format(i, argv[i]))
 
+   # ttt = ('Nominum', 'PaloAlto')
+    #t1 = ('Nominum',)
+
+   # print len(ttt)
+   # for xx in ttt:
+        #print xx
+   #     print "{0} : {1}".format(xx, t1[0] == xx)
+
+    #print t1 in ttt
+    #quit()
     iterate_over_combinations()
 
 
