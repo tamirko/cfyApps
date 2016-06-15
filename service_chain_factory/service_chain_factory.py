@@ -171,7 +171,7 @@ def not_in_excluded_relationship(combination_key, current_perm, curr_combination
                 curr_node_template_str = "".join(curr_node_template)
                 orig_excluded_relationship_str = "".join(orig_excluded_relationship)
                 if orig_excluded_relationship_str in curr_node_template_str:
-                    #print "Excluded relationship {0} in {1}".format(orig_excluded_relationship_str, curr_node_template_str)
+                    #print "Excluded relationship  {0} in {1}".format(orig_excluded_relationship_str, curr_node_template_str)
                     return False
     return True
 
