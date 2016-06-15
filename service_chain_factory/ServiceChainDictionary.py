@@ -9,7 +9,7 @@
 blueprints_real_names = ["Vyata", "FortiGate" , "Nominum", "PaloAlto" , "CSR", "vTM"]
 
 # The following blueprints combinations will NOT be generated
-excluded_real_blueprints_sets = [['Vyata', 'CSR'], ['FortiGate', 'PaloAlto'], ['vTM', 'CSR']]
+excluded_real_blueprints_sets = [['Vxyata', 'CSR'], ['FxortiGate', 'PaloAlto'], ['vTM', 'CSR']]
 
 
 # The following relationships NOT will be generated

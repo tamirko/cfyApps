@@ -28,21 +28,23 @@ INTERNAL_DELIM = "_XXX_"
 
 
 min_tiers_count = 2
-max_tiers_count = 8
+max_tiers_count = 5
 
 relevant_blueprints = []
 main_combinations_map = {}
-all_permutations = []
+#all_permutations = []
 
 all_permutations_map = {}
 excluded_complex_blueprints_sets_counter = 0
+
 
 def _get_excluded_blueprints_sets():
     excluded_complex_blueprints_sets_counter = 0
     excluded_raw_blueprints_sets = []
     orig_raw_excluded_blueprints_sets = ServiceChainDictionary.excluded_real_blueprints_sets
     for current_raw_excluded_blueprint_set in orig_raw_excluded_blueprints_sets:
-        permutations = itertools.permutations(current_raw_excluded_blueprint_set, len(current_raw_excluded_blueprint_set))
+        current_raw_excluded_blueprint_set_len = len(current_raw_excluded_blueprint_set)
+        permutations = itertools.permutations(current_raw_excluded_blueprint_set, current_raw_excluded_blueprint_set_len)
         current_list_of_excluded_permutations = list(permutations)
         for exclude_permutation in current_list_of_excluded_permutations:
             excluded_raw_blueprints_sets.append(exclude_permutation)
@@ -77,6 +79,8 @@ def should_b_included(combination, excluded_raw_blueprints_sets, orig_excluded_r
 
 
 def get_main_combinations():
+    print "-------------------------------------"
+    print "In {0}".format(sys._getframe().f_code.co_name)
     excluded_combinations_counter = 0
     orig_excluded_relationships = ServiceChainDictionary.excluded_relationships
     excluded_raw_blueprints_sets = _get_excluded_blueprints_sets()
@@ -88,8 +92,11 @@ def get_main_combinations():
     for current_blueprints_count in range(min_tiers_count, max_tiers_count+1):
         blueprints_combinations = itertools.combinations(ServiceChainDictionary.blueprints_real_names, current_blueprints_count)
         list_of_blueprints_combinations = list(blueprints_combinations)
-        total_combinations_counter += len(list_of_blueprints_combinations)
+        list_of_blueprints_combinations_len = len(list_of_blueprints_combinations)
+        #print "yyy list_of_blueprints_combinations_len {0}".format(list_of_blueprints_combinations_len)
+        total_combinations_counter += list_of_blueprints_combinations_len
         for blueprint_combination in list_of_blueprints_combinations:
+            #blueprint_combination_len = len(blueprint_combination)
             include_it = should_b_included(blueprint_combination,
                 excluded_raw_blueprints_sets, orig_excluded_relationships, current_blueprints_count)
 
@@ -142,15 +149,14 @@ def there_is_no_redundancy(combination_key, current_perm, curr_combination, curr
     return True
 
 
-def is_there_circle(current_perm, curr_perm_str, curr_combination, curr_combination_len):
+def there_are_no_circles(combination_key, current_perm, curr_combination, curr_combination_len):
     for curr_node_template in current_perm:
-        if curr_node_template[::-1] in current_perm:
-            #print "    reverse in current_perm"
-            #return True
-            #quit()
-            break
-
-    return False
+        curr_node_template_len = len(curr_node_template)
+        if curr_node_template_len > 1:
+            if curr_node_template[::-1] in current_perm:
+                #print "xxxxxxx circle combination_key {0}, in current_perm :{1}".format(combination_key,current_perm)
+                return False
+    return True
 
 
 def digest_main_combination(combination_key, combination_len, curr_combination):
@@ -163,13 +169,16 @@ def digest_main_combination(combination_key, combination_len, curr_combination):
             combination_list.append(permutation)
 
     curr_permutations = []
+    print "combination_key: {0}".format(combination_key)
     for curr_len in range(2, max(3, combination_len_p1)):
         all_permutation_of_curr_combination = itertools.permutations(combination_list, curr_len)
         for permutation in all_permutation_of_curr_combination:
-            curr_permutations.append(permutation)
+            #curr_permutations.append(permutation)
+            filer_out_permutation(combination_key, permutation, curr_combination, combination_len)
 
-    all_permutations.append(curr_permutations)
-    return curr_permutations
+    #all_permutations.append(curr_permutations)
+    #return curr_permutations
+    print "++++++++++++++++++++"
 
 
 def get_permutation_key(curr_perm, get_reversed=False):
@@ -204,16 +213,14 @@ def add_permutation_to_map(curr_perm, add_reversed=True):
         all_permutations_map[reversed_key] = curr_perm
 
 
-def filer_out_permutation(combination_key, curr_permutations, curr_combination, combination_len):
-    print "combination_key: {0}".format(combination_key)
-    for curr_perm in curr_permutations:
-        if are_all_parts_in(combination_key, curr_perm, curr_combination, combination_len):
-            if there_is_no_redundancy(combination_key, curr_perm, curr_combination, combination_len):
+def filer_out_permutation(combination_key, curr_perm, curr_combination, combination_len):
+    if are_all_parts_in(combination_key, curr_perm, curr_combination, combination_len):
+        if there_is_no_redundancy(combination_key, curr_perm, curr_combination, combination_len):
+            if there_are_no_circles(combination_key, curr_perm, curr_combination, combination_len):
                 if permutation_doesnt_exist(curr_perm):
                     add_permutation_to_map(curr_perm)
                     print "    {0}".format(curr_perm)
 
-    #print "++++++++++++++++++++"
 
 
 def iterate_over_combinations():
@@ -224,14 +231,16 @@ def iterate_over_combinations():
 
     for combination_key in main_combinations_map.keys():
         curr_combination = main_combinations_map[combination_key]
-        print "------------------"
+        print "combination length {0}".format(len(curr_combination))
         #print "curr_combination {0}: {1}".format(combination_key, curr_combination)
         combination_len = len(curr_combination)
-        curr_permutations = digest_main_combination(combination_key, combination_len, curr_combination)
-        filer_out_permutation(combination_key, curr_permutations, curr_combination, combination_len)
+        #curr_permutations = digest_main_combination(combination_key, combination_len, curr_combination)
+        digest_main_combination(combination_key, combination_len, curr_combination)
+
 
     print "\n"
     print "max tiers : {0}, permutations {1}".format(max_tiers_count, len(all_permutations_map))
+
 
 def main(argv):
     for i in range(len(argv)):
