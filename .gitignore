@@ -9,3 +9,4 @@ test/coverage
 test/test-output
 scripts/mystuff
 .pyc
+service_chain_factory/.pyc

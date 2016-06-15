@@ -28,17 +28,16 @@ INTERNAL_DELIM = "_XXX_"
 
 
 min_tiers_count = 2
-max_tiers_count = 5
+max_tiers_count = 4
 
 relevant_blueprints = []
 main_combinations_map = {}
-#all_permutations = []
 
 all_permutations_map = {}
-excluded_complex_blueprints_sets_counter = 0
+orig_excluded_relationships = ServiceChainDictionary.excluded_relationships
 
 
-def _get_excluded_blueprints_sets():
+def get_excluded_blueprints_sets():
     excluded_complex_blueprints_sets_counter = 0
     excluded_raw_blueprints_sets = []
     orig_raw_excluded_blueprints_sets = ServiceChainDictionary.excluded_real_blueprints_sets
@@ -53,15 +52,13 @@ def _get_excluded_blueprints_sets():
     return excluded_raw_blueprints_sets
 
 
-def should_b_included(combination, excluded_raw_blueprints_sets, orig_excluded_relationships, current_blueprints_count):
+def should_b_included(combination, excluded_raw_blueprints_sets, current_blueprints_count):
     if combination not in excluded_raw_blueprints_sets:
-        combination_str = "".join(combination)
         sorted_combination_str = "".join(sorted(combination))
         for excluded_raw_blueprint_set in excluded_raw_blueprints_sets:
             #print "excluded_raw_blueprint_set {0}".format(excluded_raw_blueprint_set)
             sorted_excluded_raw_blueprint_set_str = "".join(sorted(excluded_raw_blueprint_set))
             if sorted_excluded_raw_blueprint_set_str in sorted_combination_str:
-                #print "xxxxxx111 {0}".format(combination_str)
                 return False
 
             all_excluded_are_included_in_combination = True
@@ -72,7 +69,6 @@ def should_b_included(combination, excluded_raw_blueprints_sets, orig_excluded_r
                     break
 
             if all_excluded_are_included_in_combination:
-                #print "xxxxxx22 {0}".format(combination_str)
                 return False
 
     return True
@@ -80,10 +76,10 @@ def should_b_included(combination, excluded_raw_blueprints_sets, orig_excluded_r
 
 def get_main_combinations():
     print "-------------------------------------"
-    print "In {0}".format(sys._getframe().f_code.co_name)
+    #print "In {0}".format(sys._getframe().f_code.co_name)
     excluded_combinations_counter = 0
-    orig_excluded_relationships = ServiceChainDictionary.excluded_relationships
-    excluded_raw_blueprints_sets = _get_excluded_blueprints_sets()
+
+    excluded_raw_blueprints_sets = get_excluded_blueprints_sets()
     print "Excluded real blueprints sets:"
     for curr_set in excluded_raw_blueprints_sets:
         print " {0}".format(curr_set)
@@ -97,8 +93,8 @@ def get_main_combinations():
         total_combinations_counter += list_of_blueprints_combinations_len
         for blueprint_combination in list_of_blueprints_combinations:
             #blueprint_combination_len = len(blueprint_combination)
-            include_it = should_b_included(blueprint_combination,
-                excluded_raw_blueprints_sets, orig_excluded_relationships, current_blueprints_count)
+            include_it = should_b_included(blueprint_combination, excluded_raw_blueprints_sets,
+                                           current_blueprints_count)
 
             if include_it:
                 combination_key = "".join(blueprint_combination)
@@ -153,10 +149,54 @@ def there_are_no_circles(combination_key, current_perm, curr_combination, curr_c
     for curr_node_template in current_perm:
         curr_node_template_len = len(curr_node_template)
         if curr_node_template_len > 1:
-            if curr_node_template[::-1] in current_perm:
+            curr_node_template_reversed = curr_node_template[::-1]
+            if curr_node_template_reversed in current_perm:
                 #print "xxxxxxx circle combination_key {0}, in current_perm :{1}".format(combination_key,current_perm)
                 return False
+            curr_node_template_reversed_str = INTERNAL_DELIM.join(curr_node_template_reversed)
+            for curr_node_template2 in current_perm:
+                curr_node_template2_len = len(curr_node_template2)
+                if curr_node_template2_len > 1:
+                    if curr_node_template_reversed_str in INTERNAL_DELIM.join(curr_node_template2):
+                        return False
     return True
+
+
+def not_in_excluded_relationship(combination_key, current_perm, curr_combination, curr_combination_len):
+    for curr_node_template in current_perm:
+        curr_node_template_len = len(curr_node_template)
+        if curr_node_template_len > 1:
+            # loop over excluded relationships....
+            for orig_excluded_relationship in orig_excluded_relationships:
+                curr_node_template_str = "".join(curr_node_template)
+                orig_excluded_relationship_str = "".join(orig_excluded_relationship)
+                if orig_excluded_relationship_str in curr_node_template_str:
+                    #print "Excluded relationship {0} in {1}".format(orig_excluded_relationship_str, curr_node_template_str)
+                    return False
+    return True
+
+
+def no_2_couples_form_a_three_sum(combination_key, current_perm, curr_combination, curr_combination_len):
+    for node_templates_a in current_perm:
+        node_template_a_len = len(node_templates_a)
+        if node_template_a_len == 2:
+            for node_templates_b in current_perm:
+                node_template_b_len = len(node_templates_b)
+                if node_template_b_len == 2:
+                    if node_templates_a[0] == node_templates_b[1] or node_templates_a[1] == node_templates_b[0]:
+                        return False
+    return True
+
+
+def not_all_single_tiers(combination_key, current_perm, curr_combination, curr_combination_len):
+    if len(current_perm) > 2:
+        for node_template in current_perm:
+            node_template_len = len(node_template)
+            if node_template_len != 1:
+                return True
+    else:
+        return True
+    return False
 
 
 def digest_main_combination(combination_key, combination_len, curr_combination):
@@ -168,16 +208,12 @@ def digest_main_combination(combination_key, combination_len, curr_combination):
         for permutation in current_list_of_permutations:
             combination_list.append(permutation)
 
-    curr_permutations = []
     print "combination_key: {0}".format(combination_key)
     for curr_len in range(2, max(3, combination_len_p1)):
         all_permutation_of_curr_combination = itertools.permutations(combination_list, curr_len)
         for permutation in all_permutation_of_curr_combination:
-            #curr_permutations.append(permutation)
             filer_out_permutation(combination_key, permutation, curr_combination, combination_len)
 
-    #all_permutations.append(curr_permutations)
-    #return curr_permutations
     print "++++++++++++++++++++"
 
 
@@ -217,10 +253,12 @@ def filer_out_permutation(combination_key, curr_perm, curr_combination, combinat
     if are_all_parts_in(combination_key, curr_perm, curr_combination, combination_len):
         if there_is_no_redundancy(combination_key, curr_perm, curr_combination, combination_len):
             if there_are_no_circles(combination_key, curr_perm, curr_combination, combination_len):
-                if permutation_doesnt_exist(curr_perm):
-                    add_permutation_to_map(curr_perm)
-                    print "    {0}".format(curr_perm)
-
+                if no_2_couples_form_a_three_sum(combination_key, curr_perm, curr_combination, combination_len):
+                    if not_all_single_tiers(combination_key, curr_perm, curr_combination, combination_len):
+                        if not_in_excluded_relationship(combination_key, curr_perm, curr_combination, combination_len):
+                            if permutation_doesnt_exist(curr_perm):
+                                add_permutation_to_map(curr_perm)
+                                print "    {0}".format(curr_perm)
 
 
 def iterate_over_combinations():
