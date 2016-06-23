@@ -1,0 +1,91 @@
+tosca_definitions_version: cloudify_dsl_1_2
+imports:
+  - 'http://www.getcloudify.org/spec/cloudify/3.3.1/types.yaml'
+  - 'http://www.getcloudify.org/spec/diamond-plugin/1.3.1/plugin.yaml'
+
+inputs:
+  dummy_value:
+    default: 1
+
+node_types:
+  A_VM:
+    derived_from: cloudify.nodes.Compute
+    properties:
+      agent_config:
+        default: {"install_method":"none"}
+
+  TARGET_NODE:
+    derived_from: cloudify.nodes.Root
+    properties:
+      dummy_value:
+        default: { get_input: dummy_value }
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        start:
+          implementation: scripts/start_target_node.sh
+          executor: central_deployment_agent
+
+
+node_templates:
+  CONTAINER_1:
+    type: A_VM
+    instances:
+      deploy: 2
+
+  MY_NODE_1:
+    type: TARGET_NODE
+    instances:
+      deploy: 1
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: CONTAINER_1
+
+  CONTAINER_2:
+    type: A_VM
+    instances:
+      deploy: 1
+
+  WAITER_NODE_2:
+    type: cloudify.nodes.Root
+    instances:
+      deploy: 1
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: CONTAINER_2
+      - type: cloudify.relationships.connected_to
+        target: MY_NODE_1
+
+  MY_NODE_2:
+    type: cloudify.nodes.Root
+    instances:
+      deploy: 1
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        start:
+          implementation: scripts/set_source_node.py
+          executor: central_deployment_agent
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: CONTAINER_2
+      - type: source_connected_to_target
+        target: MY_NODE_1
+      - type: cloudify.relationships.connected_to
+        target: WAITER_NODE_2
+
+
+relationships:
+  source_connected_to_target:
+    derived_from: cloudify.relationships.connected_to
+    source_interfaces:
+      cloudify.interfaces.relationship_lifecycle:
+        establish:
+          implementation: scripts/update_source_node.py
+          executor: central_deployment_agent
+
+outputs:
+  endpoint:
+    description: My stuff
+    value:
+      my_node_1_instances: { get_attribute: [MY_NODE_2, xxx] }
+
+
