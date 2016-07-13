@@ -86,6 +86,6 @@ outputs:
   endpoint:
     description: My stuff
     value:
-      my_node_1_instances: { get_attribute: [MY_NODE_2, xxx] }
+      container_instances: { get_attribute: [MY_NODE_2, my_node_1_instances] }
 
 

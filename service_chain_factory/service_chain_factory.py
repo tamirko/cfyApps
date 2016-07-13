@@ -4,6 +4,7 @@ import itertools
 import sys
 import copy
 import ServiceChainDictionary
+import service_chain_generate
 
 
 # order matters :
@@ -19,7 +20,7 @@ import ServiceChainDictionary
 # Nominum : DNS server
 # PaloAlto : FW
 # CSR : Router (Cisco)
-# VTM : LB (Brocade)
+# vTM : LB (Virtual Traffic Manager  - Brocade)
 
 OUTER_PREFIX = "AAA_"
 OUTER_SUFFIX = "_AAA"
@@ -171,7 +172,7 @@ def not_in_excluded_relationship(combination_key, current_perm, curr_combination
                 curr_node_template_str = "".join(curr_node_template)
                 orig_excluded_relationship_str = "".join(orig_excluded_relationship)
                 if orig_excluded_relationship_str in curr_node_template_str:
-                    #print "Excluded relationship  {0} in {1}".format(orig_excluded_relationship_str, curr_node_template_str)
+                    #print "Excluded relationship {0} in {1}".format(orig_excluded_relationship_str, curr_node_template_str)
                     return False
     return True
 
@@ -284,6 +285,8 @@ def main(argv):
     for i in range(len(argv)):
         print ("argv{0}={1}\n".format(i, argv[i]))
 
+    service_chain_generate.create_blueprint("my blueprint123")
+    quit()
     iterate_over_combinations()
 
 
