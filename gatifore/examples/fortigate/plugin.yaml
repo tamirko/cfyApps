@@ -5,7 +5,6 @@
 plugins:
   fortinet:
     executor: central_deployment_agent
-    source: https://github.com/GigaSpaces-ProfessionalServices/cloudify-fortinet-plugin/archive/dev.zip
     package_name: cloudify-fortinet-plugin
     package_version: '1.0'
 

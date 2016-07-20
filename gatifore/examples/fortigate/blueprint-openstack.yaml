@@ -28,25 +28,17 @@ inputs:
   # Networking
   neutron_subnet_public_cidr_block:
     type: string
-    default: 10.0.0.0/24
+    default: 10.0.1.0/24
     
   neutron_subnet_public_gateway:
     type: string
-    default: '10.0.0.1'
+    default: '10.0.1.1'
     
   neutron_subnet_private_cidr_block:
     type: string
-    default: 10.0.1.0/24
-    
-  neutron_subnet_private_gateway:
-    type: string
-    default: '10.0.1.1'
-    
-  neutron_subnet_mgmt_cidr_block:
-    type: string
     default: 10.0.2.0/24
     
-  neutron_subnet_mgmt_gateway:
+  neutron_subnet_private_gateway:
     type: string
     default: '10.0.2.1'
     
@@ -63,6 +55,60 @@ inputs:
     type: string
     default: port3
 
+  agent_public_key_name:
+    type: string
+
+  agent_private_key_path:
+    type: string
+
+  security_group_name_ssh_only:
+    type: string
+
+  floating_ip_network_name:
+    type: string
+
+  network_public_name:
+    type: string
+
+  use_existing_network_public:
+    type: boolean
+
+  subnet_public_name:
+    type: string
+
+  use_existing_subnet_public:
+    type: boolean
+
+  network_private_name:
+    type: string
+
+  use_existing_network_private:
+    type: boolean
+
+  subnet_private_name:
+    type: string
+
+  use_existing_subnet_private:
+    type: boolean
+
+  mgmt_network_name:
+    type: string
+
+  use_existing_mgmt_network:
+    type: boolean
+
+  mgmt_subnet_name:
+    type: string
+
+  use_existing_mgmt_subnet:
+    type: boolean
+
+  nerwork_public_dns_nameservers:
+    type: string
+
+  nerwork_private_dns_nameservers:
+    type: string
+
 
 dsl_definitions:
   # By default, the FortiGate AWS AMI uses a blank password
@@ -76,19 +122,19 @@ dsl_definitions:
 node_templates:
 
   # Use an existing key pair in OpenStack
-  key_pair:
-    type: cloudify.openstack.nodes.KeyPair
-    properties:
-      use_external_resource: true
-      resource_id: fortigate-dev
-      private_key_path: '~/Desktop/Fortinet Dev/fortigate-dev.pem'
+  #key_pair:
+  #  type: cloudify.openstack.nodes.KeyPair
+  #  properties:
+  #    use_external_resource: true
+  #    resource_id: { get_input: agent_public_key_name }
+  #    private_key_path: { get_input: agent_private_key_path }
 
   # Security group that only allows SSH access to the FortiGate
   security_group_ssh_only:
     type: cloudify.openstack.nodes.SecurityGroup
     properties:
       use_external_resource: true
-      resource_id: fortigate-allow-all
+      resource_id: { get_input: security_group_name_ssh_only }
 
   # Floating IP for use with the public interface
   floating_ip:
@@ -98,8 +144,8 @@ node_templates:
         create:
           inputs:
             args:
-              floating_network_name: external
-          
+              floating_network_name: { get_input: floating_ip_network_name }
+
 
   #####################
   # PUBLIC NETWORKING #
@@ -107,18 +153,23 @@ node_templates:
   network_public:
     type: cloudify.openstack.nodes.Network
     properties:
-      use_external_resource: true
-      resource_id: fortigate-net-public
+      use_external_resource: { get_input: use_existing_network_public }
+      resource_id: { get_input: network_public_name }
       
   subnet_public:
     type: cloudify.openstack.nodes.Subnet
     properties:
-      use_external_resource: true
-      resource_id: fortigate-subnet-public
+      use_external_resource: { get_input: use_existing_subnet_public }
+      resource_id: { get_input: subnet_public_name }
+      subnet:
+        ip_version: 4
+        cidr: { get_input: neutron_subnet_public_cidr_block }
+        dns_nameservers: { get_input: nerwork_public_dns_nameservers }
+        gateway_ip: { get_input: neutron_subnet_public_gateway }
     relationships:
     - type: cloudify.relationships.contained_in
       target: network_public
-      
+
   port_public:
     type: cloudify.openstack.nodes.Port
     relationships:
@@ -131,21 +182,26 @@ node_templates:
     - type: cloudify.openstack.port_connected_to_floating_ip
       target: floating_ip
     
-    
+
   ######################
   # PRIVATE NETWORKING #
   ######################
   network_private:
     type: cloudify.openstack.nodes.Network
     properties:
-      use_external_resource: true
-      resource_id: fortigate-net-private
+      use_external_resource: { get_input: use_existing_network_private }
+      resource_id: { get_input: network_private_name }
       
   subnet_private:
     type: cloudify.openstack.nodes.Subnet
     properties:
-      use_external_resource: true
-      resource_id: fortigate-subnet-private
+      use_external_resource: { get_input: use_existing_subnet_private }
+      resource_id: { get_input: subnet_private_name }
+      subnet:
+        ip_version: 4
+        cidr: { get_input: neutron_subnet_private_cidr_block }
+        dns_nameservers: { get_input: nerwork_private_dns_nameservers }
+        gateway_ip: { get_input: neutron_subnet_private_gateway }
     relationships:
     - type: cloudify.relationships.contained_in
       target: network_private
@@ -157,21 +213,21 @@ node_templates:
       target: network_private
     - type: cloudify.openstack.port_connected_to_subnet
       target: subnet_private
-    
+
   #########################
   # MANAGEMENT NETWORKING #
   #########################
   network_mgmt:
     type: cloudify.openstack.nodes.Network
     properties:
-      use_external_resource: true
-      resource_id: cloudify-net-mgmt
+      use_external_resource: { get_input: use_existing_mgmt_network }
+      resource_id: { get_input: mgmt_network_name }
       
   subnet_mgmt:
     type: cloudify.openstack.nodes.Subnet
     properties:
-      use_external_resource: true
-      resource_id: cloudify-subnet-mgmt
+      use_external_resource: { get_input: use_existing_mgmt_subnet }
+      resource_id: { get_input: mgmt_subnet_name }
     relationships:
     - type: cloudify.relationships.contained_in
       target: network_mgmt
@@ -201,8 +257,8 @@ node_templates:
       agent_config:
         install_method: none
     relationships:
-      - type: cloudify.openstack.server_connected_to_keypair
-        target: key_pair
+      #- type: cloudify.openstack.server_connected_to_keypair
+      #  target: key_pair
       - type: cloudify.openstack.server_connected_to_port
         target: port_public
       - type: cloudify.openstack.server_connected_to_port
