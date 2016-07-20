@@ -1,0 +1,9 @@
+agent_user:  'ubuntu'
+image: '6c3047c6-17b1-4aaf-a657-9229bb481e50'
+flavor: '5e68b95a-61fe-464f-913d-df044c7e433d'
+use_existing_agent_keypair: true
+agent_public_key_name: 'cloudify-agent-kp0717'
+agent_private_key_path: '/root/.ssh/agent_key.pem'
+external_network_name: ''
+vms_sec_group_name: 'vms_sec_group_name0717'
+management_network_name: 'cloudify-management-network0717'

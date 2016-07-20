@@ -1,0 +1,430 @@
+tosca_definitions_version: cloudify_dsl_1_3
+
+
+description: >
+  This blueprint demonstrates the use of a Fortinet FortiGate VM
+  running on Amazon Web Services
+
+
+imports:
+  - http://www.getcloudify.org/spec/cloudify/3.4m5/types.yaml
+  - https://raw.githubusercontent.com/01000101/cloudify-aws-plugin/1.4.1-eni-updates/plugin.yaml
+  - https://raw.githubusercontent.com/GigaSpaces-ProfessionalServices/cloudify-fortinet-plugin/dev/plugin.yaml
+
+
+inputs:
+  aws_access_key_id:
+    type: string
+  
+  aws_secret_access_key:
+    type: string
+    
+  aws_region:
+    type: string
+    default: eu-central-1
+    
+  aws_availability_zone:
+    type: string
+    default: eu-central-1b
+    
+  aws_ssh_key_name:
+    type: string
+    
+  aws_ssh_key_path:
+    type: string
+    
+  # AWS VPC networking
+  aws_vpc_cidr_block:
+    type: string
+    default: 10.1.0.0/23
+    
+  aws_subnet_public_cidr_block:
+    type: string
+    default: 10.1.0.0/24
+    
+  aws_subnet_private_cidr_block:
+    type: string
+    default: 10.1.1.0/24
+    
+  aws_subnet_private_gateway:
+    type: string
+    default: '10.1.1.1'
+    
+  aws_fortigate_image_id:
+    type: string
+    default: ami-4accd426
+    
+  aws_fortigate_instance_type:
+    type: string
+    default: m3.medium
+    
+  # Port mapping
+  port_map_ssh_lan:
+    type: integer
+    default: 22
+    
+  port_map_ssh_wan:
+    type: integer
+    default: 2222
+    
+  # FortiGate ports
+  fortigate_wan_iface:
+    type: string
+    default: port1
+  
+  fortigate_lan_iface:
+    type: string
+    default: port2
+
+
+dsl_definitions:
+  # These are the credentials used to communicate with AWS
+  aws_config: &aws_config
+    aws_access_key_id: { get_input: aws_access_key_id }
+    aws_secret_access_key: { get_input: aws_secret_access_key }
+    ec2_region_name: { get_input: aws_region }
+    
+  # These are used to access the FortiGate via SSH
+  ssh_config: &ssh_config
+    # The Elastic IP value is stored in aws_resource_id
+    host_string: { get_attribute: [elastic_ip, aws_resource_id] }
+    user: admin
+    # FortiGate AWS AMI uses the AWS EC2 instance ID as the password
+    password: { get_attribute: [fortigate_vm, aws_resource_id] }
+
+node_templates:
+  # VPC: 10.1.0.0 - 10.1.1.255
+  vpc:
+    type: cloudify.aws.nodes.VPC
+    properties:
+      cidr_block: { get_input: aws_vpc_cidr_block }
+      aws_config: *aws_config
+      
+  # Internet Gateway
+  # Allows the new VPC to access the Internet
+  igw:
+    type: cloudify.aws.nodes.InternetGateway
+    properties:
+      aws_config: *aws_config
+    relationships:
+    - type: cloudify.aws.relationships.gateway_connected_to_vpc
+      target: vpc
+      
+  # Subnet (public): 10.1.0.0/24
+  subnet_public:
+    type: cloudify.aws.nodes.Subnet
+    properties:
+      cidr_block: { get_input: aws_subnet_public_cidr_block }
+      availability_zone: { get_input: aws_availability_zone }
+      aws_config: *aws_config
+    relationships:
+    - type: cloudify.aws.relationships.subnet_contained_in_vpc
+      target: vpc
+      
+  # Subnet (private): 10.1.1.0/24
+  subnet_private:
+    type: cloudify.aws.nodes.Subnet
+    properties:
+      cidr_block: { get_input: aws_subnet_private_cidr_block }
+      availability_zone: { get_input: aws_availability_zone }
+      aws_config: *aws_config
+    relationships:
+    - type: cloudify.aws.relationships.subnet_contained_in_vpc
+      target: vpc
+      
+  # Route Table for public subnet
+  # Allows outgoing & incoming public traffic
+  routetable_public:
+    type: cloudify.aws.nodes.RouteTable
+    properties:
+      aws_config: *aws_config
+    relationships:
+    - type: cloudify.aws.relationships.routetable_contained_in_vpc
+      target: vpc
+    - type: cloudify.aws.relationships.routetable_associated_with_subnet
+      target: subnet_public
+    - type: cloudify.aws.relationships.route_table_to_gateway
+      target: igw
+      
+  # Route Table for private subnet
+  # Allows outbound traffic from nic_private
+  routetable_private:
+    type: cloudify.aws.nodes.RouteTable
+    properties:
+      aws_config: *aws_config
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create:
+          implementation: aws.vpc.routetable.create_route_table
+          inputs:
+            routes:
+            - destination_cidr_block: 0.0.0.0/0
+              interface_id: { get_attribute: [nic_private, aws_resource_id] }
+    relationships:
+    - type: cloudify.aws.relationships.routetable_contained_in_vpc
+      target: vpc
+    - type: cloudify.aws.relationships.routetable_associated_with_subnet
+      target: subnet_private
+    - type: cloudify.relationships.depends_on
+      target: fortigate_vm
+      
+  # VM SSH key
+  ssh_key:
+    type: cloudify.aws.nodes.KeyPair
+    properties:
+      use_external_resource: true
+      resource_id: { get_input: aws_ssh_key_name }
+      private_key_path: { get_input: aws_ssh_key_path }
+      aws_config: *aws_config
+      
+  # Security Group used for both network interfaces
+  # Allows all inbound traffic (the FortiGate will be the Firewall)
+  security_group:
+    type: cloudify.aws.nodes.SecurityGroup
+    properties:
+      description:
+        Allows all network traffic in or out
+      rules:
+      - ip_protocol: -1
+        from_port: 0
+        to_port: 65535
+        cidr_ip: 0.0.0.0/0
+      aws_config: *aws_config
+    relationships:
+    - type: cloudify.aws.relationships.security_group_contained_in_vpc
+      target: vpc
+  
+  # Elastic IP (public IP) for FortiGate WAN interface
+  elastic_ip:
+    type: cloudify.aws.nodes.ElasticIP
+    properties:
+      domain: vpc
+      aws_config: *aws_config
+  
+  # FortiGate VM Network Interface (public, WAN)
+  # FortiGate, by default, uses the device_index of network interfaces
+  # and names them "port<device_index+1>" (order is preserved)
+  nic_public:
+    type: cloudify.aws.nodes.ElasticNetworkInterface
+    properties:
+      device_index: 0
+      tags:
+        Name: CFY-FortiGate-Public
+      aws_config: *aws_config
+    relationships:
+    - type: cloudify.aws.relationships.eni_contained_in_subnet
+      target: subnet_public
+    - type: cloudify.aws.relationships.eni_connected_to_elastic_ip
+      target: elastic_ip
+    - type: cloudify.aws.relationships.eni_connected_to_security_group
+      target: security_group
+
+  # FortiGate VM Network Interface (private, LAN)
+  # Disable source/dest checking to let the FortiGate become a NAT server
+  nic_private:
+    type: cloudify.aws.nodes.ElasticNetworkInterface
+    properties:
+      device_index: 1
+      source_dest_check: false
+      tags:
+        Name: CFY-FortiGate-Private
+      aws_config: *aws_config
+    relationships:
+    - type: cloudify.aws.relationships.eni_contained_in_subnet
+      target: subnet_private
+    - type: cloudify.aws.relationships.eni_connected_to_security_group
+      target: security_group
+      
+  # Test VM Network Interface (private, LAN)
+  nic_test_private:
+    type: cloudify.aws.nodes.ElasticNetworkInterface
+    properties:
+      device_index: 0
+      tags:
+        Name: CFY-Test-Private
+      aws_config: *aws_config
+    relationships:
+    - type: cloudify.aws.relationships.eni_contained_in_subnet
+      target: subnet_private
+    - type: cloudify.aws.relationships.eni_connected_to_security_group
+      target: security_group
+
+  # FortiGate VM
+  # This is the actual FortiGate VM appliance
+  # It will have two network interfaces, one for public and
+  # one for private networks. In this mode, the FortiGate is
+  # acting as a NAT firewall - sitting between zones.
+  fortigate_vm:
+    type: cloudify.aws.nodes.Instance
+    properties:
+      image_id: { get_input: aws_fortigate_image_id }
+      instance_type: { get_input: aws_fortigate_instance_type }
+      name: FortiGate Firewall
+      aws_config: *aws_config
+      agent_config:
+        install_method: none
+    relationships:
+    - type: cloudify.aws.relationships.instance_connected_to_keypair
+      target: ssh_key
+    - type: cloudify.aws.relationships.instance_connected_to_eni
+      target: nic_public
+    - type: cloudify.aws.relationships.instance_connected_to_eni
+      target: nic_private
+      
+  # Test VM
+  # This is a test server sitting in the private network (behind
+  # the FortiGate firewall).  For simplicity, this doesn't do
+  # much besides expose port 22 (SSH) which will be used to access
+  # through the FortiGate port 2222 (port mapped). 
+  test_lan_vm:
+    type: cloudify.aws.nodes.Instance
+    properties:
+      image_id: ami-9bf712f4
+      instance_type: t2.micro
+      name: Test LAN VM
+      aws_config: *aws_config
+      agent_config:
+        install_method: none
+    relationships:
+    - type: cloudify.aws.relationships.instance_connected_to_keypair
+      target: ssh_key
+    - type: cloudify.aws.relationships.instance_connected_to_eni
+      target: nic_test_private
+      
+  # Before we do anything with the device - run updates
+  fortigate_updater:
+    type: cloudify.Fortinet.FortiGate.Firewall.Update
+    properties:
+      update_av: true
+      update_ips: true
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create:
+          inputs:
+            ssh_config: *ssh_config
+    relationships:
+    - type: cloudify.relationships.contained_in
+      target: fortigate_vm
+      
+  # Configure our FortiGate LAN interface
+  # This sets the IP and Default Gateway of the LAN interface (port2)
+  # Here is a good example of using mixed properties / lifecycle inputs.
+  fortigate_lan_config:
+    type: cloudify.Fortinet.FortiGate.Config
+    properties:
+      config_name: system interface
+      config_id: { get_input: fortigate_lan_iface }
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create:
+          inputs:
+            config:
+            - ip: { concat: [get_attribute: [nic_private, aws_private_ip_address], /24] }
+            - defaultgw: { get_input: aws_subnet_private_gateway }
+            ssh_config: *ssh_config
+    relationships:
+    - type: cloudify.relationships.contained_in
+      target: fortigate_vm
+      
+  # Allow traffic to pass from LAN to WAN (outbound access)
+  # Enable NAT, wait for updates before enabling
+  fortigate_policy_enable_nat:
+    type: cloudify.Fortinet.FortiGate.Firewall.Policy
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create:
+          inputs:
+            config_id: 1
+            config:
+            - name: Enable NAT
+            - srcintf: { get_input: fortigate_lan_iface }
+            - dstintf: { get_input: fortigate_wan_iface }
+            - srcaddr: all
+            - dstaddr: all
+            - action: accept
+            - schedule: always
+            - service: ALL
+            - nat: enable
+            ssh_config: *ssh_config
+    relationships:
+    - type: cloudify.relationships.contained_in
+      target: fortigate_vm
+    - type: cloudify.relationships.depends_on
+      target: fortigate_updater
+      
+  # Create a Virtual IP to use with a particular service
+  # This creates the port mapping service (needs to be enabled
+  # via a policy later)
+  fortigate_vip_1:
+    type: cloudify.Fortinet.FortiGate.Firewall.VIP
+    properties:
+      config_id: Linux-VM-SSH
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create:
+          inputs:
+            config:
+            - extintf: { get_input: fortigate_wan_iface }
+            - portforward: enable
+            - mappedip: { get_attribute: [nic_test_private, aws_private_ip_address] }
+            # Port map 2222 (WAN) -> 22 (LAN)
+            - extport: { get_input: port_map_ssh_wan }
+            - mappedport: { get_input: port_map_ssh_lan }
+            ssh_config: *ssh_config
+    relationships:
+    - type: cloudify.relationships.contained_in
+      target: fortigate_vm
+    - type: cloudify.relationships.depends_on
+      target: test_lan_vm
+
+  # Allow traffic inbound to VIP 1 service (our port mapped SSH service)
+  # Enable default Anti-Virus scanning, IPS
+  fortigate_policy_allow_vip_1:
+    type: cloudify.Fortinet.FortiGate.Firewall.Policy
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create:
+          inputs:
+            config_id: 2
+            config:
+            - name: Allow VIP 1
+            - srcintf: { get_input: fortigate_wan_iface }
+            - dstintf: { get_input: fortigate_lan_iface }
+            - srcaddr: all
+            # Allow the port forwarding ONLY to our VIP
+            - dstaddr: { get_property: [ fortigate_vip_1, config_id ] }
+            - action: accept
+            - schedule: always
+            - service: ALL
+            - utm-status: enable
+            - av-profile: default
+            - ips-sensor: default
+            - profile-protocol-options: default
+            ssh_config: *ssh_config
+    relationships:
+    - type: cloudify.relationships.contained_in
+      target: fortigate_vm
+    - type: cloudify.relationships.depends_on
+      target: fortigate_vip_1
+
+
+outputs:
+  fortigate_wan_ip:
+    description: >
+      The public IP of the FortiGate's WAN interface
+    value: { get_attribute: [elastic_ip, aws_resource_id] }
+    
+  fortigate_instance_id:
+    description: >
+      FortiGate AWS Instance ID (used for SSH access)
+    value: { get_attribute: [fortigate_vm, aws_resource_id] }
+    
+  fortigate_port_mappings:
+    description: >
+      Port mapping layout for the FortiGate firewall
+    value:
+    - wan_ip: { get_attribute: [elastic_ip, aws_resource_id] }
+      wan_port: { get_input: port_map_ssh_wan }
+      lan_ip: { get_attribute: [nic_test_private, aws_private_ip_address] }
+      lan_port: { get_input: port_map_ssh_lan }
+    

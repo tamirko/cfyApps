@@ -1,0 +1,271 @@
+tosca_definitions_version: cloudify_dsl_1_3
+
+description: >
+  The blueprint describes an OpenStack vm created using Cloudify's OpenStack plugin
+  and simple web server started using Cloudify's script plugin.
+  In addition, an OpenStack floating ip and security group are created and associated with the created vm.
+
+imports:
+  - http://www.getcloudify.org/spec/cloudify/3.4/types.yaml
+  - http://www.getcloudify.org/spec/fabric-plugin/1.4.1/plugin.yaml
+  - http://www.getcloudify.org/spec/openstack-plugin/1.4/plugin.yaml
+  - http://www.getcloudify.org/spec/diamond-plugin/1.3.3/plugin.yaml
+#  - https://raw.githubusercontent.com/GigaSpaces-ProfessionalServices/cloudify-fortinet-plugin/dev/plugin.yaml
+  - plugin.yaml
+
+inputs:
+  image:
+    description: OpenStack image ID to use
+    default: 2e6bed2c-a95e-4896-b634-e95d4a3ae32a
+    required: true
+
+  flavor:
+    description: Openstack flavor name or id to use
+    # 'RAM: 1024 MB, 80 GB, 1 VCPU
+    default: 718f2a6d-52c5-4f23-a774-49df51c6eedc
+    required: true
+    
+  # Networking
+  neutron_subnet_public_cidr_block:
+    type: string
+    default: 10.0.0.0/24
+    
+  neutron_subnet_public_gateway:
+    type: string
+    default: '10.0.0.1'
+    
+  neutron_subnet_private_cidr_block:
+    type: string
+    default: 10.0.1.0/24
+    
+  neutron_subnet_private_gateway:
+    type: string
+    default: '10.0.1.1'
+    
+  neutron_subnet_mgmt_cidr_block:
+    type: string
+    default: 10.0.2.0/24
+    
+  neutron_subnet_mgmt_gateway:
+    type: string
+    default: '10.0.2.1'
+    
+  # FortiGate
+  fortigate_port_public:
+    type: string
+    default: port1
+
+  fortigate_port_private:
+    type: string
+    default: port2
+    
+  fortigate_port_mgmt:
+    type: string
+    default: port3
+
+
+dsl_definitions:
+  # By default, the FortiGate AWS AMI uses a blank password
+  # Use the public IP created by "floating_ip"
+  ssh_config: &ssh_config
+    host_string: { get_attribute: [floating_ip, floating_ip_address ] }
+    user: admin
+    password: ''
+
+
+node_templates:
+
+  # Use an existing key pair in OpenStack
+  key_pair:
+    type: cloudify.openstack.nodes.KeyPair
+    properties:
+      use_external_resource: true
+      resource_id: fortigate-dev
+      private_key_path: '~/Desktop/Fortinet Dev/fortigate-dev.pem'
+
+  # Security group that only allows SSH access to the FortiGate
+  security_group_ssh_only:
+    type: cloudify.openstack.nodes.SecurityGroup
+    properties:
+      use_external_resource: true
+      resource_id: fortigate-allow-all
+
+  # Floating IP for use with the public interface
+  floating_ip:
+    type: cloudify.openstack.nodes.FloatingIP
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create:
+          inputs:
+            args:
+              floating_network_name: external
+          
+
+  #####################
+  # PUBLIC NETWORKING #
+  #####################
+  network_public:
+    type: cloudify.openstack.nodes.Network
+    properties:
+      use_external_resource: true
+      resource_id: fortigate-net-public
+      
+  subnet_public:
+    type: cloudify.openstack.nodes.Subnet
+    properties:
+      use_external_resource: true
+      resource_id: fortigate-subnet-public
+    relationships:
+    - type: cloudify.relationships.contained_in
+      target: network_public
+      
+  port_public:
+    type: cloudify.openstack.nodes.Port
+    relationships:
+    - type: cloudify.relationships.contained_in
+      target: network_public
+    - type: cloudify.openstack.port_connected_to_subnet
+      target: subnet_public
+    - type: cloudify.openstack.port_connected_to_security_group
+      target: security_group_ssh_only
+    - type: cloudify.openstack.port_connected_to_floating_ip
+      target: floating_ip
+    
+    
+  ######################
+  # PRIVATE NETWORKING #
+  ######################
+  network_private:
+    type: cloudify.openstack.nodes.Network
+    properties:
+      use_external_resource: true
+      resource_id: fortigate-net-private
+      
+  subnet_private:
+    type: cloudify.openstack.nodes.Subnet
+    properties:
+      use_external_resource: true
+      resource_id: fortigate-subnet-private
+    relationships:
+    - type: cloudify.relationships.contained_in
+      target: network_private
+      
+  port_private:
+    type: cloudify.openstack.nodes.Port
+    relationships:
+    - type: cloudify.relationships.contained_in
+      target: network_private
+    - type: cloudify.openstack.port_connected_to_subnet
+      target: subnet_private
+    
+  #########################
+  # MANAGEMENT NETWORKING #
+  #########################
+  network_mgmt:
+    type: cloudify.openstack.nodes.Network
+    properties:
+      use_external_resource: true
+      resource_id: cloudify-net-mgmt
+      
+  subnet_mgmt:
+    type: cloudify.openstack.nodes.Subnet
+    properties:
+      use_external_resource: true
+      resource_id: cloudify-subnet-mgmt
+    relationships:
+    - type: cloudify.relationships.contained_in
+      target: network_mgmt
+      
+  port_mgmt:
+    type: cloudify.openstack.nodes.Port
+    relationships:
+    - type: cloudify.relationships.contained_in
+      target: network_mgmt
+    - type: cloudify.openstack.port_connected_to_subnet
+      target: subnet_mgmt
+    
+  ######################
+  # FORTIGATE INSTANCE #
+  ######################
+  # This will create a new FortiGate instance that will have
+  # 3 network interfaces set up.
+  # NIC#1 (PORT1) is Public / WAN (Floating IP)
+  # NIC#2 (PORT2) is Private / LAN
+  # NIC#3 (PORT3) is Management / MGMT
+  fortigate_vm:
+    type: cloudify.openstack.nodes.Server
+    properties:
+      image: { get_input: image }
+      flavor: { get_input: flavor }
+      management_network_name: { get_property: [network_mgmt, resource_id] }
+      agent_config:
+        install_method: none
+    relationships:
+      - type: cloudify.openstack.server_connected_to_keypair
+        target: key_pair
+      - type: cloudify.openstack.server_connected_to_port
+        target: port_public
+      - type: cloudify.openstack.server_connected_to_port
+        target: port_private
+      - type: cloudify.openstack.server_connected_to_port
+        target: port_mgmt
+
+
+  # Configure each interface with aliases
+  fortigate_wan_alias:
+    type: cloudify.Fortinet.FortiGate.Config
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create:
+          inputs:
+            config_name: system interface
+            config_id: { get_input: fortigate_port_public }
+            config:
+            - alias: WAN
+            ssh_config: *ssh_config
+    relationships:
+    - type: cloudify.relationships.contained_in
+      target: fortigate_vm
+      
+  fortigate_lan_alias:
+    type: cloudify.Fortinet.FortiGate.Config
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create:
+          inputs:
+            config_name: system interface
+            config_id: { get_input: fortigate_port_private }
+            config:
+            - alias: LAN
+            ssh_config: *ssh_config
+    relationships:
+    - type: cloudify.relationships.contained_in
+      target: fortigate_vm
+      
+  fortigate_mgmt_alias:
+    type: cloudify.Fortinet.FortiGate.Config
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create:
+          inputs:
+            config_name: system interface
+            config_id: { get_input: fortigate_port_mgmt }
+            config:
+            - alias: MGMT
+            ssh_config: *ssh_config
+    relationships:
+    - type: cloudify.relationships.contained_in
+      target: fortigate_vm
+      
+  
+outputs:
+  fortigate_vm_public_ip:
+    description: FortiGate Public IP
+    value: { get_attribute: [floating_ip, floating_ip_address ] }
+  ssh_config:
+    description: FortiGate SSH configuration
+    value: { get_attribute: [fortigate_wan_alias, ssh_config] }
+
+#  mkdir -p ~/tmp/mywgn
+#  cd ~/tmp/mywgn
+# /usr/local/bin/wagon create -s ~/cloudify-cosmo/cfyApps/gatifore

@@ -1,0 +1,11 @@
+aws_access_key_id: YOUR_ACCESS_KEY_ID
+aws_secret_access_key: YOUR_SECRET_ACCESS_KEY
+aws_region: eu-central-1
+aws_availability_zone: eu-central-1b
+aws_ssh_key_name: YOUR_EXISTING_SSH_KEY_NAME
+aws_ssh_key_path: YOUR_PATH_TO_PEM_FILE
+aws_vpc_cidr_block: 10.1.0.0/23
+aws_subnet_public_cidr_block: 10.1.0.0/24
+aws_subnet_private_cidr_block: 10.1.1.0/24
+aws_fortigate_image_id: ami-4accd426
+aws_fortigate_instance_type: m3.medium
