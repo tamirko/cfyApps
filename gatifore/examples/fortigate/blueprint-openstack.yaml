@@ -64,7 +64,7 @@ inputs:
   security_group_name_ssh_only:
     type: string
 
-  floating_ip_network_name:
+  external_network_name:
     type: string
 
   network_public_name:
@@ -78,6 +78,9 @@ inputs:
 
   use_existing_subnet_public:
     type: boolean
+
+  subnet_public_router_name:
+    type: string
 
   network_private_name:
     type: string
@@ -136,6 +139,32 @@ node_templates:
       use_external_resource: true
       resource_id: { get_input: security_group_name_ssh_only }
 
+  additional_security_group:
+    type: cloudify.openstack.nodes.SecurityGroup
+    properties:
+      rules:
+        - remote_ip_prefix: 0.0.0.0/0
+          port: 161
+        - remote_ip_prefix: 0.0.0.0/0
+          port: 162
+        - remote_ip_prefix: 0.0.0.0/0
+          port: 80
+        - remote_ip_prefix: 0.0.0.0/0
+          port: 443
+        - direction: egress
+          remote_ip_prefix: 0.0.0.0/0
+          port: 161
+        - direction: egress
+          remote_ip_prefix: 0.0.0.0/0
+          port: 162
+        - direction: egress
+          remote_ip_prefix: 0.0.0.0/0
+          port: 80
+        - direction: egress
+          remote_ip_prefix: 0.0.0.0/0
+          port: 443
+
+
   # Floating IP for use with the public interface
   floating_ip:
     type: cloudify.openstack.nodes.FloatingIP
@@ -144,7 +173,7 @@ node_templates:
         create:
           inputs:
             args:
-              floating_network_name: { get_input: floating_ip_network_name }
+              floating_network_name: { get_input: external_network_name }
 
 
   #####################
@@ -169,6 +198,22 @@ node_templates:
     relationships:
     - type: cloudify.relationships.contained_in
       target: network_public
+    - target: subnet_public_router
+      type: cloudify.openstack.subnet_connected_to_router
+
+  subnet_public_router:
+    type: cloudify.openstack.nodes.Router
+    properties:
+      resource_id: { get_input: subnet_public_router_name }
+    relationships:
+      - target: external_network
+        type: cloudify.relationships.connected_to
+
+  external_network:
+    type: cloudify.openstack.nodes.Network
+    properties:
+      use_external_resource: true
+      resource_id: { get_input: external_network_name }
 
   port_public:
     type: cloudify.openstack.nodes.Port
@@ -179,6 +224,8 @@ node_templates:
       target: subnet_public
     - type: cloudify.openstack.port_connected_to_security_group
       target: security_group_ssh_only
+    - type: cloudify.openstack.port_connected_to_security_group
+      target: additional_security_group
     - type: cloudify.openstack.port_connected_to_floating_ip
       target: floating_ip
     
@@ -213,6 +260,10 @@ node_templates:
       target: network_private
     - type: cloudify.openstack.port_connected_to_subnet
       target: subnet_private
+    - type: cloudify.openstack.port_connected_to_security_group
+      target: security_group_ssh_only
+    - type: cloudify.openstack.port_connected_to_security_group
+      target: additional_security_group
 
   #########################
   # MANAGEMENT NETWORKING #
@@ -239,7 +290,11 @@ node_templates:
       target: network_mgmt
     - type: cloudify.openstack.port_connected_to_subnet
       target: subnet_mgmt
-    
+    - type: cloudify.openstack.port_connected_to_security_group
+      target: security_group_ssh_only
+    - type: cloudify.openstack.port_connected_to_security_group
+      target: additional_security_group
+
   ######################
   # FORTIGATE INSTANCE #
   ######################
