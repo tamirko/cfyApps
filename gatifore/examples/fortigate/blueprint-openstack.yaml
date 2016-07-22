@@ -367,8 +367,24 @@ node_templates:
     relationships:
     - type: cloudify.relationships.contained_in
       target: fortigate_vm
-      
-  
+
+
+groups:
+  network:
+    members: [ports, mgmt, public, private, secgrp,floating_ip, external_network]
+  mgmt:
+    members: [network_mgmt, subnet_mgmt ]
+  public:
+    members: [network_public, subnet_public, subnet_public_router]
+  private:
+    members: [network_private, subnet_private]
+  secgrp:
+    members: [security_group_ssh_only, additional_security_group]
+  ports:
+    members: [port_mgmt, port_public, port_private]
+  fortigate:
+    members: [fortigate_vm]
+
 outputs:
   fortigate_vm_public_ip:
     description: FortiGate Public IP
