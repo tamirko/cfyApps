@@ -273,6 +273,7 @@ node_templates:
     properties:
       use_external_resource: { get_input: use_existing_mgmt_network }
       resource_id: { get_input: mgmt_network_name }
+
       
   subnet_mgmt:
     type: cloudify.openstack.nodes.Subnet
@@ -320,6 +321,11 @@ node_templates:
         target: port_private
       - type: cloudify.openstack.server_connected_to_port
         target: port_mgmt
+      - type: cloudify.relationships.depends_on
+        target: floating_ip
+        target_interfaces:
+          cloudify.interfaces.relationship_lifecycle:
+            unlink: openstack.nova_plugin.server.disconnect_floatingip
 
 
   # Configure each interface with aliases
