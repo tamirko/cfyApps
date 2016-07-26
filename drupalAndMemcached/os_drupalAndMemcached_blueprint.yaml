@@ -397,7 +397,8 @@ workflows:
    drush_setvar:
       mapping: drush-plugin.drush.tasks.set_variable
       parameters:
-         variable_name: {}
+         variable_name:
+           default: theme_default
          variable_value: {}
 
 # Syntax without parameters
