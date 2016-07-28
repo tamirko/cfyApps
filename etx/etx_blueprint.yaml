@@ -59,7 +59,7 @@ node_templates:
     type: VNF
     properties:
       myStr1: blabla
-      myStr2: '"blabla'
+      myStr2: '"blabladfgd'
     instances:
       deploy: 1
     relationships:
