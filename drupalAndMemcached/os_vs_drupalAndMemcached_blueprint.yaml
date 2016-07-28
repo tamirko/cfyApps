@@ -479,7 +479,7 @@ outputs:
 groups:
 
   scale_up_group:
-    members: [apache_vm]
+    members: [apache]
     policies:
       auto_scale_up:
         type: scale_policy_type
@@ -508,7 +508,7 @@ groups:
                 scale_compute: true
 
   scale_down_group:
-    members: [apache_vm]
+    members: [apache]
     policies:
       auto_scale_down:
         type: scale_policy_type
@@ -546,8 +546,5 @@ groups:
                 node_instance_id: { 'get_property': [ SELF, node_id ] }
                 diagnose_value: { 'get_property': [ SELF, diagnose ] }
 
-  network:
-    members: [drupal_security_group, apache_ip]
-
   apache:
-    members: [apache_vm, network]
+    members: [apache_vm, apache_ip]

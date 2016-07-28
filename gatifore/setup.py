@@ -71,7 +71,7 @@ class CustomInstall(install):
 
 setup(
     name='cloudify-fortinet-plugin',
-    version='1.0',
+    version='1.1',
     license='LICENSE',
     packages=[
         'fortigate',

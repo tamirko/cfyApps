@@ -6,7 +6,7 @@ plugins:
   fortinet:
     executor: central_deployment_agent
     package_name: cloudify-fortinet-plugin
-    package_version: '1.0'
+    package_version: '1.1'
 
 
 dsl_definitions:

@@ -3,6 +3,8 @@ policy_types:
   scale_policy_type:
     source: policies/scale.clj
     properties:
+      default_instances:
+        default: true
       policy_operates_on_group:
         default: true
       service_selector:

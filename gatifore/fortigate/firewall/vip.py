@@ -56,7 +56,7 @@ def create(config_id, config, ssh_config, **_):
     ctx.instance.runtime_properties['config_id'] = config_id
     ctx.instance.runtime_properties['config'] = iface.read()
     # Dump the runtime properties
-    ctx.logger.debug('Runtime properties: {0}'.format(
+    ctx.logger.info('Runtime properties: {0}'.format(
         ctx.instance.runtime_properties))
 
 

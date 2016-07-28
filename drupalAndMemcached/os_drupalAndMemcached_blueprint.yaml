@@ -6,6 +6,7 @@ imports:
   - http://www.getcloudify.org/spec/openstack-plugin/1.4/plugin.yaml
   - scale.yaml
 
+
 inputs:
   docRoot:
     default: /var/www/html
@@ -172,6 +173,8 @@ node_types:
         description: docRoot of the Drupal
         type: string
 
+
+
 relationships:
   drupal_server_connected_to_mysql_database:
     derived_from: cloudify.relationships.connected_to
@@ -189,6 +192,7 @@ relationships:
     source_interfaces:
       cloudify.interfaces.relationship_lifecycle:
         establish: drupal-scripts/configure-memcached-drupal.sh
+
 
 node_templates:
 
@@ -221,7 +225,10 @@ node_templates:
 
   apache_ip:
     type: cloudify.openstack.nodes.FloatingIP
-
+    capabilities:
+      scalable:
+        properties:
+          default_instances: 1
 
   mysql_vm:
     type: host
@@ -241,8 +248,10 @@ node_templates:
 
   apache_vm:
     type: host
-    instances:
-      deploy: 1
+    capabilities:
+      scalable:
+        properties:
+          default_instances: 1
     relationships:
       - target: drupal_security_group
         type: cloudify.openstack.server_connected_to_security_group
@@ -420,6 +429,7 @@ groups:
       auto_scale_up:
         type: scale_policy_type
         properties:
+          default_instances: 1
           # If there is more than one member and policy_operates_on_group is set to true,
           # then the threshold is checked against the SUM of all the relevant metrics from all the memebers.
           # E.g.:
@@ -440,8 +450,8 @@ groups:
               workflow: scale
               workflow_parameters:
                 delta: 1
-                node_id: drupal_app
-                scale_compute: true
+                node_id: apache
+                #scale_compute: true
 
   scale_down_group:
     members: [apache_vm]
@@ -449,6 +459,7 @@ groups:
       auto_scale_down:
         type: scale_policy_type
         properties:
+          default_instances: 1
           scale_limit: 2
           scale_direction: '>'
           scale_threshold: 20
@@ -461,8 +472,8 @@ groups:
               workflow: scale
               workflow_parameters:
                 delta: -1
-                node_id: drupal_app
-                scale_compute: true
+                node_id: apache
+                #scale_compute: true
 
   heal_group:
     members: [memcached_vm]
@@ -471,7 +482,7 @@ groups:
         type: cloudify.policies.types.host_failure
         properties:
           service: ['cpu.total.user']
-            #- .*memcached_vm.*.cpu.total.user
+            #- .*memcached-vm.*.cpu.total.user
           interval_between_workflows: 60
         triggers:
           auto_heal_trigger:
@@ -482,8 +493,13 @@ groups:
                 node_instance_id: { 'get_property': [ SELF, node_id ] }
                 diagnose_value: { 'get_property': [ SELF, diagnose ] }
 
-  network:
-    members: [drupal_security_group, apache_ip]
-
   apache:
-    members: [apache_vm, network]
+    members: [apache_vm, apache_ip]
+
+
+policies:
+  scale_policy1:
+    type: cloudify.policies.scaling
+    properties:
+      default_instances: 1
+    targets: [apache]

@@ -1,0 +1,152 @@
+tosca_definitions_version: cloudify_dsl_1_3
+imports:
+  - 'http://www.getcloudify.org/spec/cloudify/3.4/types.yaml'
+
+node_types:
+  ETX:
+    derived_from: cloudify.nodes.Root
+
+  COMPUTE_TYPE:
+    derived_from: cloudify.nodes.Root
+
+  VNF_VM:
+    derived_from: cloudify.nodes.Compute
+    properties:
+      agent_config:
+        default: {"install_method":"none"}
+
+  VNF:
+    derived_from: cloudify.nodes.Root
+    properties:
+      myStr1:
+        default: aaa
+      myStr2:
+        default: bbb
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        start:
+          implementation: scripts/startVNF.sh
+          executor: central_deployment_agent
+
+node_templates:
+  KARDAN_ETX:
+    type: ETX
+    instances:
+      deploy: 1
+
+  COMPUTE_A:
+    type: COMPUTE_TYPE
+    instances:
+      deploy: 1
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: KARDAN_ETX
+
+  FORTIGATE_1_VM:
+    type: VNF_VM
+    instances:
+      deploy: 1
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: COMPUTE_A
+
+  FORTIGATE_1:
+    type: VNF
+    properties:
+      myStr1: blabla
+      myStr2: '"blabla'
+    instances:
+      deploy: 1
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: FORTIGATE_1_VM
+
+  ROUTER_1_VM:
+    type: VNF_VM
+    instances:
+      deploy: 1
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: COMPUTE_A
+
+  ROUTER_1:
+    type: VNF
+    instances:
+      deploy: 1
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: ROUTER_1_VM
+      - type: cloudify.relationships.connected_to
+        target: FORTIGATE_1
+
+  FORTIGATE_2_VM:
+    type: VNF_VM
+    instances:
+      deploy: 1
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: COMPUTE_A
+
+  FORTIGATE_2:
+    type: VNF
+    instances:
+      deploy: 1
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: FORTIGATE_2_VM
+
+  ELECTRA_ETX:
+    type: ETX
+    instances:
+      deploy: 1
+
+  COMPUTE_B:
+    type: COMPUTE_TYPE
+    instances:
+      deploy: 1
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: ELECTRA_ETX
+
+  FORTIGATE_3_VM:
+    type: VNF_VM
+    instances:
+      deploy: 1
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: COMPUTE_B
+
+  FORTIGATE_3:
+    type: VNF
+    instances:
+      deploy: 1
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: FORTIGATE_3_VM
+
+  ROUTER_3_VM:
+    type: VNF_VM
+    instances:
+      deploy: 1
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: COMPUTE_B
+
+  ROUTER_3:
+    type: VNF
+    instances:
+      deploy: 1
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: ROUTER_3_VM
+      - type: cloudify.relationships.connected_to
+        target: FORTIGATE_3
+
+
+groups:
+
+  KARDAN_BUILDING:
+    members: [KARDAN_ETX]
+
+  ELECTRA_BUILDING:
+    members: [ELECTRA_ETX]

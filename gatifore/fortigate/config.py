@@ -42,7 +42,7 @@ class Config(Generic):
         self.name = name
         self.cid = cid
 
-    def create(self, params, name=None, cid=None, with_quotes=True):
+    def create(self, params, name=None, cid=None, with_quotes=False):
         '''
             Creates a FortiGate config entry
 
@@ -55,7 +55,7 @@ class Config(Generic):
         '''
         name = name or self.name
         cid = cid or self.cid
-        self.ctx.logger.debug('Running config updates on "%s (%s)"', name, cid)
+        self.ctx.logger.info('Running config updates on "%s (%s)"', name, cid)
         # Sanity checks
         if not name:
             raise NonRecoverableError('Missing config name parameter')
@@ -72,15 +72,18 @@ class Config(Generic):
         # Run SET commands
         for param in params:
             for key, val in param.iteritems():
-                if with_quotes:
-                    commands.append('set "{0}" "{1}"'.format(key, val))
+                if val is None or val == "":
+                    commands.append('{0}').format(key)
                 else:
-                    commands.append('set "{0}" {1}'.format(key, val))
+                    if with_quotes:
+                        commands.append('set {0} "{1}"'.format(key, val))
+                    else:
+                        commands.append('set {0} {1}'.format(key, val))
         # End "config" mode
         commands.append('end')
         # Run the command
         output = self.execute('\n'.join(commands))
-        self.ctx.logger.debug('[REMOTE] {0}'.format(output))
+        self.ctx.logger.info('[REMOTE] {0}'.format(output))
 
     def read(self, name=None, cid=None):
         '''
@@ -93,7 +96,7 @@ class Config(Generic):
         '''
         name = name or self.name
         cid = cid or self.cid
-        self.ctx.logger.debug('Running show config on "%s (%s)"', name, cid)
+        self.ctx.logger.info('Running show config on "%s (%s)"', name, cid)
         # Sanity checks
         if not name:
             raise NonRecoverableError('Missing config name parameter')
@@ -133,7 +136,7 @@ class Config(Generic):
         '''
         name = name or self.name
         cid = cid or self.cid
-        self.ctx.logger.debug('Running config delete on "%s (%s)"', name, cid)
+        self.ctx.logger.info('Running config delete on "%s (%s)"', name, cid)
         # Sanity checks
         if not name:
             raise NonRecoverableError('Missing config name parameter')
@@ -146,7 +149,7 @@ class Config(Generic):
             'delete {0}'.format(cid),
             # End "config" mode
             'end']))
-        self.ctx.logger.debug('[REMOTE] {0}'.format(output))
+        self.ctx.logger.info('[REMOTE] {0}'.format(output))
 
     def parse_output(self, raw_output):
         '''Converts raw output to a dict of config data'''
@@ -187,7 +190,7 @@ def create(config_name, config_id, config, ssh_config, **_):
     ctx.instance.runtime_properties['config_id'] = config_id
     ctx.instance.runtime_properties['config'] = iface.read()
     # Dump the runtime properties
-    ctx.logger.debug('Runtime properties: {0}'.format(
+    ctx.logger.info('Runtime properties: {0}'.format(
         ctx.instance.runtime_properties))
 
 

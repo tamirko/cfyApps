@@ -24,8 +24,6 @@ mgmt_network_name: cloudify-management-network0719
 use_existing_mgmt_network: true
 mgmt_subnet_name: cloudify-management-network-subnet0719
 use_existing_mgmt_subnet: true
-agent_public_key_name: 'xxx'
-agent_private_key_path: '/root/.ssh/agent_key.pem'
 
 
 

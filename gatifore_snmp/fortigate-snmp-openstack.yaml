@@ -55,12 +55,6 @@ inputs:
     type: string
     default: port3
 
-  agent_public_key_name:
-    type: string
-
-  agent_private_key_path:
-    type: string
-
   security_group_name_ssh_only:
     type: string
 
@@ -397,8 +391,9 @@ node_templates:
             config_name: system snmp community
             config_id: 1
             config:
-            - name: "public"
+            - name: '"public"'
             - events: cpu-high mem-low log-full intf-ip vpn-tun-up vpn-tun-down ha-switch ha-hb-failure ips-signature ips-anomaly av-virus av-oversize av-pattern av-fragmented fm-if-change bgp-established bgp-backward-transition ha-member-up ha-member-down ent-conf-change av-conserve av-bypass av-oversize-passed av-oversize-blocked ips-pkg-update ips-fail-open faz-disconnect wc-ap-up wc-ap-down
+            - next: ''
             ssh_config: *ssh_config
     relationships:
     - type: cloudify.relationships.contained_in
