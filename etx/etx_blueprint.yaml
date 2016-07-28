@@ -5,6 +5,9 @@ imports:
 node_types:
   ETX:
     derived_from: cloudify.nodes.Root
+    properties:
+      city:
+        type: string
 
   COMPUTE_TYPE:
     derived_from: cloudify.nodes.Root
@@ -29,8 +32,10 @@ node_types:
           executor: central_deployment_agent
 
 node_templates:
-  KARDAN_ETX:
+  EMPIRE_STATE_ETX:
     type: ETX
+    properties:
+      city: New York City
     instances:
       deploy: 1
 
@@ -40,7 +45,7 @@ node_templates:
       deploy: 1
     relationships:
       - type: cloudify.relationships.contained_in
-        target: KARDAN_ETX
+        target: EMPIRE_STATE_ETX
 
   FORTIGATE_1_VM:
     type: VNF_VM
@@ -97,6 +102,8 @@ node_templates:
 
   ELECTRA_ETX:
     type: ETX
+    properties:
+      city: Tel Aviv
     instances:
       deploy: 1
 
@@ -145,8 +152,8 @@ node_templates:
 
 groups:
 
-  KARDAN_BUILDING:
-    members: [KARDAN_ETX]
+  EMPIRE_STATE_BUILDING:
+    members: [EMPIRE_STATE_ETX]
 
   ELECTRA_BUILDING:
     members: [ELECTRA_ETX]
