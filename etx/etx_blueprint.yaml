@@ -100,7 +100,7 @@ node_templates:
       - type: cloudify.relationships.contained_in
         target: FORTIGATE_2_VM
 
-  ELECTRA_ETX:
+  GHERKIN_ETX:
     type: ETX
     properties:
       city: Tel Aviv
@@ -113,7 +113,7 @@ node_templates:
       deploy: 1
     relationships:
       - type: cloudify.relationships.contained_in
-        target: ELECTRA_ETX
+        target: GHERKIN_ETX
 
   FORTIGATE_3_VM:
     type: VNF_VM
@@ -155,5 +155,5 @@ groups:
   EMPIRE_STATE_BUILDING:
     members: [EMPIRE_STATE_ETX]
 
-  ELECTRA_BUILDING:
-    members: [ELECTRA_ETX]
+  GHERKIN_BUILDING:
+    members: [GHERKIN_ETX]
