@@ -73,7 +73,7 @@ class Config(Generic):
         for param in params:
             for key, val in param.iteritems():
                 if val is None or val == "":
-                    commands.append('{0}').format(key)
+                    commands.append('{0}'.format(key))
                 else:
                     if with_quotes:
                         commands.append('set {0} "{1}"'.format(key, val))
