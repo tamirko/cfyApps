@@ -451,7 +451,7 @@ groups:
               workflow_parameters:
                 delta: 1
                 node_id: apache
-                #scale_compute: true
+                # scale_compute: true
 
   scale_down_group:
     members: [apache_vm]
@@ -473,7 +473,7 @@ groups:
               workflow_parameters:
                 delta: -1
                 node_id: apache
-                #scale_compute: true
+                # scale_compute: true
 
   heal_group:
     members: [memcached_vm]

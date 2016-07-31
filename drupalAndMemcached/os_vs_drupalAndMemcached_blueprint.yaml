@@ -288,7 +288,10 @@ node_templates:
 
   apache_ip:
     type: cloudify.openstack.nodes.FloatingIP
-
+    capabilities:
+      scalable:
+        properties:
+          default_instances: 1
 
   mysql_vm:
     type: host
@@ -305,8 +308,10 @@ node_templates:
 
   apache_vm:
     type: host
-    instances:
-      deploy: 1
+    capabilities:
+      scalable:
+        properties:
+          default_instances: 1
     relationships:
       - target: drupal_security_group
         type: cloudify.openstack.server_connected_to_security_group
@@ -479,11 +484,12 @@ outputs:
 groups:
 
   scale_up_group:
-    members: [apache]
+    members: [apache_vm]
     policies:
       auto_scale_up:
         type: scale_policy_type
         properties:
+          default_instances: 1
           # If there is more than one member and policy_operates_on_group is set to true,
           # then the threshold is checked against the SUM of all the relevant metrics from all the memebers.
           # E.g.:
@@ -504,15 +510,16 @@ groups:
               workflow: scale
               workflow_parameters:
                 delta: 1
-                node_id: drupal_app
-                scale_compute: true
+                node_id: apache
+                # scale_compute: true
 
   scale_down_group:
-    members: [apache]
+    members: [apache_vm]
     policies:
       auto_scale_down:
         type: scale_policy_type
         properties:
+          default_instances: 1
           scale_limit: 2
           scale_direction: '>'
           scale_threshold: 20
@@ -525,8 +532,8 @@ groups:
               workflow: scale
               workflow_parameters:
                 delta: -1
-                node_id: drupal_app
-                scale_compute: true
+                node_id: apache
+                # scale_compute: true
 
   heal_group:
     members: [memcached-vm]
@@ -548,3 +555,11 @@ groups:
 
   apache:
     members: [apache_vm, apache_ip]
+
+
+policies:
+  scale_policy1:
+    type: cloudify.policies.scaling
+    properties:
+      default_instances: 1
+    targets: [apache]
