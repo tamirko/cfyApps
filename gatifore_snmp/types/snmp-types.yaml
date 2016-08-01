@@ -12,7 +12,7 @@ node_types:
             collectors_config:
               default:
                 SNMPProxyCollector:
-                  path: collectors/snmpproxy.py
+                  path: collectors/snmpproxy_exp_log.py
                   config: { get_attribute: [SELF, snmp_collector_config] }
 
 
@@ -75,3 +75,20 @@ relationships:
               description: the community
             oids:
               description: the oids to poll
+
+  cloudify.relationships.snmp_agent_monitors:
+    derived_from: cloudify.relationships.depends_on
+    source_interfaces:
+      cloudify.interfaces.relationship_lifecycle:
+        preconfigure:
+          implementation: scripts/append_diamond_conf.py
+          inputs:
+            port:
+              default: 161
+              description: snmp port
+            community:
+              default: public
+              description: the community
+            oids:
+              description: the oids to poll
+

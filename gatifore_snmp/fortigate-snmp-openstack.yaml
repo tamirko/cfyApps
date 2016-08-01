@@ -10,6 +10,7 @@ imports:
   - http://www.getcloudify.org/spec/fabric-plugin/1.4.1/plugin.yaml
   - http://www.getcloudify.org/spec/openstack-plugin/1.4/plugin.yaml
   - http://www.getcloudify.org/spec/diamond-plugin/1.3.3/plugin.yaml
+  - types/snmp-types.yaml
 #  - https://raw.githubusercontent.com/GigaSpaces-ProfessionalServices/cloudify-fortinet-plugin/dev/plugin.yaml
   - plugin.yaml
 
@@ -106,6 +107,15 @@ inputs:
   nerwork_private_dns_nameservers:
     type: string
 
+  snmp_proxy_image:
+    type: string
+
+  snmp_proxy_flavor:
+    type: string
+
+  proxy_agent_user:
+    type: string
+    default: ubuntu
 
 dsl_definitions:
   # By default, the FortiGate AWS AMI uses a blank password
@@ -139,6 +149,7 @@ node_templates:
       rules:
         - remote_ip_prefix: 0.0.0.0/0
           port: 161
+          protocol: udp
         - remote_ip_prefix: 0.0.0.0/0
           port: 162
         - remote_ip_prefix: 0.0.0.0/0
@@ -401,12 +412,81 @@ node_templates:
     - type: cloudify.relationships.depends_on
       target: fortigate_snmp_config
 
+  proxy_server:
+    type: cloudify.openstack.nodes.Server
+    properties:
+      agent_config:
+        user: { get_input: proxy_agent_user }
+      image: { get_input: snmp_proxy_image }
+      flavor: { get_input: snmp_proxy_flavor }
+    interfaces:
+      cloudify.interfaces.monitoring_agent:
+        install:
+          implementation: diamond.diamond_agent.tasks.install
+          inputs:
+            diamond_config:
+              interval: 1
+        start: diamond.diamond_agent.tasks.start
+        stop: diamond.diamond_agent.tasks.stop
+        uninstall: diamond.diamond_agent.tasks.uninstall
+    relationships:
+      - type: cloudify.openstack.server_connected_to_port
+        target: proxy_port
+
+
+  proxy_node:
+    type: cloudify.nodes.Root
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create: scripts/install_requirements.sh
+      cloudify.interfaces.monitoring:
+        start:
+          implementation: diamond.diamond_agent.tasks.add_collectors
+          inputs:
+            collectors_config:
+                SNMPProxyCollector:
+                  path: collectors/snmpproxy_exp_log.py
+                  config: { get_attribute: [SELF, snmp_collector_config] }
+    relationships:
+      - type: cloudify.relationships.connected_to
+        target: fortigate_snmp_community_config # Assure that Diamond starts after snmpd is configured
+      - type: cloudify.relationships.contained_in
+        target: proxy_server
+        source_interfaces:
+          cloudify.interfaces.relationship_lifecycle:
+            preconfigure:
+              implementation: scripts/append_diamond_conf.py
+              inputs:
+                host: { get_attribute: [fortigate_vm, ip] }
+                port : 161
+                community: public
+                oids:
+                  1.3.6.1.4.1.2021.10.1.3.1: total.system
+                  1.3.6.1.4.1.2021.10.1.3.2: total.user
+                  1.3.6.1.4.1.12356.1.8.0: fnSysCpuUsage
+                  1.3.6.1.4.1.12356.1.9.0: fnSysMemUsage
+                  1.3.6.1.4.1.12356.1.10.0: fnSysSesCount
+
+
+
+  proxy_port:
+    type: cloudify.openstack.nodes.Port
+    relationships:
+    - type: cloudify.relationships.contained_in
+      target: network_mgmt
+    - type: cloudify.openstack.port_connected_to_subnet
+      target: subnet_mgmt
+    - type: cloudify.openstack.port_connected_to_security_group
+      target: security_group_ssh_only
+    - type: cloudify.openstack.port_connected_to_security_group
+      target: additional_security_group
+
 
 groups:
   network:
     members: [ports, mgmt, public, private, secgrp,floating_ip, external_network]
   mgmt:
-    members: [network_mgmt, subnet_mgmt ]
+    members: [network_mgmt, subnet_mgmt]
   public:
     members: [network_public, subnet_public, subnet_public_router]
   private:
@@ -416,9 +496,11 @@ groups:
   ports:
     members: [port_mgmt, port_public, port_private]
   fortigate:
-    members: [fortigate_vm, snmp]
-  snmp:
+    members: [fortigate_vm, fortigate_snmp]
+  fortigate_snmp:
     members: [fortigate_snmp_config, fortigate_snmp_community_config]
+  proxy_snmp_grp:
+    members: [proxy_server, proxy_node, proxy_port]
 
 outputs:
   fortigate_vm_public_ip:
