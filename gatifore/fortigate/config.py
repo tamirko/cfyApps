@@ -69,11 +69,15 @@ class Config(Generic):
         # Switch to "edit" mode (if needed)
         if cid:
             commands.append('edit {0}'.format(cid))
+
+        internal_command = ["config", "edit"]
         # Run SET commands
         for param in params:
             for key, val in param.iteritems():
                 if val is None or val == "":
                     commands.append('{0}'.format(key))
+                elif key in internal_command:
+                    commands.append('{0} {1}'.format(key, val))
                 else:
                     if with_quotes:
                         commands.append('set {0} "{1}"'.format(key, val))
