@@ -34,7 +34,7 @@ class SNMPProxyCollector(SNMPRawCollector):
             for oid, metricName in dev_config['oids'].items():
                 self.log.info("Checking {0}:{1} for device {2}".format(oid, metricName, device))
                 elog.info("Checking {0}:{1} for device {2}".format(oid, metricName, device))
-                if 1 == 2 and (device, oid) in self.skip_list:
+                if (device, oid) in self.skip_list:
                     self.log.info(
                             "Skipping OID '{0}' ({1}) on device '{2}'".format(
                                     oid, metricName, device))
