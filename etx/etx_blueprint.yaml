@@ -103,7 +103,7 @@ node_templates:
   GHERKIN_ETX:
     type: ETX
     properties:
-      city: Tel Aviv
+      city: London
     instances:
       deploy: 1
 
