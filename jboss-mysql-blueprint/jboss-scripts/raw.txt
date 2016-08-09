@@ -1,0 +1,5 @@
+
+https://github.com/jaysensharma/MiddlewareMagicDemos/tree/master/JBossAS/General/DataSourceDemo
+
+
+https://developer.jboss.org/thread/214066?tstart=0

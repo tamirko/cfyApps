@@ -1,0 +1,368 @@
+tosca_definitions_version: cloudify_dsl_1_3
+imports:
+  - http://www.getcloudify.org/spec/cloudify/3.4/types.yaml
+  - http://www.getcloudify.org/spec/diamond-plugin/1.3.3/plugin.yaml
+  - http://www.getcloudify.org/spec/openstack-plugin/1.4/plugin.yaml
+  - http://www.getcloudify.org/spec/vsphere-plugin/2.0/plugin.yaml
+
+inputs:
+  dbPort:
+    default: 3306
+  ubuntu_ssh_user:
+    default: 'ubuntu'
+  centos_ssh_user:
+    default: 'centos'
+  centos_vm_image:
+    # CentOs 7 - OpenStack
+    default: 'aee5438f-1c7c-497f-a11e-53360241cf0f'
+# RAM: 4096 MB, Hard Disk 80 GB, 2 vCPUs
+  vm_flavor:
+    default: 3
+
+  ubuntu_vsphere_template_name:
+    default: 'Ubuntu_server_14_04_tmpl'
+
+  management_network:
+    default: 'cfy_mng'
+  external_network:
+    default: 'External'
+  default_security_group_name:
+    default: 'default'
+
+
+  jboss_download_url:
+    default: http://download.jboss.org/jbossas/7.1/jboss-as-7.1.0.Final/jboss-as-7.1.0.Final.zip
+  jbossPort:
+    default: 8080
+  jmxPort:
+    default: 9999
+  datasource_demo_war_url:
+    #default: https://dl.dropboxusercontent.com/u/58809323/DataSourceDemo.war
+    default: https://dl.dropboxusercontent.com/u/58809323/mysqladmin.war
+  warFileName:
+    default: mysqladmin.war
+  mysql_connector_url:
+    default: https://dl.dropboxusercontent.com/u/58809323/mysql-connector-java-5.1.13-bin.jar
+  jdbcDriverName:
+    default: "mysql-connector-java-5.1.22-bin.jar"
+
+  dbName:
+    default: myjbossdb
+  dbUserName:
+    default: admin
+  dbUserPassword:
+    default: 123
+
+
+node_types:
+
+  openstack_vm:
+    derived_from: cloudify.openstack.nodes.Server
+    interfaces:
+      ###########################################################
+      # We are infact telling cloudify to install a diamond
+      # monitoring agent on the server.
+      #
+      # (see https://github.com/BrightcoveOS/Diamond)
+      ###########################################################
+      cloudify.interfaces.monitoring_agent:
+          install:
+            implementation: diamond.diamond_agent.tasks.install
+            inputs:
+              diamond_config:
+                default:
+                  interval: 1
+          start: diamond.diamond_agent.tasks.start
+          stop: diamond.diamond_agent.tasks.stop
+          uninstall: diamond.diamond_agent.tasks.uninstall
+      ###########################################################
+      # Adding some collectors. These collectors are necessary
+      # for the Cloudify UI to display the deafult metrics.
+      ###########################################################
+      cloudify.interfaces.monitoring:
+          start:
+            implementation: diamond.diamond_agent.tasks.add_collectors
+            inputs:
+              collectors_config:
+                default:
+                  CPUCollector: {}
+                  MemoryCollector: {}
+                  LoadAverageCollector: {}
+                  DiskUsageCollector:
+                    config:
+                      devices: x?vd[a-z]+[0-9]*$
+                  NetworkCollector: {}
+
+  openstack_centos_vm:
+    derived_from: openstack_vm
+    properties:
+      cloudify_agent:
+        default:
+          user: { get_input: centos_ssh_user }
+      server:
+        default:
+          image: { get_input: centos_vm_image }
+          flavor: { get_input: vm_flavor }
+
+
+  vsphere_ubuntu_host:
+    derived_from: cloudify.vsphere.nodes.Server
+    properties:
+      cloudify_agent:
+        default:
+          user: { get_input: ubuntu_ssh_user }
+      server:
+        default:
+          template: { get_input: ubuntu_vsphere_template_name }
+          cpus: 1
+          memory: 2048
+      networking:
+        default:
+          connect_networks:
+            - name: { get_input: management_network }
+              switch_distributed: True
+              management: True
+            - name: { get_input: external_network }
+              switch_distributed: True
+              external: True
+    interfaces:
+      ###########################################################
+      # We are infact telling cloudify to install a diamond
+      # monitoring agent on the server.
+      #
+      # (see https://github.com/BrightcoveOS/Diamond)
+      ###########################################################
+      cloudify.interfaces.monitoring_agent:
+          install:
+            implementation: diamond.diamond_agent.tasks.install
+            inputs:
+              diamond_config:
+                default:
+                  interval: 1
+          start: diamond.diamond_agent.tasks.start
+          stop: diamond.diamond_agent.tasks.stop
+          uninstall: diamond.diamond_agent.tasks.uninstall
+      ###########################################################
+      # Adding some collectors. These collectors are necessary
+      # for the Cloudify UI to display the deafult metrics.
+      ###########################################################
+      cloudify.interfaces.monitoring:
+          start:
+            implementation: diamond.diamond_agent.tasks.add_collectors
+            inputs:
+              collectors_config:
+                default:
+                  CPUCollector: {}
+                  MemoryCollector: {}
+                  LoadAverageCollector: {}
+                  DiskUsageCollector:
+                    config:
+                      devices: x?vd[a-z]+[0-9]*$
+                  NetworkCollector: {}
+
+
+  jbsoss_application:
+    derived_from: cloudify.nodes.ApplicationModule
+    properties:
+      jbossPort:
+        default: { get_input: jbossPort }
+      jmxPort:
+        default: { get_input: jmxPort }
+      jboss_download_url:
+        default: { get_input: jboss_download_url }
+      datasource_demo_war_url:
+        default: { get_input: datasource_demo_war_url }
+      warFileName:
+        default: { get_input: warFileName }
+      mysql_connector_url:
+        default: { get_input: mysql_connector_url }
+      jdbcDriverName:
+        default: { get_input: jdbcDriverName }
+
+  mysql_dbms:
+    derived_from: cloudify.nodes.DBMS
+    properties:
+      port:
+        description: MySQL port
+        type: integer
+      sectionNames:
+        description: A command separated list of my.cnf section names
+        type: string
+      variableNames:
+        description: A command separated list of my.cnf variable names
+        type: string
+      newValues:
+        description: A command separated list of my.cnf values for the above variable names
+        type: string
+
+  mysql_schema:
+    derived_from: cloudify.nodes.ApplicationModule
+    properties:
+      dbPort:
+        description: MySQL port
+        type: integer
+      schemaurl:
+        description: schema zip url
+        type: string
+      query:
+        description: Test Query
+        type: string
+      dbName:
+        default: { get_input: dbName }
+      dbUserName:
+        default: { get_input: dbUserName }
+      dbUserPassword:
+        default: { get_input: dbUserPassword }
+
+node_templates:
+  jboss_vm:
+    type: openstack_centos_vm
+    capabilities:
+      scalable:
+        properties:
+          default_instances: 1
+    relationships:
+      - target: jboss_security_group
+        type: cloudify.openstack.server_connected_to_security_group
+      - target: jboss_floating_ip
+        type: cloudify.openstack.server_connected_to_floating_ip
+
+  mysql-vm:
+    type: vsphere_ubuntu_host
+    instances:
+      deploy: 1
+
+
+  jboss_server:
+    type: cloudify.nodes.ApplicationServer
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: jboss_vm
+    instances:
+      deploy: 1
+
+
+  jboss_app:
+    type: jbsoss_application
+    properties:
+      jbossPort: { get_input: jbossPort }
+      jmxPort: { get_input: jmxPort }
+      datasource_demo_war_url: { get_input: datasource_demo_war_url }
+      jdbcDriverName: { get_input: jdbcDriverName }
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create: jboss-scripts/install-jboss.sh
+        start: jboss-scripts/start-jboss.sh
+        stop: jboss-scripts/stop-jboss.sh
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: jboss_server
+      - type: cloudify.relationships.connected_to
+        target: mysql_jboss_schema
+        target_interfaces:
+          cloudify.interfaces.relationship_lifecycle:
+            preconfigure: mysql-scripts/configure-mysql-schema.sh
+        source_interfaces:
+          cloudify.interfaces.relationship_lifecycle:
+            postconfigure: jboss-scripts/configure-jboss-mysql.sh
+    instances:
+      deploy: 1
+
+
+  jboss_floating_ip:
+    type: cloudify.openstack.nodes.FloatingIP
+    capabilities:
+      scalable:
+        properties:
+          default_instances: 1
+
+
+  mysql_database:
+    type: mysql_dbms
+    properties:
+      port: { get_input: dbPort }
+      sectionNames: mysqld
+      variableNames: bind-address
+      newValues: 0.0.0.0
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create: mysql-scripts/install-mysql.sh
+        start: mysql-scripts/start-mysql.sh
+        stop: mysql-scripts/stop-mysql.sh
+    relationships:
+      - target: mysql-vm
+        type: cloudify.relationships.contained_in
+
+  mysql_jboss_schema:
+    type: mysql_schema
+    properties:
+      dbPort: { get_input: dbPort }
+      query: select name,mail from users
+      schemaurl: http://repository.cloudifysource.org/org/cloudifysource/examples/drupal/new_babies7.zip
+    interfaces:
+      cloudify.interfaces.monitoring:
+         start:
+            implementation: diamond.diamond_agent.tasks.add_collectors
+            inputs:
+               collectors_config:
+                  MySQLCollector:
+                     config:
+                        enabled: True
+                        hosts: "admin:123@localhost:3306/myjbossdb"
+    relationships:
+      - target: mysql_database
+        type: cloudify.relationships.contained_in
+
+
+  jboss_security_group:
+    type: cloudify.openstack.nodes.SecurityGroup
+    instances:
+      deploy: 1
+    properties:
+      rules:
+        - remote_ip_prefix: 0.0.0.0/0
+          port: 8080
+        - remote_ip_prefix: 0.0.0.0/0
+          port: 8090
+        - remote_ip_prefix: 0.0.0.0/0
+          port: 4712
+        - remote_ip_prefix: 0.0.0.0/0
+          port: 4713
+        - remote_ip_prefix: 0.0.0.0/0
+          port: 4447
+        - remote_ip_prefix: 0.0.0.0/0
+          port: 9443
+        - remote_ip_prefix: 0.0.0.0/0
+          port: 9990
+        - remote_ip_prefix: 0.0.0.0/0
+          port: 9999
+        - remote_ip_prefix: 0.0.0.0/0
+          port: 8081
+        - remote_ip_prefix: 0.0.0.0/0
+          port: 22
+        - remote_ip_prefix: 0.0.0.0/0
+          port: 80
+        - remote_ip_prefix: 0.0.0.0/0
+          port: 443
+        - remote_ip_prefix: 0.0.0.0/0
+          port: 3306
+        - remote_ip_prefix: 0.0.0.0/0
+          port: 55672
+        - remote_ip_prefix: 0.0.0.0/0
+          port: 5672
+        - remote_ip_prefix: 0.0.0.0/0
+          port: 53229
+        - remote_ip_prefix: 0.0.0.0/0
+          port: 8101
+        - remote_ip_prefix: 0.0.0.0/0
+          port: 8100
+
+groups:
+  jboss:
+    members: [jboss_vm, jboss_floating_ip]
+
+outputs:
+  endpoint:
+    description: My application endpoint
+    value:
+      demo_url: { concat: ['http://', { get_attribute: [jboss_floating_ip, floating_ip_address] },':', { get_property: [jboss_app, jbossPort] }, '/mysqladmin/'] }
