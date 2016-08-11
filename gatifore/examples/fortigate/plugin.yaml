@@ -146,11 +146,6 @@ node_types:
           implementation: fortinet.fortigate.generic.execute_command
           inputs: *CommandProperties
 
-plugins:
-   daytwo-commands-plugin:
-      executor: central_deployment_agent
-      source: daytwo-commands-plugin
-
 workflows:
   updatenow:
     mapping: fortinet.fortigate.workflows.updatenow
