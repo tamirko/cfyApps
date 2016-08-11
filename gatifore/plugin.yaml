@@ -5,9 +5,8 @@
 plugins:
   fortinet:
     executor: central_deployment_agent
-    source: https://github.com/GigaSpaces-ProfessionalServices/cloudify-fortinet-plugin/archive/dev.zip
     package_name: cloudify-fortinet-plugin
-    package_version: '1.2'
+    package_version: '1.2.1'
 
 
 dsl_definitions:
@@ -147,6 +146,10 @@ node_types:
           implementation: fortinet.fortigate.generic.execute_command
           inputs: *CommandProperties
 
+plugins:
+   daytwo-commands-plugin:
+      executor: central_deployment_agent
+      source: daytwo-commands-plugin
 
 workflows:
   updatenow:
@@ -157,4 +160,28 @@ workflows:
         description: >
           SSH configuration data (key-value pairs) to be passed
           to the underlying Fabric connection settings (fabric.api.env)
-  
+
+  config_xyz:
+    mapping: fortinet.fortigate.workflows.update_xyz
+    parameters:
+      ssh_config:
+        required: true
+        description: >
+          SSH configuration data (key-value pairs) to be passed
+          to the underlying Fabric connection settings (fabric.api.env)
+      config_name:
+        required: true
+        description: >
+          Resource name config object to updated
+      cid:
+        required: true
+        description: >
+          Configuration ID to be update inside resource_name to updated
+      property_name:
+        required: true
+        description: >
+          Property name to be update. - Inside cid
+      property_value:
+        required: true
+        description: >
+          The new property value of property_name inside cid
