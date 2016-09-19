@@ -1,0 +1,190 @@
+###########################################################
+# Cloudify Fortinet built in types and plugins definitions.
+###########################################################
+
+plugins:
+  fortinet:
+    executor: central_deployment_agent
+    package_name: cloudify-fortinet-plugin
+    package_version: '1.2.1'
+
+
+dsl_definitions:
+  SSHConfig: &SSHConfig
+    required: false
+    description: >
+      SSH configuration data (key-value pairs) to be passed
+      to the underlying Fabric connection settings (fabric.api.env)
+  
+  ConfigProperties: &ConfigProperties
+    config_id:
+      required: false
+      default: ~
+      description: >
+        Sets a specific config ID to use when making updates. If this
+        is not set, the plugin will attempt to use the configuration
+        element directly (not going into "edit" mode)
+    config:
+      required: false
+      default: ~
+      description: >
+        Arrays of key-value pairs.  Each pair will
+        execute "set <key> <value>" within the policy
+        edit context. Arrays are used to preserve ordering.
+    ssh_config: *SSHConfig
+        
+  UpdateProperties: &UpdateProperties
+    update_av:
+      required: false
+      default: false
+    update_geo_ip:
+      required: false
+      default: false
+    update_ips:
+      required: false
+      default: false
+    update_list:
+      required: false
+      default: false
+    update_src_vis:
+      required: false
+      default: false
+    ssh_config: *SSHConfig
+    
+  CommandProperties: &CommandProperties
+    command:
+      description: >
+        SSH command to be executed as-is
+      required: false
+      type: string
+    ssh_config: *SSHConfig
+
+
+node_types:
+  
+  # This is a generic type used for development / testing of
+  # new node types. The key difference here is the "name" input.
+  # This field should be set to the configuration name such as
+  # "firewall vip". 
+  # Exposed runtime properties:
+  #   config_name
+  #   config_id
+  #   config (as returned by FortiGate; dict)
+  #   ssh_config
+  cloudify.Fortinet.FortiGate.Config:
+    derived_from: cloudify.nodes.ApplicationModule
+    properties:
+      <<: *ConfigProperties
+      config_name:
+        required: false
+        default: ~
+        description: >
+          Sets the configuration name / type to be updated.
+          Ex. "firewall vip" or "system interface".
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create:
+          implementation: fortinet.fortigate.config.create
+          inputs:
+            <<: *ConfigProperties
+            config_name:
+              required: false
+              default: ~
+              description: >
+                Sets the configuration name / type to be updated.
+                Ex. "firewall vip" or "system interface".
+        delete: fortinet.fortigate.config.delete
+        
+  # Type for updating firewall components
+  # There are no exposed runtime properties
+  cloudify.Fortinet.FortiGate.Firewall.Update:
+    derived_from: cloudify.nodes.ApplicationModule
+    properties: *UpdateProperties
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create:
+          implementation: fortinet.fortigate.firewall.update.create
+          inputs: *UpdateProperties
+  
+  # Exposed runtime properties:
+  #   config_id
+  #   config (as returned by FortiGate; dict)
+  #   ssh_config
+  cloudify.Fortinet.FortiGate.Firewall.Policy:
+    derived_from: cloudify.nodes.ApplicationModule
+    properties: *ConfigProperties
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create:
+          implementation: fortinet.fortigate.firewall.policy.create
+          inputs: *ConfigProperties
+        delete: fortinet.fortigate.firewall.policy.delete
+        
+  # Exposed runtime properties:
+  #   config_id
+  #   config (as returned by FortiGate; dict)
+  #   ssh_config
+  cloudify.Fortinet.FortiGate.Firewall.VIP:
+    derived_from: cloudify.nodes.ApplicationModule
+    properties: *ConfigProperties
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create:
+          implementation: fortinet.fortigate.firewall.vip.create
+          inputs: *ConfigProperties
+        delete: fortinet.fortigate.firewall.vip.delete
+        
+  # This is the lowest-level type that simply executes a command
+  # Exposed runtime properties:
+  #   output (as returned by FortiGate; string)
+  cloudify.Fortinet.FortiGate.Command:
+    derived_from: cloudify.nodes.ApplicationModule
+    properties: *CommandProperties
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create:
+          implementation: fortinet.fortigate.generic.execute_command
+          inputs: *CommandProperties
+
+workflows:
+  updatenow:
+    mapping: fortinet.fortigate.workflows.updatenow
+    parameters:
+      ssh_config:
+        required: true
+        description: >
+          SSH configuration data (key-value pairs) to be passed
+          to the underlying Fabric connection settings (fabric.api.env)
+
+  config_xyz:
+    mapping: fortinet.fortigate.workflows.update_xyz
+    parameters:
+      ssh_config:
+        required: true
+        description: >
+          SSH configuration data (key-value pairs) to be passed
+          to the underlying Fabric connection settings (fabric.api.env)
+      config_name:
+        required: true
+        description: >
+          Resource name config object to updated
+      cid:
+        required: true
+        description: >
+          Configuration ID to be update inside resource_name to updated
+      property_name:
+        required: true
+        description: >
+          Property name to be update. - Inside cid
+      property_value:
+        required: true
+        description: >
+          The new property value of property_name inside cid
+
+# update_xyz: config system interface-> edit port2-> set allowaccess ssh http
+# In the example above :
+## cid is port2
+## config_name is system interface
+## property_name is allowaccess
+## property_value is ssh http
+

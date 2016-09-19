@@ -1,0 +1,10 @@
+#monitored_host_ubuntu_image_name: 9d25fe2d-cf31-4b05-8c58-f238ec78e633
+agent_user:  'ubuntu'
+image: '173b0588-e534-4660-a889-d56dc0bfd8b0'
+flavor: '2'
+use_existing_agent_keypair: true
+agent_private_key_path: '/home/rad/.ssh/agent.pem'
+agent_public_key_name: 'agent'
+#external_network_name: ''
+management_network_name: 'mngnet'
+
