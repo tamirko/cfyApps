@@ -1,5 +1,5 @@
-image: 22a90e95-6b62-40cc-835e-6d9aca24de99
-flavor: 49daff09-ae87-4735-a215-917e29da8228
+image: 49daff09-ae87-4735-a215-917e29da8228
+flavor: 718f2a6d-52c5-4f23-a774-49df51c6eedc
 fortigate_port_public: port1
 fortigate_port_private: port2
 fortigate_port_mgmt: port3
