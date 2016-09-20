@@ -378,6 +378,14 @@ node_templates:
             config:
             - alias: WAN
             ssh_config: *ssh_config
+        delete:
+          implementation: fortinet.fortigate.config.delete
+          inputs:
+            config_name: system interface
+            config_id: { get_input: fortigate_port_public }
+            config:
+            - alias: WAN
+            ssh_config: *ssh_config
     relationships:
     - type: cloudify.relationships.contained_in
       target: FORTIGATE_1_aliases
@@ -393,6 +401,14 @@ node_templates:
             config:
             - alias: LAN
             ssh_config: *ssh_config
+        delete:
+          implementation: fortinet.fortigate.config.delete
+          inputs:
+            config_name: system interface
+            config_id: { get_input: fortigate_port_private }
+            config:
+            - alias: LAN
+            ssh_config: *ssh_config
     relationships:
     - type: cloudify.relationships.contained_in
       target: FORTIGATE_1_aliases
@@ -402,6 +418,14 @@ node_templates:
     interfaces:
       cloudify.interfaces.lifecycle:
         create:
+          inputs:
+            config_name: system interface
+            config_id: { get_input: fortigate_port_mgmt }
+            config:
+            - alias: MGMT
+            ssh_config: *ssh_config
+        delete:
+          implementation: fortinet.fortigate.config.delete
           inputs:
             config_name: system interface
             config_id: { get_input: fortigate_port_mgmt }
@@ -425,11 +449,20 @@ node_templates:
         create:
           inputs:
             config_name: system snmp sysinfo
+            config_id: description
             config:
             - status: enable
             - description: '"My SNMP sysinfo description"'
             - contact-info: '"Cloudify SNMP"'
             - location: '"Everywhere"'
+            ssh_config: *ssh_config
+        delete:
+          implementation: fortinet.fortigate.config.delete
+          inputs:
+            config_name: system snmp sysinfo
+            config_id: description
+            config:
+            - description: '"My SNMP sysinfo description"'
             ssh_config: *ssh_config
     relationships:
     - type: cloudify.relationships.contained_in
@@ -451,6 +484,14 @@ node_templates:
             - end: ''
             - events: cpu-high mem-low log-full intf-ip vpn-tun-up vpn-tun-down ha-switch ha-hb-failure ips-signature ips-anomaly av-virus av-oversize av-pattern av-fragmented fm-if-change bgp-established bgp-backward-transition ha-member-up ha-member-down ent-conf-change av-conserve av-bypass av-oversize-passed av-oversize-blocked ips-pkg-update ips-fail-open faz-disconnect wc-ap-up wc-ap-down
             - next: ''
+            ssh_config: *ssh_config
+        delete:
+          implementation: fortinet.fortigate.config.delete
+          inputs:
+            config_name: system snmp community
+            config_id: 1
+            config:
+            - name: '"public"'
             ssh_config: *ssh_config
     relationships:
     - type: cloudify.relationships.contained_in

@@ -20,9 +20,9 @@ use_existing_subnet_private: false
 neutron_subnet_private_cidr_block: 10.0.2.0/24
 neutron_subnet_private_gateway: '10.0.2.1'
 nerwork_private_dns_nameservers: [8.8.4.4, 8.8.8.8]
-mgmt_network_name: cloudify-management-network0719
+mgmt_network_name: cloudify-management-network2009
 use_existing_mgmt_network: true
-mgmt_subnet_name: cloudify-management-network-subnet0719
+mgmt_subnet_name: cloudify-management-network-subnet2009
 use_existing_mgmt_subnet: true
 snmp_proxy_image: 6c3047c6-17b1-4aaf-a657-9229bb481e50
 snmp_proxy_flavor: 8f4b7ae1-b8c2-431f-bb0c-362a5ece0381
