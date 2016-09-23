@@ -22,6 +22,9 @@ inputs:
 # RAM: 4096 MB, Hard Disk 80 GB, 2 vCPUs
   vm_flavor:
     default: '8f4b7ae1-b8c2-431f-bb0c-362a5ece0381'
+  incoming_slack_webhook:
+    #  - For cloudifydemo.slack.com
+    default: https://hooks.slack.com/services/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
 
 node_types:
 
@@ -173,7 +176,15 @@ node_types:
         description: docRoot of the Drupal
         type: string
 
-
+  slack_module:
+    derived_from: cloudify.nodes.ApplicationModule
+    properties:
+      slackRule1Url:
+        type: string
+      slackRule1ModuleName:
+        type: string
+      docRoot:
+        type: string
 
 relationships:
   drupal_server_connected_to_mysql_database:
@@ -222,6 +233,8 @@ node_templates:
           port: 8101
         - remote_ip_prefix: 0.0.0.0/0
           port: 8100
+        - remote_ip_prefix: 0.0.0.0/0
+          port: 11211
 
   apache_ip:
     type: cloudify.openstack.nodes.FloatingIP
@@ -366,6 +379,20 @@ node_templates:
       - type: drupal_app_connected_to_mysql_drupal_schema
         target: mysql_drupal_schema
 
+  drupal_slack:
+    type: slack_module
+    properties:
+      slackRule1Url: https://s3.amazonaws.com/cloudifymaterials/newcontentrulefeature-7.x-1.0.tar
+      slackRule1ModuleName: newcontentrulefeature
+      docRoot: { get_input: docRoot }
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        start: drupal-scripts/slack-install.sh
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: drupal_server
+      - type: cloudify.relationships.connected_to
+        target: drupal_app
 
 plugins:
    drush-plugin:
