@@ -175,6 +175,9 @@ node_types:
       docRoot:
         description: docRoot of the Drupal
         type: string
+      incoming_slack_webhook:
+        description: incoming slack webhook URL
+        type: string
 
   slack_module:
     derived_from: cloudify.nodes.ApplicationModule
@@ -363,6 +366,7 @@ node_templates:
       dbName: mydrupaldb
       dbUserName: admin
       dbUserPassword: 123  
+      incoming_slack_webhook: { get_input: incoming_slack_webhook }
     interfaces:
       cloudify.interfaces.lifecycle:        
         start: apache-scripts/start-apache.sh
@@ -418,9 +422,9 @@ workflows:
           default: null
 
    drush_install:
-      mapping: drush-plugin.drush.tasks.install_project
-      parameters:
-         project_name: {}
+     mapping: drush-plugin.drush.tasks.install_project
+     parameters:
+       project_name: {}
    
    # See Built-in Workflows in http://getcloudify.org/guide/3.3.1/guide-workflows.html#built-in-workflows
 #   drushinstall:
