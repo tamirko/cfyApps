@@ -1,0 +1,47 @@
+.logo {
+    color: white;
+    background: #ff4846;
+    text-align: center;
+}
+
+.user_headline {
+    color: blue;
+    #background-color: #ff4846;
+    text-align: left;
+}
+
+.live_env {
+    color: #0dff6e;
+    background: #000000;
+    text-align: center;
+}
+
+.created_env {
+    color: white;
+    background: black;
+    text-align: center;
+}
+
+.being_installed_env {
+    color: blue;
+    background: orange;
+    text-align: center;
+}
+
+.being_uninstalled_envs {
+    color: blue;
+    background: orange;
+    text-align: center;
+}
+
+
+.unistalled_env {
+    color: white;
+    background: black;
+    text-align: center;
+}
+
+.deployment_name {
+    color: blue;
+    text-align: left;
+}
