@@ -182,7 +182,8 @@ class SimpleHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         """
         blueprint_id = "etx_snmp_nov8"
         company_name = "Lego"
-        cloudify_manager_ip_address = "185.98.148.58"
+        cloudify_manager_ip_address = "xxxxxxx"
+        enable_embed = True
 
         title_txt = "{0}'s Operations Console".format(company_name)
         main_headline = "<{0} class=\"{2}\">{1}'s Operations Console</{0}>".format("h1", company_name, "logo")
@@ -244,18 +245,20 @@ class SimpleHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             deployment_id = deployment.id
             latest_execution_time = dt.strptime(latest_execution_time_str, time_format)
             all_executions = cloudify_client.executions.list(deployment_id=deployment_id)
+            embed_this_deployment = False
             for execution in all_executions:
-                wf_Id = execution.workflow_id
+                wf_id = execution.workflow_id
                 created_at = execution.created_at
                 created_at_dt = dt.strptime(created_at, time_format)
                 if latest_execution_time < created_at_dt:
                     latest_execution_time = created_at_dt
                     curr_delete = "<button type=\"button\" onclick=\"alert('{0} {1}')\">{0}</button>".format("Delete", deployment.id)
-                    if "uninstall" == wf_Id:
+                    if "uninstall" == wf_id:
                         curr_undeploy = ""
                         curr_run_wf = ""
                         curr_update = ""
                         wf_status = execution.status
+                        embed_this_deployment = False
                         if wf_status == "terminated":
                             curr_deploy = "<button type=\"button\" onclick=\"alert('{0} {1}')\">{0}</button>".format("Deploy", deployment.id)
                             curr_status = "<span class=\"{0}\">Uninstalled</span>".format("unistalled_env")
@@ -264,10 +267,10 @@ class SimpleHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
                             curr_deploy = ""
                             curr_status = "<span class=\"{0}\">being uninstalled...</span>".format("being_uninstalled_env")
                             created_at_msg = "Deployment started at {0}".format(created_at)
-    #                   break
-                    elif "install" == wf_Id:
+                    elif "install" == wf_id:
                         curr_deploy = ""
                         wf_status = execution.status
+                        embed_this_deployment = True
                         if wf_status == "terminated":
                             curr_update = "<button type=\"button\" onclick=\"alert('{0} {1}')\">{0}</button>".format("Update", deployment.id)
                             curr_run_wf = "<button type=\"button\" onclick=\"alert('{0}')\">{0}</button>".format("Execute a Workflow")
@@ -280,12 +283,12 @@ class SimpleHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
                             curr_run_wf = ""
                             curr_status = "<span class=\"{0}\">being installed...</span>".format("being_installed_env")
                             created_at_msg = "Deployment started at {0}".format(created_at)
-    #                    break
-                    elif "create_deployment_environment" == wf_Id:
+                    elif "create_deployment_environment" == wf_id:
                         curr_undeploy = ""
                         curr_update = ""
                         curr_run_wf = ""
                         wf_status = execution.status
+                        embed_this_deployment = False
                         if wf_status == "terminated":
                             curr_deploy = "<button type=\"button\" onclick=\"alert('{0} {1}')\">{0}</button>".format("Deploy", deployment.id)
                             curr_status = "<span class=\"{0}\">Created</span>".format("created_env")
@@ -316,8 +319,9 @@ class SimpleHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
                     deployment_str += "<li><span>{0}:{1}</span></li>".format(key, current_outputs.get(key))
                 deployment_str += "</ul>"
             deployment_str += "<hr>"
-            embed_deployment = "<iframe src=\"http://{0}/#/deployment/{1}/topology?embed=true\" width=\"800px\" height=\"350px\"></iframe>".format(cloudify_manager_ip_address, deployment_id)
-            #deployment_str += embed_deployment
+            if enable_embed and embed_this_deployment:
+                embed_deployment = "<iframe src=\"http://{0}/#/deployment/{1}/topology?embed=true\" width=\"800px\" height=\"350px\"></iframe>".format(cloudify_manager_ip_address, deployment_id)
+                deployment_str += embed_deployment
         deployment_str += "</ol>"
 #       deployment_str += "<hr>"
 
