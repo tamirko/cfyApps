@@ -22,10 +22,7 @@ import shutil
 import mimetypes
 import re
 import random
-import threading
 from datetime import datetime as dt
-from urlparse import urlparse, parse_qs
-
 from cloudify_rest_client import CloudifyClient
 from cloudify_rest_client.executions import Execution
 try:
@@ -156,14 +153,7 @@ class SimpleHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
                     path = index
                     break
             else:
-                query = urlparse(self.path).query
-
-                #query_components = parse_qs(urlparse(self.path).query)
-                if query:
-                    query_components = dict(qc.split("=") for qc in query.split("&"))
-                else:
-                    query_components = None
-                return self.show_deplyoments(path, query_components)
+                return self.show_deplyoments(path, self.path)
         ctype = self.guess_type(path)
         try:
             # Always read in binary mode. Opening files in text mode may cause
@@ -182,7 +172,7 @@ class SimpleHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         return f
 
 
-    def show_deplyoments(self, path, query_components=None):
+    def show_deplyoments(self, path, testArg="dummy"):
         """Helper to produce a directory listing (absent index.html).
 
         Return value is either a file object, or None (indicating an
@@ -190,11 +180,7 @@ class SimpleHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         interface the same as for send_head().
 
         """
-        time_format = "%Y-%m-%dT%H:%M:%S.%fZ"
-        latest_execution_time_str = "2000-01-01T20:56:56.120Z"
-        first_blueprint_id = "etx_snmp_nov8"
-        scnd_blueprint_id = "vCPE_bp"
-
+        blueprint_id = "etx_snmp_nov8"
         company_name = "Lego"
         cloudify_manager_ip_address = "xxx.xxx.xx.xxx"
         enable_embed = False
@@ -214,7 +200,7 @@ class SimpleHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         f.write("<html>")
         f.write("<head>")
         f.write("<title>{0}</title>".format(title_txt))
-        f.write("<meta http-equiv=\"refresh\" content=\"20\"/>".format(title_txt))
+        f.write("<meta http-equiv=\"refresh\" content=\"30\"/>".format(title_txt))
         f.write("<meta charset=\"utf-8\"/>")
         #f.write("<link rel=\"stylesheet\" type=\"text/css\" href=\"css/style.css\">")
         #f.write("<script type=\"text/javascript\" src=\"https://maps.googleapis.com/maps/api/js?sensor=false\"></script>")
@@ -223,8 +209,6 @@ class SimpleHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 
         cloudify_client = CloudifyClient(cloudify_manager_ip_address)
 
-        first_blueprint_installed, first_bp_execution_is_running = self.is_deployment_installed(cloudify_client, first_blueprint_id, latest_execution_time_str, time_format)
-        scnd_blueprint_installed, scbd_bp_execution_is_running = self.is_deployment_installed(cloudify_client, scnd_blueprint_id, latest_execution_time_str, time_format)
 
         deployment_str = ""
         deployment_str += "<{1} class=\"{2}\">Welcome {0} user !".format(company_name, "h2", "user_headline")
@@ -236,14 +220,12 @@ class SimpleHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         action2_display = "Update a vCPE"
         action3_display = "Provision a FireWall"
 
-        actions_display = [action1_display, action2_display, action3_display]
+        #actions += "<td><button type=\"button\" onclick=\"alert('Hello world1!')\">Click Me1!</button></td>"
+        actions += "<td><button type=\"button\" onclick=\"alert('{0}!')\">{0}</button></td>".format(action1_display)
+        actions += "<td><button type=\"button\" onclick=\"alert('{0}!')\">{0}</button></td>".format(action2_display)
+        actions += "<td><button type=\"button\" onclick=\"alert('{0}!')\">{0}</button></td>".format(action3_display)
 
-        for ad in actions_display:
-            actions += "<td><button type=\"button\" onclick=\"alert('{0}!')\">{0}</button></td>".format(ad)
-
-        #actions += "<td><button type=\"button\" onclick=\"window.location.href = 'http://127.0.0.1:8000?{1}={2}';\">{0}</button></td>".format("tttt", "firstDep", "install")
-
-
+        actions += "<td><button type=\"button\" onclick=\"window.location.href = 'http://127.0.0.1:8000?x=1';\">{0}</button></td>".format(testArg)
 
         deployment_str += "<td><{0} class=\"{1}\">Available actions:</td>{2}</{0}>".format("span", "user_headline", actions)
 
@@ -251,146 +233,160 @@ class SimpleHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         deployment_str += "</table>"
 
 
-        if scbd_bp_execution_is_running:
-            blueprint_list = [scnd_blueprint_id]
-        elif first_bp_execution_is_running:
-            blueprint_list = [first_blueprint_id]
-        elif first_blueprint_installed:
-            if scnd_blueprint_installed:
-                blueprint_list = [scnd_blueprint_id]
-            else:
-                blueprint_list = [first_blueprint_id, scnd_blueprint_id]
-        else:
-            blueprint_list = [first_blueprint_id]
+        deployment_str += "<table>"
+        deployment_str += "<row>"
+
+        deployment_str += "<td>"
+        deployment_str += "<{0} class=\"{1}\">Your current deployments are: </{0}>".format("h4", "user_headline")
+#       deployment_str += "<hr>"
+        deployment_str += "<ol>"
+        deploy_btn_txt = "<button type=\"button\" onclick=\"alert('{1}')\">{0}</button>"
+        update_btn_txt = "<button type=\"button\" onclick=\"alert('{1}')\">{0}</button>"
+
+        time_format = "%Y-%m-%dT%H:%M:%S.%fZ"
+        latest_execution_time_str = "2000-01-01T20:56:56.120Z"
+
+        try:
+            cloudify_client.executions.start("asdasdas", 'install')
+        except Exception as e:
+            deployment_str += "<span>"
+#            deployment_str += str(e)
+            deployment_str += "<hr/>"
+            deployment_str += "</h1>"
+            #deployment_str += "<div class=\"loader\">.....</div>"
+
+        for deployment in cloudify_client.deployments.list(blueprint_id=blueprint_id):
+            deployment_id = deployment.id
+            latest_execution_time = dt.strptime(latest_execution_time_str, time_format)
+            all_executions = cloudify_client.executions.list(deployment_id=deployment_id)
+            embed_this_deployment = False
+            curr_status_class = ""
+            curr_progress = ""
+            for execution in all_executions:
+                wf_id = execution.workflow_id
+                created_at = execution.created_at
+                created_at_dt = dt.strptime(created_at, time_format)
+                if latest_execution_time < created_at_dt:
+                    latest_execution_time = created_at_dt
+                    curr_delete = "<button type=\"button\" onclick=\"alert('{0} {1}')\">{0}</button>".format("Delete", deployment.id)
+                    if "uninstall" == wf_id:
+                        curr_undeploy = ""
+                        curr_run_wf = ""
+                        curr_update = ""
+                        wf_status = execution.status
+                        embed_this_deployment = False
+                        if wf_status == "terminated":
+                            curr_deploy = "<button type=\"button\" onclick=\"alert('{0} {1}')\">{0}</button>".format("Deploy", deployment.id)
+                            curr_status = "<span class=\"{0}\">Uninstalled</span>".format("unistalled_env")
+                            curr_status_class = uninstalled_status_html
+                            curr_progress = ""
+                            created_at_msg = "Undeployed at {0}".format(created_at)
+                        else:
+                            curr_deploy = ""
+                            curr_status = "<span class=\"{0}\">being uninstalled...</span>".format("being_uninstalled_env")
+                            curr_status_class = ""
+                            curr_progress = round_progress
+                            created_at_msg = "Deployment started at {0}".format(created_at)
+                    elif "install" == wf_id:
+                        curr_deploy = ""
+                        wf_status = execution.status
+                        curr_status_class = ""
+                        embed_this_deployment = True
+                        if wf_status == "terminated":
+                            curr_update = "<button type=\"button\" onclick=\"alert('{0} {1}')\">{0}</button>".format("Update", deployment.id)
+                            curr_run_wf = "<button type=\"button\" onclick=\"alert('{0}')\">{0}</button>".format("Execute a Workflow")
+                            curr_undeploy = "<button type=\"button\" onclick=\"alert('{0} {1}')\">{0}</button>".format("Undeploy", deployment.id)
+                            curr_status = "<span class=\"{0}\">Live</span>".format("live_env")
+                            curr_status_class = installed_status_html
+                            # Remove this later
+                            curr_progress = ""
+                            created_at_msg = "Deployed at {0}".format(created_at)
+                        else:
+                            curr_undeploy = ""
+                            curr_update = ""
+                            curr_run_wf = ""
+                            curr_status = "<span class=\"{0}\">being installed...</span>".format("being_installed_env")
+                            curr_status_class = ""
+                            curr_progress = round_progress
+                            created_at_msg = "Deployment started at {0}".format(created_at)
+                    elif "create_deployment_environment" == wf_id:
+                        curr_undeploy = ""
+                        curr_update = ""
+                        curr_run_wf = ""
+                        wf_status = execution.status
+                        curr_status_class = created_status_html
+
+                        embed_this_deployment = False
+                        if wf_status == "terminated":
+                            curr_deploy = "<button type=\"button\" onclick=\"alert('{0} {1}')\">{0}</button>".format("Deploy", deployment.id)
+                            curr_status = "<span class=\"{0}\">Created</span>".format("created_env")
+                            curr_progress = ""
+                            created_at_msg = "Created at {0}".format(created_at)
+                        else:
+                            curr_deploy = ""
+                            curr_status = "being created..."
+                            curr_progress = round_progress
+                            created_at_msg = "Creation started at {0}".format(created_at)
 
 
+#            deployment_str += "<li><{1} class=\"{2}\">{0}</{1}></li>".format(deployment_id, "h4", "deployment_name")
+            deployment_str += "<li><{1} class=\"{2}\">{0}</{1}></li>".format(deployment_id, "h4", "deployment_name")
 
-        for blueprint_id in blueprint_list:
+
+            if 1 == 2:
+                deployment_str += "<{1}>--{0}--</{1}>".format('inputs', "h4")
+                current_inputs = cloudify_client.deployments.get(deployment_id)['inputs']
+                if current_inputs and 1 == 2:
+                    deployment_str += "<ul>"
+                    for key in current_inputs:
+                        deployment_str += "<li><span>{0}:{1}</span></li>".format(key, current_inputs.get(key))
+                    deployment_str += "</ul>"
+
+#            deployment_str += "<{2}>--{0} {1}--</{2}>".format(deployment_id, 'outputs', "h5")
+
             deployment_str += "<table>"
             deployment_str += "<row>"
             deployment_str += "<td>"
-            deployment_str += "<{0} class=\"{1}\">The deployments of '{2}' are: </{0}>".format("h4", "user_headline", blueprint_id)
-            deployment_str += "<ol>"
-            for deployment in cloudify_client.deployments.list(blueprint_id=blueprint_id):
-                deployment_id = deployment.id
-                latest_execution_time = dt.strptime(latest_execution_time_str, time_format)
-                all_executions = cloudify_client.executions.list(deployment_id=deployment_id)
-                embed_this_deployment = False
-                curr_status_class = ""
-                curr_progress = ""
-                for execution in all_executions:
-                    wf_id = execution.workflow_id
-                    created_at = execution.created_at
-                    created_at_dt = dt.strptime(created_at, time_format)
-                    if latest_execution_time < created_at_dt:
-                        latest_execution_time = created_at_dt
-                        if first_bp_execution_is_running or scbd_bp_execution_is_running:
-                            curr_delete = ""
-                        else:
-                            curr_delete = self.get_button_html("delete", deployment.id)
-                        if "uninstall" == wf_id:
-                            curr_undeploy = ""
-                            curr_run_wf = ""
-                            curr_update = ""
-                            wf_status = execution.status
-                            embed_this_deployment = False
-                            if wf_status in ("terminated", "failed", "cancelled") :
-                                curr_deploy = self.get_button_html("install", deployment.id)
-                                curr_status = "<span class=\"{0}\">Uninstalled</span>".format("unistalled_env")
-                                curr_status_class = uninstalled_status_html
-                                curr_progress = ""
-                                created_at_msg = "Undeployed at {0}".format(created_at)
-                            else:
-                                curr_deploy = ""
-                                curr_status = "<span class=\"{0}\">being uninstalled...</span>".format("being_uninstalled_env")
-                                curr_status_class = ""
-                                curr_progress = round_progress
-                                created_at_msg = "Deployment started at {0}".format(created_at)
-                        elif "install" == wf_id:
-                            curr_deploy = ""
-                            wf_status = execution.status
-                            curr_status_class = ""
-                            embed_this_deployment = True
-                            if wf_status in ("terminated", "failed", "cancelled") :
-                                curr_update = self.get_button_html("Update", deployment.id)
-                                curr_run_wf = self.get_button_html("Execute a Workflow", deployment.id)
-                                curr_undeploy = self.get_button_html("uninstall", deployment.id)
-                                curr_status = "<span class=\"{0}\">Live</span>".format("live_env")
-                                curr_status_class = installed_status_html
-                                # Remove this later
-                                curr_progress = ""
-                                created_at_msg = "Deployed at {0}".format(created_at)
-                            else:
-                                curr_undeploy = ""
-                                curr_update = ""
-                                curr_run_wf = ""
-                                curr_status = "<span class=\"{0}\">being installed...</span>".format("being_installed_env")
-                                curr_status_class = ""
-                                curr_progress = round_progress
-                                created_at_msg = "Deployment started at {0}".format(created_at)
-                        elif "create_deployment_environment" == wf_id:
-                            curr_undeploy = ""
-                            curr_update = ""
-                            curr_run_wf = ""
-                            wf_status = execution.status
-                            curr_status_class = created_status_html
+            deployment_str += curr_status_class
+            deployment_str += "</td>"
 
-                            embed_this_deployment = False
-                            if wf_status in ("terminated", "failed", "cancelled") :
-                                curr_deploy = self.get_button_html("Deploy", deployment.id)
-                                curr_status = "<span class=\"{0}\">Created</span>".format("created_env")
-                                curr_progress = ""
-                                created_at_msg = "Created at {0}".format(created_at)
-                            else:
-                                curr_deploy = ""
-                                curr_status = "being created..."
-                                curr_progress = round_progress
-                                created_at_msg = "Creation started at {0}".format(created_at)
+            deployment_str += "<td>"
+            deployment_str += curr_progress
+            deployment_str += "</td>"
 
-                deployment_str += "<li><{1} class=\"{2}\">{0}</{1}></li>".format(deployment_id, "h4", "deployment_name")
+            deployment_str += "<td>"
+            deployment_str += "<{0} class=\"{1}\"></{0}>".format("span", "deployment_name")
+            deployment_str += "</td>"
+            deployment_str += "</row>"
 
-                deployment_str += "<table>"
-                deployment_str += "<row>"
-                deployment_str += "<td>"
-                deployment_str += curr_status_class
-                deployment_str += "</td>"
-
-                deployment_str += "<td>"
-                deployment_str += curr_progress
-                deployment_str += "</td>"
-
-                deployment_str += "<td>"
-                deployment_str += "<{0} class=\"{1}\"></{0}>".format("span", "deployment_name")
-                deployment_str += "</td>"
-                deployment_str += "</row>"
-
-                deployment_str += "<row>"
-                deployment_str += "<td>"
-                deployment_str += "<{0} class=\"{6}\">{4}</{0}>".format("span", curr_deploy, curr_update, curr_undeploy, curr_status, curr_run_wf, "deployment_name", curr_delete)
-                deployment_str += "</td>"
-                deployment_str += "<td>"
-                deployment_str += "<{0} class=\"{6}\">{1} {2} {5} {3} {7} </{0}>".format("span", curr_deploy, curr_update, curr_undeploy, curr_status, curr_run_wf, "deployment_name", curr_delete)
-                deployment_str += "</td>"
-                deployment_str += "</row>"
-                deployment_str += "</table>"
-
-                deployment_str += "<{1}>{0}</{1}>".format(created_at_msg,"span")
-                deployment_str += "<br/><u>{0}</u>".format('Outputs')
-                current_outputs = cloudify_client.deployments.outputs.get(deployment_id)['outputs']
-                if current_outputs:
-                    deployment_str += "<ul>"
-                    for key in current_outputs:
-                        deployment_str += "<li><span>{0}:{1}</span></li>".format(key, current_outputs.get(key))
-                    deployment_str += "</ul>"
-                deployment_str += "<hr>"
-                if enable_embed and embed_this_deployment:
-                    embed_deployment = "<iframe src=\"http://{0}/#/deployment/{1}/topology?embed=true\" width=\"800px\" height=\"350px\"></iframe>".format(cloudify_manager_ip_address, deployment_id)
-                    deployment_str += embed_deployment
-            deployment_str += "</ol>"
-
+            deployment_str += "<row>"
+            deployment_str += "<td>"
+            deployment_str += "<{0} class=\"{6}\">{4}</{0}>".format("span", curr_deploy, curr_update, curr_undeploy, curr_status, curr_run_wf, "deployment_name", curr_delete)
+            deployment_str += "</td>"
+            deployment_str += "<td>"
+            deployment_str += "<{0} class=\"{6}\">{1} {2} {5} {3} {7} </{0}>".format("span", curr_deploy, curr_update, curr_undeploy, curr_status, curr_run_wf, "deployment_name", curr_delete)
             deployment_str += "</td>"
             deployment_str += "</row>"
             deployment_str += "</table>"
+
+            deployment_str += "<{1}>{0}</{1}>".format(created_at_msg,"span")
+            deployment_str += "<br/><u>{0}</u>".format('Outputs')
+            current_outputs = cloudify_client.deployments.outputs.get(deployment_id)['outputs']
+            if current_outputs:
+                deployment_str += "<ul>"
+                for key in current_outputs:
+                    deployment_str += "<li><span>{0}:{1}</span></li>".format(key, current_outputs.get(key))
+                deployment_str += "</ul>"
+            deployment_str += "<hr>"
+            if enable_embed and embed_this_deployment:
+                embed_deployment = "<iframe src=\"http://{0}/#/deployment/{1}/topology?embed=true\" width=\"800px\" height=\"350px\"></iframe>".format(cloudify_manager_ip_address, deployment_id)
+                deployment_str += embed_deployment
+        deployment_str += "</ol>"
+#       deployment_str += "<hr>"
+
+        deployment_str += "</td>"
+        deployment_str += "</row>"
+        deployment_str += "</table>"
 
         f.write("<script>")
         f.write("var markersData = 5;")
@@ -405,17 +401,6 @@ class SimpleHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 
         f.write("<div id=\"myXXX\"")
         f.write("</body></html>")
-
-        if not first_bp_execution_is_running and not scbd_bp_execution_is_running:
-            if query_components:
-                for current_action in query_components:
-                    current_deployment = query_components[current_action]
-                    if current_deployment.endswith('/'):
-                        current_deployment = current_deployment[:-1]
-                        #actions += "<td><button type=\"button\" onclick=\"window.location.href = 'http://127.0.0.1:8000?{0}={1}';\">{0}={1}</button></td>".format(qc, curr_val)
-                self.start_thread_execution(cloudify_client, current_deployment, current_action)
-
-
         length = f.tell()
         f.seek(0)
         self.send_response(200)
@@ -423,42 +408,6 @@ class SimpleHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         self.send_header("Content-Length", str(length))
         self.end_headers()
         return f
-
-    def start_execution(self, cloudify_client, deployment_name, current_action):
-        cloudify_client.executions.start(deployment_name, current_action)
-
-    def start_thread_execution(self, cloudify_client, deployment_name, current_action):
-        try:
-            t = threading.Thread(target=self.start_execution, args=(cloudify_client, deployment_name, current_action))
-            t.start()
-        except Exception as e:
-            print str(e)
-
-    def get_button_html(self, btn_text, deployment_id):
-        #return "<button type=\"button\" onclick=\"alert('{0} {1}')\">{0}</button>".format(btn_text, deployment_id)
-        return "<td><button type=\"button\" onclick=\"window.location.href = 'http://127.0.0.1:8000?{0}={1}';\">{0}</button></td>".format(btn_text, deployment_id)
-
-    def is_deployment_installed(self, cloudify_client, blueprint_id, latest_execution_time_str, time_format):
-        INSTALL_STR = "install"
-        execution_is_running = False
-        for deployment in cloudify_client.deployments.list(blueprint_id=blueprint_id):
-            deployment_id = deployment.id
-            latest_execution_time = dt.strptime(latest_execution_time_str, time_format)
-            all_executions = cloudify_client.executions.list(deployment_id=deployment_id)
-            if any(t.status in ('pending', 'started') for t in all_executions):
-                execution_is_running = True
-            latest_wf = ""
-            for execution in all_executions:
-                wf_id = execution.workflow_id
-                created_at = execution.created_at
-                created_at_dt = dt.strptime(created_at, time_format)
-                if latest_execution_time < created_at_dt:
-                    latest_execution_time = created_at_dt
-                    if wf_id == INSTALL_STR and execution.status == "terminated":
-                        latest_wf = wf_id
-                    else:
-                        latest_wf = ""
-        return latest_wf == INSTALL_STR, execution_is_running
 
     def translate_path(self, path):
         """Translate a /-separated PATH to the local filename syntax.
