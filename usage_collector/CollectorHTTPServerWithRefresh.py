@@ -10,7 +10,7 @@ and HEAD requests in a fairly straightforward manner.
 
 __version__ = "0.1"
 __all__ = ["SimpleHTTPRequestHandler"]
-__author__ = "bones7456"
+__author__ = "tamirko"
 __home_page__ = "http://docs.getcloudify.org/3.4.0/intro/what-is-cloudify/"
 
 import os
@@ -24,6 +24,7 @@ import re
 import sys
 import random
 import threading
+import subprocess
 from datetime import datetime as dt
 from urlparse import urlparse, parse_qs
 
@@ -81,7 +82,7 @@ class SimpleHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         f.write('<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">')
         f.write("<html>\n<title>After Post Page</title>\n")
         f.write("<body>\n<h2>After Post Page</h2>\n")
-        f.write("<hr>\n")
+        f.write("<hr/>\n")
         if r:
             f.write("<strong>Success:</strong>")
         else:
@@ -200,9 +201,12 @@ class SimpleHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 
         """
         # You can change only the values in these three lines :
-        first_blueprint_id = "etx_snmp_nov22"
-        scnd_blueprint_id = "drupal"
-        cloudify_manager_ip_address = "185.98.149.194"
+
+        all_instances_str = get_all_instances_str()
+
+        first_blueprint_id = "etx1412_v1"
+        scnd_blueprint_id = "drupal_telia_19_12"
+        cloudify_manager_ip_address = "185.98.150.211"
 
 
         # Yoram, please use these two lines (used well in 3.4 GA)
@@ -210,20 +214,28 @@ class SimpleHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         latest_execution_time_str = "2000-01-01 20:56:56.120"
 
         # Yoram, please comment these two lines (used well in 4.0.0m1)
-        time_format = "%Y-%m-%dT%H:%M:%S.%fZ"
-        latest_execution_time_str = "2000-01-01T20:56:56.120Z"
+        #time_format = "%Y-%m-%dT%H:%M:%S.%fZ"
+        #latest_execution_time_str = "2000-01-01T20:56:56.120Z"
 
-        company_name = "Lego"
+        company_name = "Taldor"
         enable_embed = False
         round_progress = "<{0} class=\"{1}\"></{0}>".format("div", "loader2")
         created_status_html = "<img class=\"status\" src=\"css/ready.jpg\"/>"
         installed_status_html = "<img class=\"status\" src=\"css/installed.png\"/>"
         uninstalled_status_html = "<img class=\"status\" src=\"css/uninstalled.jpg\"/>"
 
-        powered_by_html = "<{0} class=\"{1}\">Powered by<img width=\"71\" height=\"28\" src=\"css/TDC.png\"/></{0}>".format("span", "powered_by")
+#        powered_by_html = "<{0} class=\"{1}\">Powered by<img width=\"71\" height=\"28\" src=\"css/xglobe.png\"/></{0}>".format("span", "powered_by")
+
+        powered_by_html = "<td><{0} class=\"{1}\">Powered by</{0}></td>".format("span", "powered_by_style")
+        powered_by_html += "<td><img src=\"css/xglobe200x200.png\"/></td>"
+
 
         title_txt = "{0}'s Operations Console".format(company_name)
-        main_headline = "<{0} class=\"{2}\">{1}'s Operations Console - {3}</{0}>".format("h1", company_name, "logo", powered_by_html)
+        start_table_and_row = "<table class=\"{0}\"><tr>".format("logo")
+        end_table_and_row = "</tr></table>"
+        main_headline = "{0}".format(start_table_and_row)
+        main_headline += "<td><{0} class=\"{2}\">{1}'s Operations Console </{0}></td>{3}".format("h1", company_name, "logo", powered_by_html)
+        main_headline += "{0}".format(end_table_and_row)
         f = StringIO()
 
         f.write('<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">')
@@ -231,12 +243,9 @@ class SimpleHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         f.write("<html>")
         f.write("<head>")
         f.write("<title>{0}</title>".format(title_txt))
-        f.write("<meta http-equiv=\"refresh\" content=\"20\"/>".format(title_txt))
+        f.write("<meta http-equiv=\"refresh\" content=\"2990\"/>".format(title_txt))
         f.write("<meta charset=\"utf-8\"/>")
-        #f.write("<link rel=\"stylesheet\" type=\"text/css\" href=\"css/style.css\">")
-        #f.write("<script type=\"text/javascript\" src=\"https://maps.googleapis.com/maps/api/js?sensor=false\"></script>")
-        #f.write("<script type=\"text/javascript\" src=\"js/map.js\"></script>")
-        f.write("<link rel=\"stylesheet\" href=\"css/lego.css\">")
+        f.write("<link rel=\"stylesheet\" href=\"css/xglobe.css\" />")
 
         cloudify_client = CloudifyClient(cloudify_manager_ip_address)
 
@@ -274,10 +283,10 @@ class SimpleHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             show_scnd_deployment = False
 
         deployment_str = ""
-        deployment_str += "<{1} class=\"{2}\">Welcome {0} user !".format(company_name, "h2", "user_headline")
+        deployment_str += "<{1} class=\"{2}\">Welcome {0} user !</{1}>".format(company_name, "h2", "user_headline")
 
         deployment_str += "<table>"
-        deployment_str += "<row>"
+        deployment_str += "<tr>"
         actions = ""
         action1_display = "Add a new Branch"
         action2_display = "Update Branch"
@@ -286,7 +295,7 @@ class SimpleHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         actions_display = [action1_display, action2_display]
 
         for ad in actions_display:
-            actions += "<td><button type=\"button\" onclick=\"alert('{0}!')\">{0}</button></td>".format(ad)
+            actions += "<td><button type=\"button\" onclick=\"alert('{0}!');\">{0}</button></td>".format(ad)
 
         enable_scnd = "var scnd_elem = document.getElementById('{0}'); ".format(scnd_blueprint_id)
         #enable_scnd += "scnd_elem.style.display= ''; "
@@ -297,9 +306,9 @@ class SimpleHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 
 
 
-        deployment_str += "<td><{0} class=\"{1}\">Available actions:</td>{2}</{0}>".format("span", "user_headline", actions)
+        deployment_str += "<td><{0} class=\"{1}\">Available actions:{2}</{0}></td>".format("span", "user_headline", actions)
 
-        deployment_str += "</row>"
+        deployment_str += "</tr>"
         deployment_str += "</table>"
 
 
@@ -318,12 +327,12 @@ class SimpleHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         blueprint_list = [first_blueprint_id, scnd_blueprint_id]
 
         for blueprint_id in blueprint_list:
-            if show_scnd_deployment or blueprint_id == first_blueprint_id or scnd_blueprint_installed or scnd_bp_execution_is_running:
+            if show_scnd_deployment or blueprint_id == first_blueprint_id or scnd_blueprint_installed or scnd_bp_execution_is_running or first_blueprint_installed:
                 deployment_str += "<table id=\"{0}\">".format(blueprint_id)
             else:
-                deployment_str += "<table id=\"{0}\" style=\"display:none; visibility:hidden>\"".format(blueprint_id)
+                deployment_str += "<table id=\"{0}\" style=\"display:none; visibility:hidden;\">".format(blueprint_id)
 
-            deployment_str += "<row>"
+            deployment_str += "<tr>"
             deployment_str += "<td>"
             #deployment_str += "<{0} class=\"{1}\">The deployments of '{2}' are: </{0}>".format("h4", "user_headline", blueprint_id)
             #deployment_str += "<ol>"
@@ -414,7 +423,7 @@ class SimpleHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
                 deployment_str += "<li><{1} class=\"{2}\">{0}</{1}></li>".format(deployment_id, "h4", "deployment_name")
 
                 deployment_str += "<table>"
-                deployment_str += "<row>"
+                deployment_str += "<tr>"
                 deployment_str += "<td>"
                 deployment_str += curr_status_class
                 deployment_str += "</td>"
@@ -426,19 +435,19 @@ class SimpleHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
                 deployment_str += "<td>"
                 deployment_str += "<{0} class=\"{1}\"></{0}>".format("span", "deployment_name")
                 deployment_str += "</td>"
-                deployment_str += "</row>"
+                deployment_str += "</tr>"
 
-                deployment_str += "<row>"
+                deployment_str += "<tr>"
                 deployment_str += "<td>"
                 deployment_str += "<{0} class=\"{6}\">{4}</{0}>".format("span", curr_deploy, curr_update, curr_undeploy, curr_status, curr_run_wf, "deployment_name", curr_delete)
                 deployment_str += "</td>"
                 deployment_str += "<td>"
                 deployment_str += "<{0} class=\"{6}\">{1} {2} {5} {3} {7} </{0}>".format("span", curr_deploy, curr_update, curr_undeploy, curr_status, curr_run_wf, "deployment_name", curr_delete)
                 deployment_str += "</td>"
-                deployment_str += "</row>"
+                deployment_str += "</tr>"
                 deployment_str += "</table>"
 
-                deployment_str += "<{1}>{0}</{1}>".format(created_at_msg,"span")
+                deployment_str += "<{1}>{0}</{1}>".format(created_at_msg, "span")
                 deployment_str += "<br/><u>{0}</u>".format('Outputs')
                 current_outputs = cloudify_client.deployments.outputs.get(deployment_id)['outputs']
                 if current_outputs:
@@ -446,14 +455,14 @@ class SimpleHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
                     for key in current_outputs:
                         deployment_str += "<li><span>{0}:{1}</span></li>".format(key, current_outputs.get(key))
                     deployment_str += "</ul>"
-                deployment_str += "<hr>"
+                deployment_str += "<hr/>"
                 if enable_embed and embed_this_deployment:
                     embed_deployment = "<iframe src=\"http://{0}/#/deployment/{1}/topology?embed=true\" width=\"800px\" height=\"350px\"></iframe>".format(cloudify_manager_ip_address, deployment_id)
                     deployment_str += embed_deployment
             #deployment_str += "</ol>"
 
             deployment_str += "</td>"
-            deployment_str += "</row>"
+            deployment_str += "</tr>"
             deployment_str += "</table>"
 
         f.write("<script>")
@@ -463,11 +472,12 @@ class SimpleHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         f.write("</head>")
         f.write("<body>{0}".format(main_headline))
 #       f.write("<{0}>True to {1}</{0}>".format("span", dt.now()))
-        f.write("<hr>")
-
+        f.write("<hr/>")
+        f.write(all_instances_str)
         f.write(deployment_str)
 
-        f.write("<div id=\"myXXX\"")
+        f.write("<div id=\"myXXX\"/>")
+
         f.write("</body></html>")
 
 
@@ -478,6 +488,7 @@ class SimpleHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         self.send_header("Content-Length", str(length))
         self.end_headers()
         return f
+
 
     def start_execution(self, cloudify_client, deployment_name, current_action):
         cloudify_client.executions.start(deployment_name, current_action)
@@ -592,6 +603,101 @@ class SimpleHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         '.c': 'text/plain',
         '.h': 'text/plain',
         })
+
+
+def _aws_instances_html():
+
+    aws_instance1 = [' joe_vm_aw4fe_call_center_jan_5th ', ' Running ', ' 2016-12-04T14:39:05Z ', ' US-East ', 'AWS']
+    aws_instance2 = [' tamir_vm_gfee45_crm_dep_oct_15th ', 'Running', ' 2016-11-04T09:12:25Z ', ' EU-West ', 'AWS']
+    aws_instance3 = [' James_server_dsdf55_jira_dep_June_1st    ', ' Stopped  ', ' 2016-10-21T10:25:47Z ', ' US-East ', 'AWS']
+
+    all_aws_instances = [aws_instance1 , aws_instance2, aws_instance3]
+    all_aws_instances_str = ""
+    for curr_instance in all_aws_instances:
+        all_aws_instances_str += _open_elem("tr", "aws")
+        for curr_field in curr_instance:
+            all_aws_instances_str += _open_elem("td")
+            all_aws_instances_str += curr_field.strip()
+            all_aws_instances_str += _close_elem("td")
+        all_aws_instances_str += _close_elem("tr")
+    return all_aws_instances_str
+
+
+def get_all_instances_str():
+    all_instances_str = _open_elem("table", "metrics_table")
+    all_instances_str += _open_elem("tbody")
+    instances_str, metrics_header_str = _nova_instances_html()
+    all_instances_str += metrics_header_str
+    all_instances_str += instances_str
+    all_instances_str += _aws_instances_html()
+    all_instances_str += _close_elem("tbody")
+    all_instances_str += _close_elem("table")
+    return all_instances_str
+
+
+def get_metrics_header_str(metrics_table_header):
+    metrics_header_str = _open_elem("th")
+    metrics_header_str += _open_elem("tr", "metrics_header")
+    for curr_field in metrics_table_header:
+        metrics_header_str += _open_elem("td")
+        metrics_header_str += curr_field.strip()
+        metrics_header_str += _close_elem("td")
+    metrics_header_str += _close_elem("th")
+    return metrics_header_str
+
+
+def _nova_instances_html():
+    first_command = ['nova', 'list', '--fields=name,status,created,OS-EXT-AZ:availability_zone']
+    second_command = ['grep', '-vE', '\-\-\-']
+    all_openstack_instances = _get_nova_instances(first_command, second_command)
+    metrics_table_header = all_openstack_instances[0]
+    all_openstack_instances.pop()
+    all_openstack_instances_str = ""
+    for curr_instance in all_openstack_instances[1:]:
+        all_openstack_instances_str += _open_elem("tr", "openstack")
+        for curr_field in curr_instance:
+            all_openstack_instances_str += _open_elem("td")
+            all_openstack_instances_str += curr_field.strip()
+            all_openstack_instances_str += _close_elem("td")
+        all_openstack_instances_str += _close_elem("tr")
+    return all_openstack_instances_str, get_metrics_header_str(metrics_table_header)
+
+
+def _get_nova_instances(first_command, second_command):
+    #nova list --fields=name,status,created,OS-EXT-AZ:availability_zone | grep -vE "\-\-\-" | awk -F"\|" '{ print $3 $4 $5 $6}'
+    #curr_command=['nova', 'list', '--fields=name,status,created,OS-EXT-AZ:availability_zone', '|', 'grep', '-vE', '"\-\-\-"', '|' ,'awk' '-F"\|"', "'{ print $3 $4 $5 $6}'"]
+    p1 = subprocess.Popen(first_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    p2 = subprocess.Popen(second_command, stdin=p1.stdout, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    p1.stdout.close()  # Allow p1 to receive a SIGPIPE if p2 exits.
+    p1.stderr.close()  # Allow p1 to receive a SIGPIPE if p2 exits.
+    output, err = p2.communicate()
+    #print "zzz b4out\n{0}\n- after out".format(output)
+    output_lines = output.split("\n")
+    all_lines = []
+    for curr_line in output_lines:
+        curr_fields = curr_line.split("|")
+        if len(curr_fields) > 2:
+            curr_fields = curr_fields[2:-1]
+            curr_fields.append("OpenStack")
+            all_lines.append(curr_fields)
+            #for curr_field in curr_fields:
+            #    print "curr_field {0}".format(curr_field)
+    all_lines[0][-1] = "Cloud"
+    all_lines[0][-2] = "Region/Zone"
+    for curr_line in all_lines:
+        print curr_line
+    print "Error:\n{0}".format(err)
+    return all_lines
+
+
+def _open_elem(elem_name, css_class=None):
+    if css_class:
+        return "<{0} class=\"{1}\">".format(elem_name, css_class)
+    return "<{0}>".format(elem_name)
+
+
+def _close_elem(elem_name):
+    return "</{0}>".format(elem_name)
 
 
 def test(cloudify_manager_ip_address, first_blueprint_id,

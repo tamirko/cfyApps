@@ -1,0 +1,120 @@
+.logo {
+    color: white;
+    background: #ff4846;
+    text-align: center;
+}
+
+.user_headline {
+    color: blue;
+    #background-color: #ff4846;
+    text-align: left;
+}
+
+.live_env {
+    color: #0dff6e;
+    background: #000000;
+    text-align: center;
+}
+
+.created_env {
+    color: white;
+    background: black;
+    text-align: center;
+}
+
+.being_installed_env {
+    color: blue;
+    background: orange;
+    text-align: center;
+}
+
+.being_uninstalled_envs {
+    color: blue;
+    background: orange;
+    text-align: center;
+}
+
+
+.unistalled_env {
+    color: white;
+    background: black;
+    text-align: center;
+}
+
+.deployment_name {
+    color: blue;
+    text-align: left;
+}
+
+.loader {
+    border: 5px solid #f3f3f3;
+    border-radius: 50%;
+    border-top: 5px solid blue;
+    border-bottom: 5px solid blue;
+    width: 20px;
+    height: 20px;
+    -webkit-animation: spin 2s linear infinite;
+    animation: spin 2s linear infinite;
+}
+
+.loader2 {
+    border-top: 5px solid blue;
+    border-right: 5px solid green;
+    border-bottom: 5px solid red;
+    border-left: 5px solid pink;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    -webkit-animation: spin 2s linear infinite;
+    animation: spin 2s linear infinite;
+}
+
+@-webkit-keyframes spin {
+    0% { -webkit-transform: rotate(0deg); }
+    100% { -webkit-transform: rotate(360deg); }
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.created_status {
+    background-image: url("ready.png");
+}
+
+.status {
+    width: 30px;
+    height: 30px;
+}
+
+.powered_by_style {
+    font-size: 14px !important;
+}
+
+.metrics_table {
+    border: 5px solid #f3f3f3;
+}
+
+.metrics_header {
+    text-align: center;
+}
+
+
+table.metrics_table {
+    border: 3px solid green;
+}
+
+.metrics_table td{
+    border: 2px solid green;
+}
+
+tr.aws {
+    background: orange;
+    color: black;
+}
+
+tr.openstack {
+    background: deepskyblue;
+    color: black;
+}
