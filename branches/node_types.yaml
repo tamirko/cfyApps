@@ -1,0 +1,25 @@
+node_types:
+  CPE_type:
+    derived_from: cloudify.nodes.Root
+    properties:
+      LTE:
+        required: false
+      Serial:
+        required: false
+      VDSL:
+        required: false
+  TerminationPoint_type:
+    derived_from: cloudify.nodes.Root
+  JunctionPoint_type:
+    derived_from: cloudify.nodes.Root
+  Branch_type:
+    derived_from: cloudify.nodes.Root
+    properties:
+      company:
+        required: true
+        type: string
+  VNF_type:
+    derived_from: cloudify.nodes.Root
+    properties:
+      anti_virus:
+        required: false

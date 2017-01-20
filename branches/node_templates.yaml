@@ -1,0 +1,11 @@
+node_templates:
+  TerminationPoint:
+    type: TerminationPoint_type
+    relationships:
+      - type: cloudify.relationships.connected_to
+        target: Fortigate
+
+  Fortigate:
+    type: VNF_type
+    properties:
+      anti_virus: { get_input: antivirus }

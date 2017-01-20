@@ -1,0 +1,5 @@
+  branch:
+    type: CPE_type
+    relationships:
+      - type: cloudify.relationships.connected_to
+        target: TerminationPoint
