@@ -7,8 +7,8 @@ node_templates_file_name = "node_templates.yaml"
 branch_file_name = "branch.yaml"
 end_bp_file_name = "bp_end.yaml"
 
-bp_inputs = ["input1", "input2"]
-
+excluded_node_template_elements = ["type:", "interfaces:", "relationships:"]
+branches_inputs = []
 
 def _get_file_content(file_name):
     with open(file_name, 'r') as f:
@@ -18,74 +18,132 @@ def _get_file_content(file_name):
 
 
 def get_bp_start(prefix, bp_name, suffix):
-    #print "{0}: {1}{2}{3}".format("get_bp_start", prefix, bp_name, suffix)
-    #print "{0}".format(start_bp_file_name)
     bp_start = _get_file_content(start_bp_file_name)
-    print bp_start
+    return bp_start
 
 
-def get_bp_branch_inputs(branch_name, branch_inputs):
-    for curr_input in branch_inputs:
-        print "  {0}_{1}_{2}: ".format(branch_name, "input", curr_input)
-        print "    default: \"\""
+def get_bp_branch_inputs():
+    input_lines = []
+    for curr_input in branches_inputs:
+        input_lines.append("  {0}: ".format(curr_input))
+        input_lines.append("    default: \"\"")
+    return input_lines
 
 
 def get_other_inputs():
     inputs_section = _get_file_content(inputs_section_file_name)
-    print inputs_section
-    #print "{0}".format("inputs:")
-    #for curr_input in bp_inputs:
-    #    print "inputs {0}".format(curr_input)
+    return inputs_section
 
 
-def get_bp_inputs(branches, branch_inputs):
-    get_other_inputs()
-    for branch_name in branches:
-        get_bp_branch_inputs(branch_name, branch_inputs)
+def get_bp_inputs():
+    input_lines = []
+    input_lines.append(get_other_inputs())
+    return input_lines+get_bp_branch_inputs()
 
 
-def get_bp_node_types(bp_name):
+def get_bp_node_types():
     node_types = _get_file_content(node_types_file_name)
-    print node_types
+    return node_types
+
 
 def get_bp_node_templates(bp_name):
     node_templates = _get_file_content(node_templates_file_name)
-    print node_templates
+    return node_templates
 
 
-def get_branch_inputs(branch_name, branch_inputs):
-    print "    properties"
-    for curr_input in branch_inputs:
-        print "      {{ {0}: {1}_{2}_{3} }}".format("get_input", branch_name, "input", curr_input)
-    print " "
+def digest_branch(branch_name, current_branch_line, completed_branch_properties,
+                  current_branch_lines):
+
+    for excluded_element in excluded_node_template_elements:
+        if excluded_element in current_branch_line:
+            #inside_properties = False
+            completed_branch_properties = True
+            current_branch_lines.append(current_branch_line)
+            return completed_branch_properties, current_branch_lines
+    leading_spaces = len(current_branch_line) - len(current_branch_line.lstrip())
+    curr_input_raw = current_branch_line.replace("{", "").replace("}", "").lstrip().split(":")
+    curr_input_name = curr_input_raw[0].lstrip()
+
+    if len(curr_input_raw) > 2:
+        current_branch_input = "{0}_{1}".format(branch_name, curr_input_raw[2].lstrip())
+        branches_inputs.append(current_branch_input)
+        curr_input_value = "{{ get_input: {0} }}".format(current_branch_input)
+    else:
+        curr_input_value = curr_input_raw[1].lstrip()
+
+    new_branch_input_line = "{2}{0}: {1}".format(curr_input_name, curr_input_value, leading_spaces*' ')
+    current_branch_lines.append(new_branch_input_line)
+    return completed_branch_properties, current_branch_lines
 
 
-def get_branch_code(branch_node_template_name, branch_name, branches_inputs):
-    branc_node_template = _get_file_content(branch_file_name)
-    branc_node_template = branc_node_template.replace(branch_node_template_name, branch_name)
-    print "{0}".format(branc_node_template)
-    get_branch_inputs(branch_name, branches_inputs)
+def get_current_branch_inputs(branch_name, branch_node_template):
+    branch_lines = branch_node_template.splitlines()
+    inside_properties = False
+    completed_branch_properties = False
+    current_branch_lines = []
+    for current_branch_line in branch_lines:
+        if completed_branch_properties:
+            current_branch_lines.append(current_branch_line)
+            continue
+
+        line_without_leading_spaces = current_branch_line.lstrip()
+        if line_without_leading_spaces.startswith("#") or ":" not in line_without_leading_spaces:
+            current_branch_lines.append(current_branch_line)
+            continue
+
+        if "properties:" in current_branch_line:
+            inside_properties = True
+            current_branch_lines.append(current_branch_line)
+            continue
+
+        if inside_properties:
+            completed_branch_properties, current_branch_lines = digest_branch(branch_name,
+                                                                              current_branch_line,
+                                                                              completed_branch_properties,
+                                                                              current_branch_lines)
+        else:
+            current_branch_lines.append(current_branch_line)
+    return current_branch_lines
+
+
+def get_branch_code(branch_node_template_name, branch_name):
+    branch_node_template = _get_file_content(branch_file_name)
+    branch_node_template = branch_node_template.replace(branch_node_template_name, branch_name)
+    current_branch_lines = get_current_branch_inputs(branch_name, branch_node_template)
+    return current_branch_lines
 
 
 def get_bp_end(prefix, bp_name, suffix):
-    #print "{0}: {1}{2}{3}".format("get_bp_end", prefix, bp_name, suffix)
-    #print "{0}".format(end_bp_file_name)
     bp_end = _get_file_content(end_bp_file_name)
-    print bp_end
+    return bp_end
+
+
+def print_all(start_lines, bp_input_lines, node_types_lines, node_templates_lines, branches_lines, end_lines):
+    print start_lines
+    for curr_line in bp_input_lines:
+        print curr_line
+    print node_types_lines
+    print node_templates_lines
+    for curr_line in branches_lines:
+        print curr_line
+    print end_lines
 
 
 def create_bp(branch_node_template_name, prefix, bp_name, suffix):
-    get_bp_start(prefix, bp_name, suffix)
-    branches = ["TelAviv", "Jerusalem"]
-    branch_inputs = ["Serial", "LTE", "VDSL"]
-    get_bp_inputs(branches, branch_inputs)
+    start_lines = get_bp_start(prefix, bp_name, suffix)
+    branches = ["TelAviv", "Jerusalem", "Haifa", "Hertseliya"]
 
-    get_bp_node_types(bp_name)
-    get_bp_node_templates(bp_name)
+    node_types_lines = get_bp_node_types()
+    node_templates_lines = get_bp_node_templates(bp_name)
 
+    branches_lines = []
     for curr_branch in branches:
-        get_branch_code(branch_node_template_name, curr_branch, branch_inputs)
-    get_bp_end(prefix, bp_name, suffix)
+        branches_lines += get_branch_code(branch_node_template_name, "{0}".format(curr_branch))
+
+    bp_input_lines = get_bp_inputs()
+    end_lines = get_bp_end(prefix, bp_name, suffix)
+
+    print_all(start_lines, bp_input_lines, node_types_lines, node_templates_lines, branches_lines, end_lines)
 
 
 def main(argv):
@@ -100,3 +158,4 @@ def main(argv):
 
 if __name__ == '__main__':
     main(sys.argv)
+

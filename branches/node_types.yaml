@@ -8,6 +8,8 @@ node_types:
         required: false
       VDSL:
         required: false
+      METRO:
+        required: false
   TerminationPoint_type:
     derived_from: cloudify.nodes.Root
   JunctionPoint_type:

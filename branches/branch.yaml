@@ -1,5 +1,10 @@
   branch:
     type: CPE_type
+    properties:
+      LTE: { get_input: lte_value }
+      Serial: { get_input: Serial_id }
+      VDSL: { get_input: VDSL_value }
+      METRO: { get_input: xxx_value }
     relationships:
       - type: cloudify.relationships.connected_to
         target: TerminationPoint
