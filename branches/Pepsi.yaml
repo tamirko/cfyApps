@@ -5,38 +5,45 @@ imports:
 inputs:
   Company: {}
   antivirus: {}
-
-  TelAviv_lte_value : 
+  NewYork_lte_value:: 
     default: ""
-  TelAviv_Serial_id : 
+  NewYork_Serial_id:: 
     default: ""
-  TelAviv_VDSL_value : 
+  NewYork_VDSL_value:: 
     default: ""
-  TelAviv_xxx_value : 
+  NewYork_METRO_value:: 
     default: ""
-  Jerusalem_lte_value : 
+  conf_room_NewYork_max_capacity:: 
     default: ""
-  Jerusalem_Serial_id : 
+  Chicago_lte_value:: 
     default: ""
-  Jerusalem_VDSL_value : 
+  Chicago_Serial_id:: 
     default: ""
-  Jerusalem_xxx_value : 
+  Chicago_VDSL_value:: 
     default: ""
-  Haifa_lte_value : 
+  Chicago_METRO_value:: 
     default: ""
-  Haifa_Serial_id : 
+  conf_room_Chicago_max_capacity:: 
     default: ""
-  Haifa_VDSL_value : 
+  Washington_lte_value:: 
     default: ""
-  Haifa_xxx_value : 
+  Washington_Serial_id:: 
     default: ""
-  Hertseliya_lte_value : 
+  Washington_VDSL_value:: 
     default: ""
-  Hertseliya_Serial_id : 
+  Washington_METRO_value:: 
     default: ""
-  Hertseliya_VDSL_value : 
+  conf_room_Washington_max_capacity:: 
     default: ""
-  Hertseliya_xxx_value : 
+  Boston_lte_value:: 
+    default: ""
+  Boston_Serial_id:: 
+    default: ""
+  Boston_VDSL_value:: 
+    default: ""
+  Boston_METRO_value:: 
+    default: ""
+  conf_room_Boston_max_capacity:: 
     default: ""
 node_types:
   CPE_type:
@@ -65,6 +72,13 @@ node_types:
     properties:
       anti_virus:
         required: false
+  component_type:
+    derived_from: cloudify.nodes.Root
+    properties:
+      capacity:
+        required: false
+      status:
+        required: false
 
 node_templates:
   TerminationPoint:
@@ -78,44 +92,112 @@ node_templates:
     properties:
       anti_virus: { get_input: antivirus }
 
-  TelAviv:
+  NewYork:
     type: CPE_type
     properties:
-      LTE: { get_input: TelAviv_lte_value  }
-      Serial: { get_input: TelAviv_Serial_id  }
-      VDSL: { get_input: TelAviv_VDSL_value  }
-      METRO: { get_input: TelAviv_xxx_value  }
+      LTE: { get_input: NewYork_lte_value: }
+      Serial: { get_input: NewYork_Serial_id: }
+      VDSL: { get_input: NewYork_VDSL_value: }
+      METRO: { get_input: NewYork_METRO_value: }
     relationships:
       - type: cloudify.relationships.connected_to
         target: TerminationPoint
-  Jerusalem:
+
+  data_center_NewYork: 
+    type: component_type
+    properties:
+      capacity: 300
+    relationships:
+      - target: NewYork
+        type: cloudify.relationships.contained_in
+
+  conf_room_NewYork: 
+    type: component_type
+    properties:
+      capacity: { get_input: conf_room_NewYork_max_capacity: }
+      status: ok
+    relationships:
+      - target: NewYork
+        type: cloudify.relationships.contained_in
+  Chicago:
     type: CPE_type
     properties:
-      LTE: { get_input: Jerusalem_lte_value  }
-      Serial: { get_input: Jerusalem_Serial_id  }
-      VDSL: { get_input: Jerusalem_VDSL_value  }
-      METRO: { get_input: Jerusalem_xxx_value  }
+      LTE: { get_input: Chicago_lte_value: }
+      Serial: { get_input: Chicago_Serial_id: }
+      VDSL: { get_input: Chicago_VDSL_value: }
+      METRO: { get_input: Chicago_METRO_value: }
     relationships:
       - type: cloudify.relationships.connected_to
         target: TerminationPoint
-  Haifa:
+
+  data_center_Chicago: 
+    type: component_type
+    properties:
+      capacity: 300
+    relationships:
+      - target: Chicago
+        type: cloudify.relationships.contained_in
+
+  conf_room_Chicago: 
+    type: component_type
+    properties:
+      capacity: { get_input: conf_room_Chicago_max_capacity: }
+      status: ok
+    relationships:
+      - target: Chicago
+        type: cloudify.relationships.contained_in
+  Washington:
     type: CPE_type
     properties:
-      LTE: { get_input: Haifa_lte_value  }
-      Serial: { get_input: Haifa_Serial_id  }
-      VDSL: { get_input: Haifa_VDSL_value  }
-      METRO: { get_input: Haifa_xxx_value  }
+      LTE: { get_input: Washington_lte_value: }
+      Serial: { get_input: Washington_Serial_id: }
+      VDSL: { get_input: Washington_VDSL_value: }
+      METRO: { get_input: Washington_METRO_value: }
     relationships:
       - type: cloudify.relationships.connected_to
         target: TerminationPoint
-  Hertseliya:
+
+  data_center_Washington: 
+    type: component_type
+    properties:
+      capacity: 300
+    relationships:
+      - target: Washington
+        type: cloudify.relationships.contained_in
+
+  conf_room_Washington: 
+    type: component_type
+    properties:
+      capacity: { get_input: conf_room_Washington_max_capacity: }
+      status: ok
+    relationships:
+      - target: Washington
+        type: cloudify.relationships.contained_in
+  Boston:
     type: CPE_type
     properties:
-      LTE: { get_input: Hertseliya_lte_value  }
-      Serial: { get_input: Hertseliya_Serial_id  }
-      VDSL: { get_input: Hertseliya_VDSL_value  }
-      METRO: { get_input: Hertseliya_xxx_value  }
+      LTE: { get_input: Boston_lte_value: }
+      Serial: { get_input: Boston_Serial_id: }
+      VDSL: { get_input: Boston_VDSL_value: }
+      METRO: { get_input: Boston_METRO_value: }
     relationships:
       - type: cloudify.relationships.connected_to
         target: TerminationPoint
+
+  data_center_Boston: 
+    type: component_type
+    properties:
+      capacity: 300
+    relationships:
+      - target: Boston
+        type: cloudify.relationships.contained_in
+
+  conf_room_Boston: 
+    type: component_type
+    properties:
+      capacity: { get_input: conf_room_Boston_max_capacity: }
+      status: ok
+    relationships:
+      - target: Boston
+        type: cloudify.relationships.contained_in
 groups: {}

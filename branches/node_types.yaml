@@ -25,3 +25,10 @@ node_types:
     properties:
       anti_virus:
         required: false
+  component_type:
+    derived_from: cloudify.nodes.Root
+    properties:
+      capacity:
+        required: false
+      status:
+        required: false
