@@ -5,45 +5,45 @@ imports:
 inputs:
   Company: {}
   antivirus: {}
-  NewYork_lte_value:: 
+  NewYork_lte_value: 
     default: ""
-  NewYork_Serial_id:: 
+  NewYork_Serial_id: 
     default: ""
-  NewYork_VDSL_value:: 
+  NewYork_VDSL_value: 
     default: ""
-  NewYork_METRO_value:: 
+  NewYork_METRO_value: 
     default: ""
-  conf_room_NewYork_max_capacity:: 
+  conf_room_NewYork_max_capacity: 
     default: ""
-  Chicago_lte_value:: 
+  Chicago_lte_value: 
     default: ""
-  Chicago_Serial_id:: 
+  Chicago_Serial_id: 
     default: ""
-  Chicago_VDSL_value:: 
+  Chicago_VDSL_value: 
     default: ""
-  Chicago_METRO_value:: 
+  Chicago_METRO_value: 
     default: ""
-  conf_room_Chicago_max_capacity:: 
+  conf_room_Chicago_max_capacity: 
     default: ""
-  Washington_lte_value:: 
+  Washington_lte_value: 
     default: ""
-  Washington_Serial_id:: 
+  Washington_Serial_id: 
     default: ""
-  Washington_VDSL_value:: 
+  Washington_VDSL_value: 
     default: ""
-  Washington_METRO_value:: 
+  Washington_METRO_value: 
     default: ""
-  conf_room_Washington_max_capacity:: 
+  conf_room_Washington_max_capacity: 
     default: ""
-  Boston_lte_value:: 
+  Boston_lte_value: 
     default: ""
-  Boston_Serial_id:: 
+  Boston_Serial_id: 
     default: ""
-  Boston_VDSL_value:: 
+  Boston_VDSL_value: 
     default: ""
-  Boston_METRO_value:: 
+  Boston_METRO_value: 
     default: ""
-  conf_room_Boston_max_capacity:: 
+  conf_room_Boston_max_capacity: 
     default: ""
 node_types:
   CPE_type:
@@ -95,10 +95,10 @@ node_templates:
   NewYork:
     type: CPE_type
     properties:
-      LTE: { get_input: NewYork_lte_value: }
-      Serial: { get_input: NewYork_Serial_id: }
-      VDSL: { get_input: NewYork_VDSL_value: }
-      METRO: { get_input: NewYork_METRO_value: }
+      LTE: { get_input: NewYork_lte_value }
+      Serial: { get_input: NewYork_Serial_id }
+      VDSL: { get_input: NewYork_VDSL_value }
+      METRO: { get_input: NewYork_METRO_value }
     relationships:
       - type: cloudify.relationships.connected_to
         target: TerminationPoint
@@ -114,7 +114,7 @@ node_templates:
   conf_room_NewYork: 
     type: component_type
     properties:
-      capacity: { get_input: conf_room_NewYork_max_capacity: }
+      capacity: { get_input: conf_room_NewYork_max_capacity }
       status: ok
     relationships:
       - target: NewYork
@@ -122,10 +122,10 @@ node_templates:
   Chicago:
     type: CPE_type
     properties:
-      LTE: { get_input: Chicago_lte_value: }
-      Serial: { get_input: Chicago_Serial_id: }
-      VDSL: { get_input: Chicago_VDSL_value: }
-      METRO: { get_input: Chicago_METRO_value: }
+      LTE: { get_input: Chicago_lte_value }
+      Serial: { get_input: Chicago_Serial_id }
+      VDSL: { get_input: Chicago_VDSL_value }
+      METRO: { get_input: Chicago_METRO_value }
     relationships:
       - type: cloudify.relationships.connected_to
         target: TerminationPoint
@@ -141,7 +141,7 @@ node_templates:
   conf_room_Chicago: 
     type: component_type
     properties:
-      capacity: { get_input: conf_room_Chicago_max_capacity: }
+      capacity: { get_input: conf_room_Chicago_max_capacity }
       status: ok
     relationships:
       - target: Chicago
@@ -149,10 +149,10 @@ node_templates:
   Washington:
     type: CPE_type
     properties:
-      LTE: { get_input: Washington_lte_value: }
-      Serial: { get_input: Washington_Serial_id: }
-      VDSL: { get_input: Washington_VDSL_value: }
-      METRO: { get_input: Washington_METRO_value: }
+      LTE: { get_input: Washington_lte_value }
+      Serial: { get_input: Washington_Serial_id }
+      VDSL: { get_input: Washington_VDSL_value }
+      METRO: { get_input: Washington_METRO_value }
     relationships:
       - type: cloudify.relationships.connected_to
         target: TerminationPoint
@@ -168,7 +168,7 @@ node_templates:
   conf_room_Washington: 
     type: component_type
     properties:
-      capacity: { get_input: conf_room_Washington_max_capacity: }
+      capacity: { get_input: conf_room_Washington_max_capacity }
       status: ok
     relationships:
       - target: Washington
@@ -176,10 +176,10 @@ node_templates:
   Boston:
     type: CPE_type
     properties:
-      LTE: { get_input: Boston_lte_value: }
-      Serial: { get_input: Boston_Serial_id: }
-      VDSL: { get_input: Boston_VDSL_value: }
-      METRO: { get_input: Boston_METRO_value: }
+      LTE: { get_input: Boston_lte_value }
+      Serial: { get_input: Boston_Serial_id }
+      VDSL: { get_input: Boston_VDSL_value }
+      METRO: { get_input: Boston_METRO_value }
     relationships:
       - type: cloudify.relationships.connected_to
         target: TerminationPoint
@@ -195,7 +195,7 @@ node_templates:
   conf_room_Boston: 
     type: component_type
     properties:
-      capacity: { get_input: conf_room_Boston_max_capacity: }
+      capacity: { get_input: conf_room_Boston_max_capacity }
       status: ok
     relationships:
       - target: Boston

@@ -74,9 +74,9 @@ def digest_branch(current_node_template_name, current_branch_line, completed_bra
 
     if len(curr_input_raw) > 2:
         curr_bp_input = curr_input_raw[2].lstrip().strip()
-        curr_bp_input = "{0}:".format(curr_bp_input)
-        if curr_bp_input not in bp_inputs_to_be_removed:
-            bp_inputs_to_be_removed.append(curr_bp_input)
+        curr_bp_input_with_colon = "{0}:".format(curr_bp_input)
+        if curr_bp_input_with_colon not in bp_inputs_to_be_removed:
+            bp_inputs_to_be_removed.append(curr_bp_input_with_colon)
         current_branch_input = "{0}_{1}".format(current_node_template_name, curr_bp_input)
         branches_inputs.append(current_branch_input)
         curr_input_value = "{{ get_input: {0} }}".format(current_branch_input)
