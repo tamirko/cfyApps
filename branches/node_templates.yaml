@@ -1,11 +1,55 @@
 node_templates:
+
+
+  L3GW:
+    type: Container_type
+
+  Primary_L3GW:
+    type: L3GW_type
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: L3GW
+
+  Secondary_L3GW:
+    type: L3GW_type
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: L3GW
+
+  JunctionPoint:
+    type: Container_type
+
+  Primary_JP:
+    type: JunctionPoint_type
+    relationships:
+      - type: cloudify.relationships.connected_to
+        target: Fortigate
+      - type: cloudify.relationships.contained_in
+        target: JunctionPoint
+
+  Secondary_JP:
+    type: JunctionPoint_type
+    relationships:
+      - type: cloudify.relationships.connected_to
+        target: Fortigate
+      - type: cloudify.relationships.contained_in
+        target: JunctionPoint
+
   TerminationPoint:
     type: TerminationPoint_type
     relationships:
       - type: cloudify.relationships.connected_to
-        target: Fortigate
+        target: Primary_JP
+      - type: cloudify.relationships.connected_to
+        target: Secondary_JP
 
   Fortigate:
     type: VNF_type
     properties:
       anti_virus: { get_input: antivirus }
+    relationships:
+      - type: cloudify.relationships.connected_to
+        target: Primary_L3GW
+      - type: cloudify.relationships.connected_to
+        target: Secondary_L3GW
+

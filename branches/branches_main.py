@@ -159,6 +159,7 @@ def print_all(start_lines, bp_input_lines, node_types_lines, node_templates_line
 def create_bp(branch_node_template_name, internal_node_template_names, prefix, bp_name, suffix):
     start_lines = get_bp_start(prefix, bp_name, suffix)
     branches = ["NewYork", "Chicago", "Washington", "Boston"]
+    branches = ["TelAviv", "Haifa", "Jerusalem"]
 
     node_types_lines = get_bp_node_types()
     node_templates_lines = get_bp_node_templates(bp_name)
@@ -181,7 +182,7 @@ def main(argv):
     prefix = "A_"
     suffix = "_bp"
     branch_node_template_name = "branch"
-    internal_node_template_names = ["data_center", "conf_room"]
+    internal_node_template_names = ["voice", "infrastructure", "SDWAN"]
     create_bp(branch_node_template_name, internal_node_template_names, prefix, bp_name, suffix)
 
 if __name__ == '__main__':

@@ -39,7 +39,7 @@ def get_data():
     raw_data.append([123, LTE, 225, 342])
     raw_data.append([123, VDSL, 250, 343])
     raw_data.append([250, TUNNEL, 3448, 12312])
-    raw_data.append([250, TUNNEL, 3449, 12313])
+    raw_data.append([225, TUNNEL, 3449, 12313])
 
     raw_data.append([-1, CPE, 124, 458])
     raw_data.append([124, LTE, 226, 344])
@@ -66,6 +66,7 @@ def get_data():
         current_type = current_dict[parent_id][1]
         print "{0} ({1})".format(current_type, parent_id)
         print_descendants(kids, 1)
+        print " "
 
 
 def get_bp_start(prefix, bp_name, suffix):

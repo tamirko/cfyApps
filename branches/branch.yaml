@@ -1,15 +1,22 @@
   branch:
     type: CPE_type
-    properties:
-      LTE: { get_input: lte_value }
-      Serial: { get_input: Serial_id }
-      VDSL: { get_input: VDSL_value }
-      METRO: { get_input: METRO_value }
+#    properties:
+#      termination_point: { get_input: termination_point_value }
     relationships:
       - type: cloudify.relationships.connected_to
         target: TerminationPoint
 
-  data_center:
+  infrastructure:
+    type: Infrastructure_type
+    properties:
+      LTE: { get_input: lte_value }
+      xVDSL: { get_input: VDSL_value }
+      METRO: { get_input: METRO_value }
+    relationships:
+      - target: branch
+        type: cloudify.relationships.contained_in
+
+  voice:
     type: component_type
     properties:
       capacity: 300
@@ -17,11 +24,11 @@
       - target: branch
         type: cloudify.relationships.contained_in
 
-  conf_room:
+  SDWAN:
     type: component_type
     properties:
-      capacity: { get_input: max_capacity }
-      status: ok
+      capacity: 300
     relationships:
       - target: branch
         type: cloudify.relationships.contained_in
+

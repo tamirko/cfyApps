@@ -203,6 +203,7 @@ class SimpleHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         # You can change only the values in these three lines :
 
         all_instances_str = get_all_instances_str()
+        filter_instances_str = _get_filter_instances_str()
 
         first_blueprint_id = "etx1412_v1"
         scnd_blueprint_id = "drupal_telia_19_12"
@@ -243,14 +244,19 @@ class SimpleHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         f.write("<html>")
         f.write("<head>")
         f.write("<title>{0}</title>".format(title_txt))
-        f.write("<meta http-equiv=\"refresh\" content=\"2990\"/>".format(title_txt))
+        f.write("<meta http-equiv=\"refresh\" content=\"30\"/>".format(title_txt))
         f.write("<meta charset=\"utf-8\"/>")
         f.write("<link rel=\"stylesheet\" href=\"css/xglobe.css\" />")
 
         cloudify_client = CloudifyClient(cloudify_manager_ip_address)
 
-        first_blueprint_installed, first_bp_execution_is_running = self.is_deployment_installed(cloudify_client, first_blueprint_id, latest_execution_time_str, time_format)
-        scnd_blueprint_installed, scnd_bp_execution_is_running = self.is_deployment_installed(cloudify_client, scnd_blueprint_id, latest_execution_time_str, time_format)
+        #first_blueprint_installed, first_bp_execution_is_running = self.is_deployment_installed(cloudify_client, first_blueprint_id, latest_execution_time_str, time_format)
+        #scnd_blueprint_installed, scnd_bp_execution_is_running = self.is_deployment_installed(cloudify_client, scnd_blueprint_id, latest_execution_time_str, time_format)
+        first_blueprint_installed = False
+        first_bp_execution_is_running = False
+        scnd_blueprint_installed = False
+        scnd_bp_execution_is_running = False
+
 
         referer_is_me = False
         referer_exists = False
@@ -282,8 +288,8 @@ class SimpleHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         if first_bp_execution_is_running or not first_blueprint_installed:
             show_scnd_deployment = False
 
+        welcome_user_html = "<{1} class=\"{2}\">Welcome {0} user !</{1}>".format(company_name, "h2", "user_headline")
         deployment_str = ""
-        deployment_str += "<{1} class=\"{2}\">Welcome {0} user !</{1}>".format(company_name, "h2", "user_headline")
 
         deployment_str += "<table>"
         deployment_str += "<tr>"
@@ -311,20 +317,8 @@ class SimpleHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         deployment_str += "</tr>"
         deployment_str += "</table>"
 
-
-        #if scbd_bp_execution_is_running:
-        #    blueprint_list = [scnd_blueprint_id]
-        #elif first_bp_execution_is_running:
-        #    blueprint_list = [first_blueprint_id]
-        #elif first_blueprint_installed:
-        #    if scnd_blueprint_installed:
-        #        blueprint_list = [scnd_blueprint_id]
-        #    else:
-        #       blueprint_list = [first_blueprint_id, scnd_blueprint_id]
-        #else:
-        #    blueprint_list = [first_blueprint_id]
-
         blueprint_list = [first_blueprint_id, scnd_blueprint_id]
+        blueprint_list = ["dummy"]
 
         for blueprint_id in blueprint_list:
             if show_scnd_deployment or blueprint_id == first_blueprint_id or scnd_blueprint_installed or scnd_bp_execution_is_running or first_blueprint_installed:
@@ -465,16 +459,17 @@ class SimpleHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             deployment_str += "</tr>"
             deployment_str += "</table>"
 
-        f.write("<script>")
-        f.write("var markersData = 5;")
-        f.write("</script>")
+        f.write(_get_script_section_str())
 
         f.write("</head>")
         f.write("<body>{0}".format(main_headline))
-#       f.write("<{0}>True to {1}</{0}>".format("span", dt.now()))
         f.write("<hr/>")
+        f.write(welcome_user_html)
+        f.write(filter_instances_str)
         f.write(all_instances_str)
-        f.write(deployment_str)
+        f.write("<hr/>")
+        f.write("<{0}>True to {1}</{0}>".format("span", dt.now()))
+        #f.write(deployment_str)
 
         f.write("<div id=\"myXXX\"/>")
 
@@ -604,6 +599,60 @@ class SimpleHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         '.h': 'text/plain',
         })
 
+def _get_script_section_str():
+    script_section_str = "<script>"
+    script_section_str += "function toggleShowByClass(elemClassName,showElem) { "
+    script_section_str += "  var elemsList = document.getElementsByClassName(elemClassName);"
+    script_section_str += "  for (i = 0; i < elemsList.length; i++) { "
+    script_section_str += "    if (showElem) {"
+    script_section_str += "      elemsList[i].style.display = \"\";"
+    script_section_str += "      elemsList[i].style.visibility = \"visible\";"
+    script_section_str += "    }"
+    script_section_str += "    else {"
+    script_section_str += "      elemsList[i].style.display = \"none\";"
+    script_section_str += "      elemsList[i].style.visibility = \"hidden\";"
+    script_section_str += "    }"
+    script_section_str += "  }"
+    script_section_str += "}"
+    script_section_str += "</script>"
+    return script_section_str
+
+def _get_filter_instances_str():
+    action1_display = "all instances"
+    action2_display = "only AWS"
+    action3_display = "only OpenStack"
+    action4_display = "only active"
+
+    filter_instances_str = _open_elem("table")
+    filter_instances_str += _open_elem("tbody")
+    filter_instances_str += _open_elem("tr")
+
+    filter_instances_str += _open_elem("td")
+    filter_instances_str += "Show "
+    filter_instances_str += _close_elem("td")
+
+    filter_instances_str += _open_elem("td")
+    #filter_instances_str += "<button type=\"button\" onclick=\"alert('{1}!');\">{0}</button>".format(action1_display, "all")
+    filter_instances_str += "<button type=\"button\" onclick=\"toggleShowByClass('{1}',true);toggleShowByClass('{2}',true)\">{0}</button>".format(action1_display, 'aws', 'openstack')
+    filter_instances_str += _close_elem("td")
+
+    filter_instances_str += _open_elem("td")
+    filter_instances_str += "<button type=\"button\" onclick=\"toggleShowByClass('{1}',true);toggleShowByClass('{2}',false);\">{0}</button>".format(action2_display, 'aws','openstack')
+    filter_instances_str += _close_elem("td")
+
+    filter_instances_str += _open_elem("td")
+    filter_instances_str += "<button type=\"button\" onclick=\"toggleShowByClass('{1}',true);toggleShowByClass('{2}',false);\">{0}</button>".format(action3_display, 'openstack', 'aws')
+    filter_instances_str += _close_elem("td")
+
+    filter_instances_str += _open_elem("td")
+    filter_instances_str += "<button type=\"button\" onclick=\"toggleShowByClass('{1}',true);toggleShowByClass('{2}',false);\">{0}</button>".format(action4_display, 'running', 'stopped')
+    filter_instances_str += _close_elem("td")
+
+    filter_instances_str += _close_elem("tr")
+    filter_instances_str += _close_elem("tbody")
+    filter_instances_str += _close_elem("table")
+    return filter_instances_str
+
 
 def _aws_instances_html():
 
@@ -614,7 +663,10 @@ def _aws_instances_html():
     all_aws_instances = [aws_instance1 , aws_instance2, aws_instance3]
     all_aws_instances_str = ""
     for curr_instance in all_aws_instances:
-        all_aws_instances_str += _open_elem("tr", "aws")
+        if re.match('.*Running.*|.*Active.*', "".join(curr_instance), re.IGNORECASE):
+            all_aws_instances_str += _open_elem("tr", "aws running active")
+        else:
+            all_aws_instances_str += _open_elem("tr", "aws stopped")
         for curr_field in curr_instance:
             all_aws_instances_str += _open_elem("td")
             all_aws_instances_str += curr_field.strip()
@@ -654,7 +706,10 @@ def _nova_instances_html():
     all_openstack_instances.pop()
     all_openstack_instances_str = ""
     for curr_instance in all_openstack_instances[1:]:
-        all_openstack_instances_str += _open_elem("tr", "openstack")
+        if re.match('.*Running.*|.*Active.*', "".join(curr_instance), re.IGNORECASE):
+            all_openstack_instances_str += _open_elem("tr", "openstack running active")
+        else:
+            all_openstack_instances_str += _open_elem("tr", "openstack stopped")
         for curr_field in curr_instance:
             all_openstack_instances_str += _open_elem("td")
             all_openstack_instances_str += curr_field.strip()

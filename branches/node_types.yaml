@@ -4,27 +4,48 @@ node_types:
     properties:
       LTE:
         required: false
-      Serial:
+      Serial1:
         required: false
-      VDSL:
+      xVDSL:
         required: false
       METRO:
         required: false
+
+  Container_type:
+    derived_from: cloudify.nodes.Root
+
   TerminationPoint_type:
     derived_from: cloudify.nodes.Root
+
   JunctionPoint_type:
     derived_from: cloudify.nodes.Root
+
+  Infrastructure_type:
+    derived_from: cloudify.nodes.Root
+    properties:
+      LTE:
+        required: false
+      xVDSL:
+        required: false
+      METRO:
+        required: false
+
+  L3GW_type:
+    derived_from: cloudify.nodes.Root
+
   Branch_type:
     derived_from: cloudify.nodes.Root
     properties:
       company:
         required: true
         type: string
+
   VNF_type:
     derived_from: cloudify.nodes.Root
     properties:
       anti_virus:
         required: false
+
   component_type:
     derived_from: cloudify.nodes.Root
     properties:
