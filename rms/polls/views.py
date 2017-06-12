@@ -8,18 +8,29 @@ from .models import Choice, Question
 from django.shortcuts import get_object_or_404, render
 from django.http import HttpResponseRedirect, HttpResponse
 from django.urls import reverse
+from django.views import generic
 
 
 # Create your views here.
 
 
-#def index(request):
-#    latest_question_list = Question.objects.order_by('-pub_date')[:5]
-#    template = loader.get_template('polls/index.html')
-#    context = {
-#        'latest_question_list': latest_question_list,
-#    }
-#    return HttpResponse(template.render(context, request))
+class IndexView(generic.ListView):
+    template_name = 'polls/index.html'
+    context_object_name = 'latest_question_list'
+
+    def get_queryset(self):
+        """Return the last five published questions."""
+        return Question.objects.order_by('-pub_date')[:5]
+
+
+class DetailView(generic.DetailView):
+    model = Question
+    template_name = 'polls/detail.html'
+
+
+class ResultsView(generic.DetailView):
+    model = Question
+    template_name = 'polls/results.html'
 
 
 def index(request):
@@ -62,3 +73,40 @@ def vote(request, question_id):
         # with POST data. This prevents data from being posted twice if a
         # user hits the Back button.
         return HttpResponseRedirect(reverse('polls:results', args=(question.id,)))
+
+
+def add_choice(request, question_id):
+    question = get_object_or_404(Question, pk=question_id)
+    choice = request.POST.get('choice')
+
+    if choice:
+        question.choice_set.create(choice_text=choice, votes=0)
+        return HttpResponseRedirect(reverse('polls:detail', args=(question_id,)))
+    else:
+        render_ctx = {
+            'question': question
+        }
+        if request.POST.get('after_first_load'):
+            render_ctx['error_message'] = "Choice text is empty."
+
+    return render(request, 'polls/add_choice.html', render_ctx)
+
+
+def delete_choice(request, question_id):
+    question = get_object_or_404(Question, pk=question_id)
+
+    choice_id = request.POST.get('choice_id')
+    if choice_id:
+        current_choice = question.choice_set.get(pk=choice_id)
+        current_choice.delete()
+        return HttpResponseRedirect(reverse('polls:detail', args=(question_id,)))
+    else:
+        render_ctx = {
+            'question': question
+        }
+
+        if request.POST.get('after_first_load'):
+            render_ctx['error_message'] = "You didn't select a choice to delete"
+
+    return render(request, 'polls/delete_choice.html', render_ctx)
+

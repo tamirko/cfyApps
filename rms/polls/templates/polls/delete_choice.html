@@ -1,0 +1,15 @@
+<h4>{{question.id}}. {{ question.question_text }}</h4>
+
+{% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
+
+<form action="{% url 'polls:delete_choice' question.id %}" method="post">
+    {% csrf_token %}
+    <input type='hidden' name='after_first_load' value='after_first_load' />
+    {% for choice in question.choice_set.all %}
+      <span>{{ forloop.counter }}.
+      <input type="radio" name="choice_id" id="choice_id" value="{{ choice.id }}" />
+       <label for="choice{{ forloop.counter }}">{{ choice.choice_text }} (id:{{ choice.id }})</label>
+      </span><br />
+    {% endfor %}
+    <input type="submit" value="Delete choice" />
+</form>
