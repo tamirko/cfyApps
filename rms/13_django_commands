@@ -1,0 +1,13 @@
+ django-admin startproject rms
+ django-admin version
+ pip install Django
+ python -c "import django; print(django.__path__)"
+ python -c "import django; print(django.__path__)"
+ python manage.py check;
+ python manage.py createsuperuser
+ python manage.py migrate
+ python manage.py runserver
+ python manage.py shell
+ python -m django --version
+ sqlite3 PATH_TO_APP/db.sqlite3
+ sudo find / -type f -name "*db.sqlite3"
