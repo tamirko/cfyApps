@@ -11,3 +11,5 @@
  python -m django --version
  sqlite3 PATH_TO_APP/db.sqlite3
  sudo find / -type f -name "*db.sqlite3"
+ manage.py loaddata <fixturename>
+ django-admin loaddata mydata.json
