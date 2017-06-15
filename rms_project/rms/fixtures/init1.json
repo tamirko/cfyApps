@@ -1,0 +1,158 @@
+[
+  {
+    "model": "rms.ResourceTypes",
+    "pk": 123,
+    "fields": {
+      "resource_name": "Apache",
+      "resource_type": "Web server",
+      "resource_version": "2.4.32",
+      "total_quantity": 10,
+      "available_quantity": 10,
+      "resource_description": "Resource desc of Apache",
+      "is_external": "True",
+      "resource_extra_fields": "This is my resource_extra_fields  for Apache 2.4.32"
+    }
+  },
+  {
+    "model": "rms.ResourceTypes",
+    "pk": 124,
+    "fields": {
+      "resource_name": "Apache",
+      "resource_type": "Web server",
+      "resource_version": "2.4.25",
+      "total_quantity": 7,
+      "available_quantity": 6,
+      "resource_description": "A resource desc of Apache 2.4.32",
+      "is_external": "False",
+      "resource_extra_fields": "This is my resource_extra_fields for Apache 2.4.25"
+    }
+  },
+  {
+    "model": "rms.ResourceTypes",
+    "pk": 568,
+    "fields": {
+      "resource_name": "Dev server",
+      "resource_type": "VM",
+      "resource_version": "1.7",
+      "total_quantity": 2000,
+      "available_quantity": 500,
+      "resource_description": "This is my resource desc of Dev Server 1.7",
+      "is_external": "False",
+      "resource_extra_fields": "This is my resource_extra_fields for Dev Server 1.7"
+    }
+  },
+  {
+    "model": "rms.ResourceTypes",
+    "pk": 569,
+    "fields": {
+      "resource_name": "Dev server",
+      "resource_type": "VM",
+      "resource_version": "1.8",
+      "total_quantity": 1800,
+      "available_quantity": 700,
+      "resource_description": "This is my resource desc of Dev Server 1.8",
+      "is_external": "False",
+      "resource_extra_fields": "This is my resource_extra_fields for Dev Server 1.8"
+    }
+  },
+  {
+    "model": "rms.ResourceTypes",
+    "pk": 788,
+    "fields": {
+      "resource_name": "MySQL",
+      "resource_type": "Database",
+      "resource_version": "5.7",
+      "total_quantity": 12,
+      "available_quantity": 12,
+      "resource_description": "This is my resource desc of MySQL 5.7",
+      "is_external": "False",
+      "resource_extra_fields": "This is my resource_extra_fields for MySQL 5.7"
+    }
+  },
+  {
+    "model": "rms.ResourceTypes",
+    "pk": 651,
+    "fields": {
+      "resource_name": "Postgres",
+      "resource_type": "Database",
+      "resource_version": "9.5",
+      "total_quantity": 25,
+      "available_quantity": 19,
+      "resource_description": "This is my resource desc of xxx",
+      "is_external": "True",
+      "resource_extra_fields": "This is my resource_extra_fields for xxxxx"
+    }
+  },
+  {
+    "model": "rms.ResourceTypes",
+    "pk": 762,
+    "fields": {
+      "resource_name": "Postgres",
+      "resource_type": "Database",
+      "resource_version": "9.4",
+      "total_quantity": 37,
+      "available_quantity": 18,
+      "resource_description": "This is my resource desc of Postgres 9.4.4",
+      "is_external": "False",
+      "resource_extra_fields": "This is my resource_extra_fields for Postgres 9.4.4"
+    }
+  },
+  {
+    "model": "rms.ResourceTypes",
+    "pk": 833,
+    "fields": {
+      "resource_name": "CPE",
+      "resource_type": "Juniper",
+      "resource_version": "300",
+      "total_quantity": 470,
+      "available_quantity": 470,
+      "resource_description": "This is my resource desc of Juniper 300",
+      "is_external": "False",
+      "resource_extra_fields": "This is my resource_extra_fields for Juniper 300"
+    }
+  },
+  {
+    "model": "rms.ResourceTypes",
+    "pk": 983,
+    "fields": {
+      "resource_name": "CPE",
+      "resource_type": "Juniper",
+      "resource_version": "110",
+      "total_quantity": 906,
+      "available_quantity": 906,
+      "resource_description": "This is my resource desc of Juniper 110",
+      "is_external": "False",
+      "resource_extra_fields": "This is my resource_extra_fields for Juniper 110"
+    }
+  },
+  {
+    "model": "rms.ResourceTypes",
+    "pk": 432,
+    "fields": {
+      "resource_name": "Voice LAN",
+      "resource_type": "LAN",
+      "resource_version": "1.2",
+      "total_quantity": 2500,
+      "available_quantity": 2500,
+      "resource_description": "This is my resource desc of Voice LAN",
+      "is_external": "False",
+      "resource_extra_fields": "This is my resource_extra_fields for Voice LAN"
+    }
+  },
+  {
+    "model": "rms.ResourceTypes",
+    "pk": 589,
+    "fields": {
+      "resource_name": "Public LAN",
+      "resource_type": "LAN",
+      "resource_version": "1.3",
+      "total_quantity": 5895,
+      "available_quantity": 5895,
+      "resource_description": "This is my resource desc of Public LAN",
+      "is_external": "False",
+      "resource_extra_fields": "This is my resource_extra_fields for Public LAN"
+    }
+  }
+]
+
+

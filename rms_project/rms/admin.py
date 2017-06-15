@@ -8,6 +8,6 @@ from .models import ResourceTypes, AllocatedResources
 
 admin.site.register(ResourceTypes)
 admin.site.register(AllocatedResources)
-#admin.site.site_header = "Resource Management System header 2"
-#admin.site.site_header = "Resource Management System"
+admin.site.site_header = "RMS header"
+admin.site.site_header = "Resource Management System (RMS)"
 #admin.site.index_title = "This is my index_title"

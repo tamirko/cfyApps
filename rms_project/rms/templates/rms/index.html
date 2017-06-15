@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+
+<html lang="en-us" >
+<head>
+    <title>Select resource types to change | Django site admin</title>
+    <link rel="stylesheet" type="text/css" href="/static/admin/css/base.css" />
+    <link rel="stylesheet" type="text/css" href="/static/admin/css/changelists.css" />
+    <script type="text/javascript" src="/admin/jsi18n/"></script>
+    <script type="text/javascript" src="/static/admin/js/core.js"></script>
+    <script type="text/javascript" src="/static/admin/js/vendor/jquery/jquery.js"></script>
+    <script type="text/javascript" src="/static/admin/js/jquery.init.js"></script>
+    <script type="text/javascript" src="/static/admin/js/admin/RelatedObjectLookups.js"></script>
+    <script type="text/javascript" src="/static/admin/js/actions.js"></script>
+    <script type="text/javascript" src="/static/admin/js/urlify.js"></script>
+    <script type="text/javascript" src="/static/admin/js/prepopulate.js"></script>
+    <script type="text/javascript" src="/static/admin/js/vendor/xregexp/xregexp.js"></script>
+    <meta name="robots" content="NONE,NOARCHIVE" />
+</head>
+
+<body class=" app-rms model-resourcetypes change-list" data-admin-utc-offset="0">
+
+<div id="container">
+    <!-- Header -->
+    <div id="header">
+        <div id="branding">
+            <h1 id="site-name"><a href="/admin/">Resource Management System (RMS)</a></h1>
+        </div>
+    </div>
+<!-- END Header -->
+  <div id="content" class="flex">
+{% if latest_allocated_list %}
+  <h1>Allocation list</h1>
+    <div class="results">
+     <table id="result_list">
+      <thead>
+       <tr>
+           <th scope="col" class="column-__str__">
+              <div class="text"><span>Allocation ID</span></div>
+              <div class="clear"></div>
+          </th>
+           <th scope="col" class="column-__str__">
+               <div class="text"><span>Description</span></div>
+               <div class="clear"></div>
+           </th>
+           <th scope="col" class="column-__str__">
+               <div class="text"><span>Expiration</span></div>
+               <div class="clear"></div>
+           </th>
+       </tr>
+      </thead>
+      <tbody>
+     {% for allocated_resource in latest_allocated_list %}
+     <tr class="row{{ forloop.counter }}">
+       <td><a href="{% url 'rms:detail' allocated_resource.allocation_id %}" class="addlink">{{ allocated_resource.resource_id }}</a></td>
+       <td>{{ allocated_resource.allocation_description }}</td>
+       <td>{{ allocated_resource.expiration_time }}</td>
+     </tr>
+     {% endfor %}
+
+{% else %}
+    <p>No allocations are available.</p>
+{% endif %}
+  </div>
+
+  <div id="footer"></div>
+</div>
+    <!-- END Container -->
+
+</body>
+</html>
+
+
+
+
+

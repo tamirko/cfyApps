@@ -1,0 +1,22 @@
+{% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
+
+
+<h2>Details of allocation #{{allocatedresources.allocation_id}}</h2>
+<ul>
+    <li>
+        <span>resource_id:</span>
+        <span>{{allocatedresources.resource_id}}</span>
+    </li>
+    <li>
+        <span>allocation_time:</span>
+        <span>{{allocatedresources.allocation_time}}</span>
+    </li>
+    <li>
+        <span>expiration_time:</span>
+        <span>{{allocatedresources.expiration_time}}</span>
+    </li>
+    <li>
+        <span>allocation_description:</span>
+        <span>{{allocatedresources.allocation_description}}</span>
+    </li>
+</ul>

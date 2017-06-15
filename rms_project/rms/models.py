@@ -28,7 +28,7 @@ class ResourceTypes(models.Model):
     resource_extra_fields = models.CharField(max_length=400)
 
     def __str__(self):
-        return "{0}-{1}-{2}".format(self.resource_name, self.resource_type, self.resource_version)
+        return "{0}-{1} (Version:{2})".format(self.resource_name, self.resource_type, self.resource_version)
 
 
 @python_2_unicode_compatible  # only if you need to support Python 2
@@ -44,4 +44,4 @@ class AllocatedResources(models.Model):
     allocation_extra_fields = models.CharField(max_length=400)
 
     def __str__(self):
-        return "{0}-{1}-{2}".format(self.resource_name, self.tenant_name, self.user_name)
+        return "{0}: {1}, {2}, {3}".format(self.allocation_id, self.resource_id, self.tenant_name, self.user_name)
