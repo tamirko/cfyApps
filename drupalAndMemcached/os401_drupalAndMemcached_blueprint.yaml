@@ -18,10 +18,11 @@ inputs:
     default: 'ubuntu'
 # Ubuntu 14.04
   vm_image:
-    default: 'e41430f7-9131-495b-927f-e7dc4b8994c8'
+    #default: '6c3047c6-17b1-4aaf-a657-9229bb481e50'
+    default: '3edda9cf-11fd-4e4a-8a51-f58b9ad593c2'
 # RAM: 4096 MB, Hard Disk 80 GB, 2 vCPUs
   vm_flavor:
-    default: '8f68d4e5-4281-48c0-ad43-a8ac58d635f0'
+    default: '8f4b7ae1-b8c2-431f-bb0c-362a5ece0381'
   incoming_slack_webhook:
     #  - For cloudifydemo.slack.com
     default: https://hooks.slack.com/services/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
@@ -39,7 +40,6 @@ node_types:
         create:
           implementation: scripts/cloud_config/create.py
           executor: central_deployment_agent
-
   ###########################################################
   # We define a type that inherits openstack's default
   # server, and adds monitoring capabillities on top of it.
