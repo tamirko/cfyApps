@@ -1,0 +1,11 @@
+node_types:
+
+  rms_client:
+    derived_from: cloudify.nodes.Root
+    properties:
+      rms_endpoint_url:
+        description: The end point of the RMS service
+      rms_rest_user:
+        description: The user name for calling the Rest API
+      rms_rest_password:
+        description: The password for calling the Rest API

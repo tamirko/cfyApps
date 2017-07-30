@@ -1,0 +1,74 @@
+tosca_definitions_version: cloudify_dsl_1_3
+
+imports:
+  - http://www.getcloudify.org/spec/cloudify/4.0.1/types.yaml
+  - http://www.getcloudify.org/spec/openstack-plugin/2.0.1/plugin.yaml
+  - rms.yaml
+
+
+inputs:
+  agent_user:
+    default: 'ubuntu'
+  incoming_slack_webhook:
+    #  - For cloudifydemo.slack.com
+    default: https://hooks.slack.com/services/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
+
+node_types:
+
+  RESOURCE_TYPE:
+    derived_from: cloudify.nodes.Root
+    properties:
+      resourceTypeName:
+        default: "A Generic RESOURCE"
+      resourceID:
+        default: -1
+      resourceName:
+        default: NA
+      use_external_resource:
+        default: false
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        start:
+          implementation: scripts/startResource.sh
+          executor: central_deployment_agent
+
+relationships:
+  resource_connected_to_rms:
+    derived_from: cloudify.relationships.connected_to
+    target_interfaces:
+      cloudify.interfaces.relationship_lifecycle:
+        establish:
+          implementation: rms-scripts/add_resource_to_rms.py
+          executor: central_deployment_agent
+
+
+node_templates:
+
+  apache:
+    type: RESOURCE_TYPE
+    properties:
+      resourceTypeName: apache-2.4.27
+      resourceID: 7548
+      resourceName: Apache_Server
+      use_external_resource: false
+    relationships:
+      - type: resource_connected_to_rms
+        target: rms_proxy
+
+  mysql:
+    type: RESOURCE_TYPE
+    properties:
+      resourceTypeName: mysql-5.1
+      resourceID: 8239
+      resourceName: MySQL_Database
+      use_external_resource: true
+    relationships:
+      - type: resource_connected_to_rms
+        target: rms_proxy
+
+  rms_proxy:
+    type: rms_client
+    properties:
+      rms_endpoint_url: http://blabla.com
+      rms_rest_user: admin
+      rms_rest_password: mypassw
