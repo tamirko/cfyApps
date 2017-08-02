@@ -12,6 +12,13 @@ inputs:
   incoming_slack_webhook:
     #  - For cloudifydemo.slack.com
     default: https://hooks.slack.com/services/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
+  slack_channel_to_rms:
+    default: messages_to_rms
+  slack_channel_from_rms:
+    default: messages_from_rms
+  slack_failure_channel:
+    default: failures
+
 
 node_types:
 
@@ -31,6 +38,18 @@ node_types:
         start:
           implementation: scripts/startResource.sh
           executor: central_deployment_agent
+
+  slack_type:
+    derived_from: cloudify.nodes.SoftwareComponent
+    properties:
+      incoming_slack_webhook:
+        default: { get_input: incoming_slack_webhook }
+      slack_channel_to_rms:
+        default: { get_input: slack_channel_to_rms }
+      slack_channel_from_rms:
+        default: { get_input: slack_channel_from_rms }
+      slack_failure_channel:
+        default: { get_input: slack_failure_channel }
 
 relationships:
   resource_connected_to_rms:
@@ -66,9 +85,34 @@ node_templates:
       - type: resource_connected_to_rms
         target: rms_proxy
 
+  slack_node:
+    type: slack_type
+
   rms_proxy:
     type: rms_client
     properties:
       rms_endpoint_url: http://blabla.com
       rms_rest_user: admin
       rms_rest_password: mypassw
+
+
+plugins:
+   rms-plugin:
+      executor: central_deployment_agent
+      source: rms-plugin
+
+
+workflows:
+   update_resource_in_rms:
+      mapping: rms-plugin.rms.tasks.update_resource_in_rms
+      parameters:
+        resource_type:
+          description: The resource type which needs to be added to the RMS
+        quota:
+          description: The quota of resource type
+          default: 1
+        cost_per_unit:
+          description: The cost per unit for usage of the resource type
+          default: 0
+#        incoming_slack_webhook:
+#          default: { get_input: incoming_slack_webhook }
