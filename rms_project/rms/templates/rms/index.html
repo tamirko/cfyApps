@@ -2,7 +2,7 @@
 
 <html lang="en-us" >
 <head>
-    <title>Select resource types to change | Django site admin</title>
+    <title>List allocations | Allocated resources</title>
     <link rel="stylesheet" type="text/css" href="/static/admin/css/base.css" />
     <link rel="stylesheet" type="text/css" href="/static/admin/css/changelists.css" />
     <script type="text/javascript" src="/admin/jsi18n/"></script>
@@ -46,22 +46,28 @@
                <div class="text"><span>Expiration</span></div>
                <div class="clear"></div>
            </th>
+            <th scope="col" class="column-__str__">
+               <div class="text"><span>Cost</span></div>
+               <div class="clear"></div>
+           </th>
        </tr>
       </thead>
       <tbody>
      {% for allocated_resource in latest_allocated_list %}
-     <tr class="row{{ forloop.counter }}">
-       <td><a href="{% url 'rms:detail' allocated_resource.allocation_id %}" class="addlink">{{ allocated_resource.resource_id }}</a></td>
-       <td>{{ allocated_resource.allocation_description }}</td>
-       <td>{{ allocated_resource.expiration_time }}</td>
-     </tr>
-     {% endfor %}
-
+      <tr class="row{{ forloop.counter }}">
+        <td><a href="{% url 'rms:detail' allocated_resource.allocation_id %}" class="button">{{ allocated_resource.resource_id }}</a></td>
+        <td>{{ allocated_resource.allocation_description }}</td>
+        <td>{{ allocated_resource.expiration_time }}</td>
+        <td>{{ allocated_resource.current_cost }}</td>
+      </tr>
+      {% endfor %}
+      </tbody>
+     </table>
+    </div>
 {% else %}
+
     <p>No allocations are available.</p>
 {% endif %}
-  </div>
-
   <div id="footer"></div>
 </div>
     <!-- END Container -->

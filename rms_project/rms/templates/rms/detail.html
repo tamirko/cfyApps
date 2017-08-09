@@ -1,22 +1,77 @@
+<!DOCTYPE html>
+
+<html lang="en-us" >
+<head>
+    <title>List allocations | Allocated resources</title>
+    <link rel="stylesheet" type="text/css" href="/static/admin/css/base.css" />
+    <link rel="stylesheet" type="text/css" href="/static/admin/css/changelists.css" />
+    <script type="text/javascript" src="/admin/jsi18n/"></script>
+    <script type="text/javascript" src="/static/admin/js/core.js"></script>
+    <script type="text/javascript" src="/static/admin/js/vendor/jquery/jquery.js"></script>
+    <script type="text/javascript" src="/static/admin/js/jquery.init.js"></script>
+    <script type="text/javascript" src="/static/admin/js/admin/RelatedObjectLookups.js"></script>
+    <script type="text/javascript" src="/static/admin/js/actions.js"></script>
+    <script type="text/javascript" src="/static/admin/js/urlify.js"></script>
+    <script type="text/javascript" src="/static/admin/js/prepopulate.js"></script>
+    <script type="text/javascript" src="/static/admin/js/vendor/xregexp/xregexp.js"></script>
+    <meta name="robots" content="NONE,NOARCHIVE" />
+</head>
+
+<body class=" app-rms model-resourcetypes change-list" data-admin-utc-offset="0">
+
+
+<div id="container">
+    <!-- Header -->
+    <div id="header">
+        <div id="branding">
+            <h1 id="site-name"><a href="/{{ request.resolver_match.app_name }}/">Resource Management System (RMS)</a></h1>
+        </div>
+    </div>
+
+
 {% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
 
+<div id="content">
+<h2><u>Allocations Details {{ request.resolver_match.app_name }}</u></h2>
+<h4>{{allocatedresources.allocation_description}} (allocation id: #{{allocatedresources.allocation_id}})</h4>
 
-<h2>Details of allocation #{{allocatedresources.allocation_id}}</h2>
-<ul>
-    <li>
-        <span>resource_id:</span>
-        <span>{{allocatedresources.resource_id}}</span>
-    </li>
-    <li>
-        <span>allocation_time:</span>
-        <span>{{allocatedresources.allocation_time}}</span>
-    </li>
-    <li>
-        <span>expiration_time:</span>
-        <span>{{allocatedresources.expiration_time}}</span>
-    </li>
-    <li>
-        <span>allocation_description:</span>
-        <span>{{allocatedresources.allocation_description}}</span>
-    </li>
-</ul>
+
+<div id="fields">
+    <table id="details2">
+        <tbody>
+         <tr class="row1">
+            <td>Resource ID</td><td>{{allocatedresources.resource_id}}</td>
+         </tr>
+         <tr class="row2">
+            <td>Allocation Time</td><td>{{allocatedresources.allocation_time}}</td>
+         </tr>
+         <tr class="row1">
+            <td>Expiration Time</td><td>{{allocatedresources.expiration_time}}</td>
+         </tr>
+         <tr class="row2">
+             <td>Cost</td><td>{{allocatedresources.current_cost}}</td>
+         </tr>
+         <tr class="row1">
+             <td>Tenant</td><td>{{allocatedresources.tenant_name}}</td>
+         </tr>
+         <tr class="row2">
+             <td>Group</td><td>{{allocatedresources.group_name}}</td>
+         </tr>
+         <tr class="row1">
+             <td>User name</td><td>{{allocatedresources.user_name}}</td>
+         </tr>
+         <tr class="row2">
+             <td>Description</td><td>{{allocatedresources.allocation_description}}</td>
+         </tr>
+        </tbody>
+    </table>
+</div>
+
+</div>
+<div id="footer"></div>
+
+<!-- END Container -->
+
+</div>
+</body>
+</html>

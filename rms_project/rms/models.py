@@ -2,10 +2,17 @@
 from __future__ import unicode_literals
 
 from django.db import models
+from djmoney.models.fields import MoneyField
 from django.utils.encoding import python_2_unicode_compatible
 from django.utils import timezone
 
+# pip install django-money
+# After adding a column to the DB
 # python manage.py makemigrations rms
+# python manage.py migrate
+
+# After updating a fixture :
+# python manage.py loaddata init1.json
 
 # Create your models here.
 
@@ -22,6 +29,7 @@ class ResourceTypes(models.Model):
     resource_type = models.CharField(max_length=200)
     resource_version = models.CharField(max_length=200)
     total_quantity = models.IntegerField()
+    cost_per_unit = MoneyField(max_digits=8, decimal_places=2, default=5, default_currency='USD')
     available_quantity = models.IntegerField(default=total_quantity)
     resource_description = models.CharField(max_length=400)
     is_external = models.NullBooleanField(default=False)
@@ -38,8 +46,10 @@ class AllocatedResources(models.Model):
     parent_allocation_id = models.IntegerField()
     allocation_time = models.DateTimeField('Allocation date')
     expiration_time = models.DateTimeField('Expiration  date')
+    current_cost = MoneyField(max_digits=8, decimal_places=2, default=5, default_currency='USD')
     allocation_description = models.CharField(max_length=400)
     tenant_name = models.CharField(max_length=50)
+    group_name = models.CharField(max_length=50, default="")
     user_name = models.CharField(max_length=50)
     allocation_extra_fields = models.CharField(max_length=400)
 
