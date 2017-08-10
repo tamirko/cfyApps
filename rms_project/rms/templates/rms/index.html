@@ -1,10 +1,17 @@
 <!DOCTYPE html>
 
+<!-- https://docs.djangoproject.com/en/1.11/ref/templates/builtins/
+ lorem random ipsum
+-->
+
 <html lang="en-us" >
 <head>
+    {% load static %}
+    {% static "" as static_rms %}
     <title>List allocations | Allocated resources</title>
     <link rel="stylesheet" type="text/css" href="/static/admin/css/base.css" />
     <link rel="stylesheet" type="text/css" href="/static/admin/css/changelists.css" />
+    <link rel="stylesheet" type="text/css" href="{{ static_rms }}{{ request.resolver_match.app_name }}/style.css" />
     <script type="text/javascript" src="/admin/jsi18n/"></script>
     <script type="text/javascript" src="/static/admin/js/core.js"></script>
     <script type="text/javascript" src="/static/admin/js/vendor/jquery/jquery.js"></script>
@@ -22,10 +29,13 @@
 <div id="container">
     <!-- Header -->
     <div id="header">
+        <div><span class="cloudify"></span></div>
         <div id="branding">
             <h1 id="site-name"><a href="/admin/">Resource Management System (RMS)</a></h1>
         </div>
+        <div><span class="cloudify"></span></div>
     </div>
+
 <!-- END Header -->
   <div id="content" class="flex">
 {% if latest_allocated_list %}
@@ -34,12 +44,19 @@
      <table id="result_list">
       <thead>
        <tr>
+           <th scope="col" class="column-__str__ medium_icon">
+               <span class="wheelchain medium_icon"></span>
+           </th>
            <th scope="col" class="column-__str__">
-              <div class="text"><span>Allocation ID</span></div>
+              <div class="text"><span>Allocation Instance(ID)</span></div>
               <div class="clear"></div>
           </th>
            <th scope="col" class="column-__str__">
                <div class="text"><span>Description</span></div>
+               <div class="clear"></div>
+           </th>
+           <th scope="col" class="column-__str__">
+               <div class="text"><span>Allocation time</span></div>
                <div class="clear"></div>
            </th>
            <th scope="col" class="column-__str__">
@@ -53,12 +70,20 @@
        </tr>
       </thead>
       <tbody>
-     {% for allocated_resource in latest_allocated_list %}
-      <tr class="row{{ forloop.counter }}">
+     {% for allocated_resource in latest_allocated_list|dictsort:"allocation_time" %}
+      <tr class="{% cycle 'row1' 'row2' %}">
+          {% with ref_id=allocated_resource.resource_id %}
+          {% with res_type=ref_id.resource_type %}
+          {% with res_type_class=ref_id.remove_type_spaces|lower %}
+        <td><span title="{{ res_type }}" class="{{ res_type_class }} medium_icon"></span></td>
         <td><a href="{% url 'rms:detail' allocated_resource.allocation_id %}" class="button">{{ allocated_resource.resource_id }}</a></td>
         <td>{{ allocated_resource.allocation_description }}</td>
+        <td>{{ allocated_resource.allocation_time }}</td>
         <td>{{ allocated_resource.expiration_time }}</td>
         <td>{{ allocated_resource.current_cost }}</td>
+          {% endwith %}
+          {% endwith %}
+          {% endwith %}
       </tr>
       {% endfor %}
       </tbody>

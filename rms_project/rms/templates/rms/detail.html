@@ -2,9 +2,13 @@
 
 <html lang="en-us" >
 <head>
+
+    {% load static %}
+    {% static "" as static_rms %}
     <title>List allocations | Allocated resources</title>
     <link rel="stylesheet" type="text/css" href="/static/admin/css/base.css" />
     <link rel="stylesheet" type="text/css" href="/static/admin/css/changelists.css" />
+    <link rel="stylesheet" type="text/css" href="{{ static_rms }}{{ request.resolver_match.app_name }}/style.css" />
     <script type="text/javascript" src="/admin/jsi18n/"></script>
     <script type="text/javascript" src="/static/admin/js/core.js"></script>
     <script type="text/javascript" src="/static/admin/js/vendor/jquery/jquery.js"></script>
@@ -30,17 +34,19 @@
 
 
 {% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
-
 <div id="content">
 <h2><u>Allocations Details {{ request.resolver_match.app_name }}</u></h2>
 <h4>{{allocatedresources.allocation_description}} (allocation id: #{{allocatedresources.allocation_id}})</h4>
-
-
+<div><span class="{{ allocatedresources.resource_id.remove_type_spaces|lower }} big_icon"></span></div>
 <div id="fields">
     <table id="details2">
         <tbody>
+         <tr class="row2">
+            <td>Resource ID</td>
+             <td>{{allocatedresources.resource_id}}</td>
+         </tr>
          <tr class="row1">
-            <td>Resource ID</td><td>{{allocatedresources.resource_id}}</td>
+             <td>Resource Type</td><td>{{allocatedresources.resource_id.resource_type}}</td>
          </tr>
          <tr class="row2">
             <td>Allocation Time</td><td>{{allocatedresources.allocation_time}}</td>
@@ -48,19 +54,19 @@
          <tr class="row1">
             <td>Expiration Time</td><td>{{allocatedresources.expiration_time}}</td>
          </tr>
-         <tr class="row2">
+        <tr class="row2">
              <td>Cost</td><td>{{allocatedresources.current_cost}}</td>
          </tr>
          <tr class="row1">
              <td>Tenant</td><td>{{allocatedresources.tenant_name}}</td>
          </tr>
-         <tr class="row2">
+        <tr class="row2">
              <td>Group</td><td>{{allocatedresources.group_name}}</td>
          </tr>
          <tr class="row1">
              <td>User name</td><td>{{allocatedresources.user_name}}</td>
          </tr>
-         <tr class="row2">
+        <tr class="row2">
              <td>Description</td><td>{{allocatedresources.allocation_description}}</td>
          </tr>
         </tbody>

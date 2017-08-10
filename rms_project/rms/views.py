@@ -20,9 +20,11 @@ class IndexView(generic.ListView):
 
     def get_queryset(self):
         """Return the last five allocated resources."""
+        #alocation_count = AllocatedResources.objects.count()
         #return AllocatedResources.objects.order_by('-allocation_id')[:5]
         #return AllocatedResources.objects.order_by('-allocation_id')[::-1]
-        return AllocatedResources.objects.order_by('allocation_id')
+        #return AllocatedResources.objects.order_by('allocation_id')
+        return AllocatedResources.objects.order_by('allocation_time')[::-1]
 
 
 class DetailView(generic.DetailView):
@@ -35,11 +37,11 @@ class ResultsView(generic.DetailView):
     template_name = 'rms/results.html'
 
 
-def index(request):
-    latest_question_list = Question.objects.order_by('-pub_date')[:5]
-    context = {'latest_question_list': latest_question_list}
-    return render(request, 'polls/index.html', context)
+#def index(request):
+#    latest_question_list = Question.objects.order_by('-pub_date')[:5]
+#    context = {'latest_question_list': latest_question_list}
+#    return render(request, 'polls/index.html', context)
 
 
-def index(request):
-    return HttpResponse("Hello, world. You're at the RMS index.")
+#def index(request):
+#    return HttpResponse("Hello, world. You're at the RMS index.")

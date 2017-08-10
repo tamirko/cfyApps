@@ -38,6 +38,9 @@ class ResourceTypes(models.Model):
     def __str__(self):
         return "{0}-{1} (Version:{2})".format(self.resource_name, self.resource_type, self.resource_version)
 
+    def remove_type_spaces(self):
+        return self.resource_type.replace(' ', '')
+
 
 @python_2_unicode_compatible  # only if you need to support Python 2
 class AllocatedResources(models.Model):
