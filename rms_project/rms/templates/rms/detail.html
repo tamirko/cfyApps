@@ -35,7 +35,7 @@
 
 {% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
 <div id="content">
-<h2><u>Allocations Details {{ request.resolver_match.app_name }}</u></h2>
+<h2>Allocation Details {{ request.resolver_match.app_name }} | <a href="/{{ request.resolver_match.app_name }}/"><u>All allocations</u></a></h2>
 <h4>{{allocatedresources.allocation_description}} (allocation id: #{{allocatedresources.allocation_id}})</h4>
 <div><span class="{{ allocatedresources.resource_id.remove_type_spaces|lower }} big_icon"></span></div>
 <div id="fields">
@@ -72,7 +72,7 @@
         </tbody>
     </table>
 </div>
-
+    <h2 id="back"><a href="/{{ request.resolver_match.app_name }}/"><u>Back to list</u></a></h2>
 </div>
 <div id="footer"></div>
 

@@ -5,6 +5,44 @@ body2 {
     background: navajowhite url("images/cloudify.png") no-repeat bottom left;
 }
 
+
+.ul_elem {
+    text-decoration: underline;
+}
+
+.item_container {
+    position: relative;
+    width: 100%;
+}
+
+.item_overlay {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 100%;
+    width: 125%;
+    opacity: 0;
+    transition: .5s ease;
+    background-color: #008CBA;
+}
+
+.item_container:hover .item_overlay {
+    opacity: 1;
+}
+
+.item_text {
+    color: white;
+    position: absolute;
+    top: 35%;
+    left: 30%;
+    transform: translate(-35%, -30%);
+    -ms-transform: translate(-35%, -30%);
+    z-index: 100;
+}
+
+
 .small_icon {
     width: 25px;
     height: 25px;

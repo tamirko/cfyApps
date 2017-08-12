@@ -27,6 +27,19 @@ class IndexView(generic.ListView):
         return AllocatedResources.objects.order_by('allocation_time')[::-1]
 
 
+class StatsView(generic.ListView):
+    template_name = 'rms/stats.html'
+    context_object_name = 'latest_allocated_list'
+
+    def get_queryset(self):
+        """Return the last five allocated resources."""
+        #alocation_count = AllocatedResources.objects.count()
+        #return AllocatedResources.objects.order_by('-allocation_id')[:5]
+        #return AllocatedResources.objects.order_by('-allocation_id')[::-1]
+        #return AllocatedResources.objects.order_by('allocation_id')
+        return AllocatedResources.objects.order_by('allocation_time')[::-1]
+
+
 class DetailView(generic.DetailView):
     model = AllocatedResources
     template_name = 'rms/detail.html'

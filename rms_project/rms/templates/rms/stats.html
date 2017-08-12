@@ -2,12 +2,6 @@
 
 <!-- https://docs.djangoproject.com/en/1.11/ref/templates/builtins/
  lorem random ipsum
-
- css effects
- https://www.w3schools.com/howto/howto_css_image_overlay.asp
-
- html css effect and stuf
- https://www.w3schools.com/howto/howto_css_image_overlay.asp
 -->
 
 <html lang="en-us" >
@@ -15,7 +9,7 @@
     {% load static %}
     {% load rms_filters %}
     {% static "" as static_rms %}
-    <title>List allocations | Allocated resources</title>
+    <title>Allocations Cost| Allocated resources</title>
     <link rel="stylesheet" type="text/css" href="/static/admin/css/base.css" />
     <link rel="stylesheet" type="text/css" href="/static/admin/css/changelists.css" />
     <link rel="stylesheet" type="text/css" href="{{ static_rms }}{{ request.resolver_match.app_name }}/style.css" />
@@ -46,58 +40,48 @@
 <!-- END Header -->
   <div id="content" class="flex">
 {% if latest_allocated_list %}
-  <h1>Allocation List  | <a href="stats"><span class="ul_elem">Allocation Cost</span></a></h1>
+  <h1><a href="../"><span class="ul_elem">Allocation List</span></a> | Allocation Cost</h1>
   <h3>Total allocations Cost: {{ latest_allocated_list|running_cost}}</h3>
     <div class="results">
-     <table id="result_list">
-      <thead>
-       <tr>
-           <th scope="col" class="column-__str__ medium_icon">
-               <span class="wheelchain medium_icon"></span>
-           </th>
-           <th scope="col" class="column-__str__">
-              <div class="text"><span>Allocation Instance(ID)</span></div>
-              <div class="clear"></div>
-          </th>
-           <th scope="col" class="column-__str__">
-               <div class="text"><span>Description</span></div>
-               <div class="clear"></div>
-           </th>
-           <th scope="col" class="column-__str__">
-               <div class="text"><span>Allocation time</span></div>
-               <div class="clear"></div>
-           </th>
-           <th scope="col" class="column-__str__">
-               <div class="text"><span>Expiration</span></div>
-               <div class="clear"></div>
-           </th>
-            <th scope="col" class="column-__str__">
-               <div class="text"><span>Cost</span></div>
-               <div class="clear"></div>
-           </th>
-       </tr>
-      </thead>
+     <table id="result_list2">
       <tbody>
-     {% for allocated_resource in latest_allocated_list|dictsort:"allocation_time" %}
+      {% for allocated_resource in latest_allocated_list|dictsort:"allocation_time" %}
+      {% ifequal forloop.counter|modulo:5 1 %}
       <tr class="{% cycle 'row1' 'row2' %}">
+          {% endifequal %}
           {% with ref_id=allocated_resource.resource_id %}
           {% with res_type=ref_id.resource_type %}
           {% with res_type_class=ref_id.remove_type_spaces|lower %}
-        <td><span title="{{ res_type }}" class="{{ res_type_class }} medium_icon"></span></td>
-        <td><a href="{% url 'rms:detail' allocated_resource.allocation_id %}" class="button">{{ allocated_resource.resource_id }}</a></td>
-        <td>{{ allocated_resource.allocation_description }}</td>
-        <td>{{ allocated_resource.allocation_time }}</td>
-        <td>{{ allocated_resource.expiration_time }}</td>
-        <td>{{ allocated_resource.current_cost }}</td>
+
+
+          <td>{{ allocated_resource.current_cost }}
+          <div class="item_container">
+              <span title="{{ res_type }}" class="item_image {{ res_type_class }} big_icon"></span>
+              <div class="item_overlay">
+                  <div class="item_text">
+                      <ul>
+                        <li>{{ allocated_resource.resource_id }}</li>
+                        <!-- <li>{{ allocated_resource.allocation_time }}</li> -->
+                        <!-- <li>{{ allocated_resource.allocation_description }}</li> -->
+                      </ul>
+                  </div>
+              </div>
+          </div>
+           <!-- {{ res_type }} -->
+          <td>
+
           {% endwith %}
           {% endwith %}
           {% endwith %}
+          {% ifequal forloop.counter|divisibleby:5 1 %}
       </tr>
+      {% endifequal %}
       {% endfor %}
       </tbody>
      </table>
     </div>
-    <h2>Allocation List  | <a href="stats"><span class="ul_elem">Allocation Cost</span></a></h2>
+      <h2><a href="../"><span class="ul_elem">Allocation List</span></a> | Allocation Cost</h2>
+
 {% else %}
 
     <p>No allocations are available.</p>
@@ -105,7 +89,6 @@
   <div id="footer"></div>
 </div>
     <!-- END Container -->
-
 </body>
 </html>
 
