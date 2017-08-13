@@ -9,7 +9,7 @@
     {% load static %}
     {% load rms_filters %}
     {% static "" as static_rms %}
-    <title>Allocations Cost| Allocated resources</title>
+    <title>Allocated resources</title>
     <link rel="stylesheet" type="text/css" href="/static/admin/css/base.css" />
     <link rel="stylesheet" type="text/css" href="/static/admin/css/changelists.css" />
     <link rel="stylesheet" type="text/css" href="{{ static_rms }}{{ request.resolver_match.app_name }}/style.css" />
@@ -40,7 +40,7 @@
 <!-- END Header -->
   <div id="content" class="flex">
 {% if latest_allocated_list %}
-  <h1><a href="../"><span class="ul_elem">Allocation List</span></a> | Allocation Cost</h1>
+      <h1><a href="../"><span class="ul_elem">Allocation List</span></a> | <span>Allocation Cost</span> | <a href="../cost"><span class="ul_elem">Cost Summary</span></a></h1>
   <h3>Total allocations Cost: {{ latest_allocated_list|running_cost}}</h3>
     <div class="results">
      <table id="result_list2">
@@ -54,10 +54,10 @@
           {% with res_type_class=ref_id.remove_type_spaces|lower %}
 
 
-          <td>{{ allocated_resource.current_cost }}
+          <td><a title="{{ allocated_resource.resource_id }}" href="{% url 'rms:detail' allocated_resource.allocation_id %}">{{ allocated_resource.current_cost }}</a>
           <div class="item_container">
               <span title="{{ res_type }}" class="item_image {{ res_type_class }} big_icon"></span>
-              <div class="item_overlay">
+              <div title="{{ res_type }}" class="item_overlay">
                   <div class="item_text">
                       <ul>
                         <li>{{ allocated_resource.resource_id }}</li>
@@ -80,7 +80,7 @@
       </tbody>
      </table>
     </div>
-      <h2><a href="../"><span class="ul_elem">Allocation List</span></a> | Allocation Cost</h2>
+      <h2><a href="../"><span class="ul_elem">Allocation List</span></a> | <span>Allocation Cost</span> | <a href="../cost"><span class="ul_elem">Cost Summary</span></a></h2>
 
 {% else %}
 

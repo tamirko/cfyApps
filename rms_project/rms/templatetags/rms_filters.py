@@ -24,3 +24,11 @@ def custom_modulo(num, val):
 def running_cost(your_dict_list):
     return sum(d.current_cost for d in your_dict_list)
 
+
+@register.filter
+def replace_spaces_with_us(value):
+    return value.replace(' ', '_')
+
+@register.filter
+def remove_spaces(value):
+    return value.replace(' ', '')

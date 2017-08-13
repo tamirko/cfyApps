@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+
+<!-- https://docs.djangoproject.com/en/1.11/ref/templates/builtins/
+ lorem random ipsum
+-->
+
+<html lang="en-us" >
+<head>
+    {% load static %}
+    {% load rms_filters %}
+    {% static "" as static_rms %}
+    <title>Allocations Cost</title>
+    <link rel="stylesheet" type="text/css" href="/static/admin/css/base.css" />
+    <link rel="stylesheet" type="text/css" href="/static/admin/css/changelists.css" />
+    <link rel="stylesheet" type="text/css" href="{{ static_rms }}{{ request.resolver_match.app_name }}/style.css" />
+    <script type="text/javascript" src="/admin/jsi18n/"></script>
+    <script type="text/javascript" src="/static/admin/js/core.js"></script>
+    <script type="text/javascript" src="/static/admin/js/vendor/jquery/jquery.js"></script>
+    <script type="text/javascript" src="/static/admin/js/jquery.init.js"></script>
+    <script type="text/javascript" src="/static/admin/js/admin/RelatedObjectLookups.js"></script>
+    <script type="text/javascript" src="/static/admin/js/actions.js"></script>
+    <script type="text/javascript" src="/static/admin/js/urlify.js"></script>
+    <script type="text/javascript" src="/static/admin/js/prepopulate.js"></script>
+    <script type="text/javascript" src="/static/admin/js/vendor/xregexp/xregexp.js"></script>
+    <meta name="robots" content="NONE,NOARCHIVE" />
+</head>
+
+<body class=" app-rms model-resourcetypes change-list" data-admin-utc-offset="0">
+
+<div id="container">
+    <!-- Header -->
+    <div id="header">
+        <div><span class="cloudify"></span></div>
+        <div id="branding">
+            <h1 id="site-name"><a href="/admin/">Resource Management System (RMS)</a></h1>
+        </div>
+        <div><span class="cloudify"></span></div>
+    </div>
+
+<!-- END Header -->
+  <div id="content" class="flex">
+{% if cost_dict %}
+  {% with types_counter=cost_dict.counter %}
+  <h1><a href="../"><span class="ul_elem">Allocation List</span></a> | <a href="../"><span class="ul_elem">Allocation Cost</span></a> | Cost Summary</h1>
+  <h3>Total allocations Cost: {{ cost_dict.cost}} ({{types_counter}} allocated items)</h3>
+      <div class="results">
+          {% with all_types=cost_dict.types %}
+
+          <table>
+              {% for current_type_name, current_type_obj in all_types.items %}
+               {% with forloop.counter as outer_counter %}
+               {% with type_class=current_type_name|remove_spaces|lower %}
+               {% ifequal outer_counter|modulo:5 1 %}
+                    <tr class="{% cycle 'row1' 'row2' %}">
+               {% endifequal %}
+               {% with current_type_cost=current_type_obj.cost %}
+               {% with current_type_counter=current_type_obj.counter %}
+               {% with current_type_users=current_type_obj.users %}
+                  <td>{{ current_type_cost }} ({{current_type_counter}})
+                  <div class="item_container">
+                      <span title="{{ current_type_name }}" class="item_image {{ type_class }} big_icon"></span>
+                      <div title="{{ current_type_name }}" class="item_overlay100">
+                          <div class="item_text">
+                              <ul>
+                                  <li>{{ current_type_cost }}</li>
+                              </ul>
+                          </div>
+                      </div>
+                  </div>
+                  </td>
+
+                    {% endwith %}
+                    {% endwith %}
+                    {% endwith %}
+               {% ifequal outer_counter|divisibleby:5 1 %}
+                </tr>
+               {% endifequal %}
+               {% endwith %}
+               {% endwith %}
+              {% endfor %}
+          </table>
+          {% endwith %}
+
+      </div>
+      {% endwith %}
+      <h2><a href="../"><span class="ul_elem">Allocation List</span></a> | <a href="../"><span class="ul_elem">Allocation Cost</span></a> | Cost Summary</h2>
+{% else %}
+    <p>No allocations are available.</p>
+{% endif %}
+  <div id="footer"></div>
+</div>
+    <!-- END Container -->
+</body>
+</html>
+
+
+
+
+

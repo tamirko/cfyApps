@@ -46,7 +46,7 @@
 <!-- END Header -->
   <div id="content" class="flex">
 {% if latest_allocated_list %}
-  <h1>Allocation List  | <a href="stats"><span class="ul_elem">Allocation Cost</span></a></h1>
+  <h1>Allocation List  | <a href="allocations"><span class="ul_elem">Allocation Cost</span></a> | <a href="cost"><span class="ul_elem">Cost Summary</span></a></h1>
   <h3>Total allocations Cost: {{ latest_allocated_list|running_cost}}</h3>
     <div class="results">
      <table id="result_list">
@@ -97,7 +97,7 @@
       </tbody>
      </table>
     </div>
-    <h2>Allocation List  | <a href="stats"><span class="ul_elem">Allocation Cost</span></a></h2>
+    <h2>Allocation List  | <a href="allocations"><span class="ul_elem">Allocation Cost</span></a> | <a href="cost"><span class="ul_elem">Cost Summary</span></a></h2>
 {% else %}
 
     <p>No allocations are available.</p>
