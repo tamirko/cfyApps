@@ -40,12 +40,13 @@
 <!-- END Header -->
   <div id="content" class="flex">
 {% if cost_dict %}
-  {% with types_counter=cost_dict.counter %}
+  {% with num_of_allocations=cost_dict.counter %}
   <h1><a href="../"><span class="ul_elem">Allocation List</span></a> | <a href="../"><span class="ul_elem">Allocation Cost</span></a> | Cost Summary</h1>
-  <h3>Total allocations Cost: {{ cost_dict.cost}} ({{types_counter}} allocated items)</h3>
+  <h2>Total allocations Cost: {{ cost_dict.cost}} ({{num_of_allocations}} allocated items)</h2>
+  {% with all_types=cost_dict.types.entities %}
+  {% with types_counter=cost_dict.types.counter %}
+  <h2>1. Allocated types ({{types_counter}}):</h2>
       <div class="results">
-          {% with all_types=cost_dict.types %}
-
           <table>
               {% for current_type_name, current_type_obj in all_types.items %}
                {% with forloop.counter as outer_counter %}
@@ -62,7 +63,7 @@
                       <div title="{{ current_type_name }}" class="item_overlay100">
                           <div class="item_text">
                               <ul>
-                                  <li>{{ current_type_cost }}</li>
+                                  <li>{{ current_type_name }}</li>
                               </ul>
                           </div>
                       </div>
@@ -79,11 +80,82 @@
                {% endwith %}
               {% endfor %}
           </table>
-          {% endwith %}
-
       </div>
       {% endwith %}
+      {% endwith %}
+      {% endwith %}
       <h2><a href="../"><span class="ul_elem">Allocation List</span></a> | <a href="../"><span class="ul_elem">Allocation Cost</span></a> | Cost Summary</h2>
+
+
+  {% with all_tenants=cost_dict.tenants.entities %}
+  {% with tenants_counter=cost_dict.tenants.counter %}
+  {% with tenants_users_counter=cost_dict.tenants.all_users_counter %}
+  {% with tenants_types_counter=cost_dict.tenants.all_types_counter %}
+  <div class="results">
+      <h2>2. Allocating tenants and users ({{tenants_counter}} tenants, {{ tenants_users_counter}} users):</h2>
+      <table>
+          {% for current_tenant_name, current_tenant_obj in all_tenants.items %}
+          {% with forloop.counter as outer_counter %}
+          {% ifequal outer_counter|modulo:5 1 %}
+          <tr class="tenant_user {% cycle 'row1' 'row2' %}">
+          {% endifequal %}
+              {% with current_tenant_cost=current_tenant_obj.cost %}
+              {% with current_tenant_users=current_tenant_obj.users %}
+              {% with current_tenant_types=current_tenant_obj.types %}
+              <td class="toptext"><span class="tenant_name">{{current_tenant_name}}:</span> {{ current_tenant_cost }}
+                  <table>
+
+                   <tr><td>Users:</td><td></td></tr>
+                    {% for current_tenant_user_name, current_tenant_user_obj in current_tenant_users.items %}
+                       <tr><td>{{current_tenant_user_name}}:</td><td>{{current_tenant_user_obj}}</td></tr>
+                    {% endfor %}
+                  </table>
+
+              </td>
+
+              {% endwith %}
+              {% endwith %}
+              {% endwith %}
+            {% ifequal outer_counter|divisibleby:5 1 %}
+            </tr>
+            {% endifequal %}
+          {% endwith %}
+          {% endfor %}
+      </table>
+
+      <h2>3. Allocating tenants and types ({{tenants_counter}} tenants, {{tenants_types_counter}} types):</h2>
+      <table>
+          {% for current_tenant_name, current_tenant_obj in all_tenants.items %}
+          {% with forloop.counter as outer_counter %}
+          {% ifequal outer_counter|modulo:5 1 %}
+          <tr class="tenant_type {% cycle 'row1' 'row2' %}">
+              {% endifequal %}
+              {% with current_tenant_cost=current_tenant_obj.cost %}
+              {% with current_tenant_types=current_tenant_obj.types %}
+              <td class="toptext"><span class="tenant_name">{{current_tenant_name}}:</span> {{ current_tenant_cost }}
+                  <table>
+                      <tr><td>Types:</td><td></td></tr>
+                      {% for current_tenant_type_name, current_tenant_type_obj in current_tenant_types.items %}
+                      <tr><td>{{current_tenant_type_name}}:</td><td>{{current_tenant_type_obj}}</td></tr>
+                      {% endfor %}
+                  </table>
+              </td>
+
+              {% endwith %}
+              {% endwith %}
+              {% ifequal outer_counter|divisibleby:5 1 %}
+          </tr>
+          {% endifequal %}
+          {% endwith %}
+          {% endfor %}
+      </table>
+  </div>
+  {% endwith %}
+  {% endwith %}
+  {% endwith %}
+  {% endwith %}
+  <h2><a href="../"><span class="ul_elem">Allocation List</span></a> | <a href="../"><span class="ul_elem">Allocation Cost</span></a> | Cost Summary</h2>
+
 {% else %}
     <p>No allocations are available.</p>
 {% endif %}

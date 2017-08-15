@@ -44,11 +44,13 @@ def _init_alloc_dict(allocation_count):
         alloc_dict = {}
         alloc_dict["counter"] = allocation_count
         alloc_dict["cost"] = 0
-        alloc_dict["tenants"] = {}
+        alloc_dict["tenants"] = {"entities": {}, "counter": 0,
+                                 "all_users": {}, "all_users_counter": 0,
+                                 "all_types": {}, "all_types_counter": 0}
 
         alloc_dict["users"] = {}
         alloc_dict["groups"] = {}
-        alloc_dict["types"] = {}
+        alloc_dict["types"] = {"entities": {}, "counter": 0}
         return alloc_dict
 
 
@@ -59,10 +61,12 @@ def _update_highlevel_values(alloc, alloc_dict, current_cost):
 def _update_allocation_types(alloc, alloc_dict, current_cost):
     current_type_name = alloc.resource_id.resource_type
     current_types = alloc_dict["types"]
-    if current_type_name not in current_types:
-        current_types[current_type_name] = {"cost": 0, "users": {}, "tenants": {}, "counter": 0}
+    current_types_entities = alloc_dict["types"]["entities"]
+    if current_type_name not in current_types_entities:
+        current_types_entities[current_type_name] = {"cost": 0, "users": {}, "tenants": {}, "counter": 0}
+        current_types["counter"] += 1
 
-    current_type_obj = current_types[current_type_name]
+    current_type_obj = current_types_entities[current_type_name]
     current_type_obj["cost"] += current_cost
     current_type_obj["counter"] += 1
     current_type_users = current_type_obj["users"]
@@ -79,9 +83,12 @@ def _update_allocation_types(alloc, alloc_dict, current_cost):
 
 def _update_allocation_tenants(alloc, alloc_dict, current_cost, current_type_name):
     tenants = alloc_dict["tenants"]
-    if alloc.tenant_name not in tenants:
-        tenants[alloc.tenant_name] = {"cost": 0, "users": {}, "types": {}}
-    current_tenant = tenants[alloc.tenant_name]
+    tenants_entities = alloc_dict["tenants"]["entities"]
+    if alloc.tenant_name not in tenants_entities:
+        tenants_entities[alloc.tenant_name] = {"cost": 0, "users": {}, "types": {}}
+        tenants["counter"] += 1
+
+    current_tenant = tenants_entities[alloc.tenant_name]
     current_tenant["cost"] += current_cost
 
     current_tenant_users = current_tenant["users"]
@@ -89,10 +96,18 @@ def _update_allocation_tenants(alloc, alloc_dict, current_cost, current_type_nam
         current_tenant_users[alloc.user_name] = 0
     current_tenant_users[alloc.user_name] += current_cost
 
+    if alloc.user_name not in tenants["all_users"]:
+        tenants["all_users"][alloc.user_name] = True
+        tenants["all_users_counter"] += 1
+
     current_tenant_types = current_tenant["types"]
     if current_type_name not in current_tenant_types:
         current_tenant_types[current_type_name] = 0
     current_tenant_types[current_type_name] += current_cost
+
+    if current_type_name not in tenants["all_types"]:
+        tenants["all_types"][current_type_name] = True
+        tenants["all_types_counter"] += 1
 
 
 def _update_allocation_users(alloc, alloc_dict, current_cost, current_type_name):
@@ -105,7 +120,6 @@ def _update_allocation_users(alloc, alloc_dict, current_cost, current_type_name)
     if current_type_name not in current_user_types:
         current_user_types[current_type_name] = 0
     current_user_types[current_type_name] += current_cost
-
 
 
 def _update_allocation_groups(alloc, alloc_dict, current_cost, current_type_name):
@@ -205,9 +219,9 @@ class CostView(generic.ListView):
         for alloc in allocations:
             _update_alloc_dict(alloc, alloc_dict)
 
+        #_print_types_dict(alloc_dict)
         #_print_tenants_dict(alloc_dict)
         #_print_groups_dict(alloc_dict)
-        #_print_types_dict(alloc_dict)
         #_print_users_dict(alloc_dict)
 
         return alloc_dict

@@ -118,6 +118,10 @@ body2 {
     background: url('images/vpc.png') no-repeat;
 }
 
+.cicd {
+    background: url('images/cicd.jpg') no-repeat;
+}
+
 .base_icon,
 .cloudify,
 .wheelchain,
@@ -128,6 +132,7 @@ body2 {
 .cpe,
 .database,
 .vm,
+.cicd,
 .vpc
 {
     background-size: contain;
@@ -147,5 +152,20 @@ td, th {
     vertical-align: middle !important;
 }
 
+td.toptext {
+    vertical-align: top !important;
+}
+
+.tenant_name {
+    font-weight: bold;
+}
+
+.tenant_user {
+    background-color: #6dabf1;
+}
+
+.tenant_type {
+    background-color: #c4dce8;
+}
 
 
