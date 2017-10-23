@@ -25,23 +25,23 @@ def _print_node_name(prefix_text, suffix_text, **kwargs):
 
 @operation
 def start_element(device_type, **kwargs):
-    _print_node_name("Starting element ", "", **kwargs)
+    _print_node_name("Starting element: ", "", **kwargs)
 
-    ctx.logger.info("device_type {0}".format(device_type))
+    ctx.logger.info("device_type: {0}".format(device_type))
     rt = ctx.instance.runtime_properties
     rt["device_type"] = device_type
 
     element_type = ctx.node.properties.get('element_type')
-    ctx.logger.info("element_type {0}".format(element_type))
+    ctx.logger.info("element_type: {0}".format(element_type))
 
 @operation
 def stop_element(**kwargs):
-    _print_node_name("Stopping element ", "", **kwargs)
+    _print_node_name("Stopping element: ", "", **kwargs)
 
 
 @operation
 def start_network(network_type, bandwidth, **kwargs):
-    _print_node_name("Starting network ", "", **kwargs)
+    _print_node_name("Starting network: ", "", **kwargs)
 
     ctx.logger.info("network_type: {0}".format(network_type))
     rt = ctx.instance.runtime_properties
@@ -52,7 +52,7 @@ def start_network(network_type, bandwidth, **kwargs):
 
 @operation
 def stop_network(**kwargs):
-    _print_node_name("Stopping network ", "", **kwargs)
+    _print_node_name("Stopping network: ", "", **kwargs)
 
     rt = ctx.instance.runtime_properties
     network_type = rt["network_type"]
