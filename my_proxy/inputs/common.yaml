@@ -1,0 +1,29 @@
+inputs:
+
+  wan_network:
+    type: string
+    default: 'WAN'
+
+  wan_network_bandwidth:
+    type: string
+    default: '100'
+
+  lan_network:
+    type: string
+    default: 'LAN'
+
+  lan_network_bandwidth:
+    type: string
+    default: '40'
+
+  ELEM_L_1_device_type:
+    type: string
+    default: 'Router'
+
+  ELEM_L_2_device_type:
+    type: string
+    default: 'Network switch'
+
+  ELEM_L_3_device_type:
+    type: string
+    default: 'Bridge'

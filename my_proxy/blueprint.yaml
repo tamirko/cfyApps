@@ -1,0 +1,119 @@
+tosca_definitions_version: cloudify_dsl_1_3
+
+description: >
+  Service Chaining example
+
+imports:
+  - http://www.getcloudify.org/spec/cloudify/4.1/types.yaml
+  - inputs/common.yaml
+
+node_types:
+
+  custom.network:
+    derived_from: cloudify.nodes.Root
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        start:
+          # Map the single plugin task to the start operation
+          implementation: chaining-plugin.chain.tasks.start_network
+          inputs:
+              # start_network accepts two properties named network_type and bandwidth
+              # Inject these properties from the user's inputs.
+              network_type:
+                default: { get_input: wan_network }
+              bandwidth:
+                default: { get_input: wan_network_bandwidth }
+        stop: chaining-plugin.chain.tasks.stop_network
+
+  custom.network_element:
+    derived_from: cloudify.nodes.Root
+    properties:
+      element_type:
+        type: string
+        default: WAN_NODE
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        start:
+          # here we map the single plugin task to the start operation
+          implementation: chaining-plugin.chain.tasks.start_element
+          inputs:
+              # start_element accepts a single property named element_type
+              # Inject this property from the user's input.
+              device_type:
+                default: "Generic vCPE"
+        stop: chaining-plugin.chain.tasks.stop_element
+
+
+node_templates:
+
+  GLOBAL_WAN:
+    type: custom.network
+
+  ELEM_W_1:
+    type: custom.network_element
+    relationships:
+      -  type: cloudify.relationships.contained_in
+         target: GLOBAL_WAN
+
+  ELEM_W_2:
+    type: custom.network_element
+    relationships:
+      -  type: cloudify.relationships.contained_in
+         target: GLOBAL_WAN
+
+  COMPANY_LAN:
+    type: custom.network
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        start:
+          inputs:
+              network_type: { get_input: lan_network }
+              bandwidth: { get_input: lan_network_bandwidth }
+
+  ELEM_L_1:
+    type: custom.network_element
+    properties:
+      element_type: LAN_NODE
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        start:
+          inputs:
+            device_type: { get_input: ELEM_L_1_device_type }
+    relationships:
+      -  type: cloudify.relationships.contained_in
+         target: COMPANY_LAN
+      -  type: cloudify.relationships.connected_to
+         target: GLOBAL_WAN
+
+  ELEM_L_2:
+    type: custom.network_element
+    properties:
+      element_type: LAN_NODE
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        start:
+          inputs:
+            device_type: { get_input: ELEM_L_2_device_type }
+    relationships:
+      -  type: cloudify.relationships.contained_in
+         target: COMPANY_LAN
+      -  type: cloudify.relationships.connected_to
+         target: GLOBAL_WAN
+
+  ELEM_L_3:
+    type: custom.network_element
+    properties:
+      element_type: LAN_NODE
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        start:
+          inputs:
+            device_type: { get_input: ELEM_L_3_device_type }
+    relationships:
+      -  type: cloudify.relationships.contained_in
+         target: COMPANY_LAN
+
+plugins:
+   chaining-plugin:
+      executor: central_deployment_agent
+      source: chaining-plugin-folder
