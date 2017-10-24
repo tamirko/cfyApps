@@ -1,0 +1,55 @@
+tosca_definitions_version: cloudify_dsl_1_3
+
+description: >
+  Service Chaining example
+
+imports:
+  - http://www.getcloudify.org/spec/cloudify/4.1/types.yaml
+  - types/types.yaml
+  - inputs/common.yaml
+
+node_templates:
+
+  ELEM_L_1:
+    type: custom.network_element
+    properties:
+      element_type: LAN_NODE
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        start:
+          inputs:
+            device_type: { get_input: ELEM_L_1_device_type }
+    relationships:
+      -  type: cloudify.relationships.contained_in
+         target: COMPANY_LAN
+      -  type: cloudify.relationships.connected_to
+         target: GLOBAL_WAN
+
+  ELEM_L_2:
+    type: custom.network_element
+    properties:
+      element_type: LAN_NODE
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        start:
+          inputs:
+            device_type: { get_input: ELEM_L_2_device_type }
+    relationships:
+      -  type: cloudify.relationships.contained_in
+         target: COMPANY_LAN
+      -  type: cloudify.relationships.connected_to
+         target: GLOBAL_WAN
+
+  ELEM_L_3:
+    type: custom.network_element
+    properties:
+      element_type: LAN_NODE
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        start:
+          inputs:
+            device_type: { get_input: ELEM_L_3_device_type }
+    relationships:
+      -  type: cloudify.relationships.contained_in
+         target: COMPANY_LAN
+

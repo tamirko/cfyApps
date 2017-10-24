@@ -1,0 +1,27 @@
+tosca_definitions_version: cloudify_dsl_1_3
+
+description: >
+  Service Chaining example : WAN
+
+imports:
+  - http://www.getcloudify.org/spec/cloudify/4.1/types.yaml
+  - types/types.yaml
+  - inputs/common.yaml
+
+node_templates:
+
+  GLOBAL_WAN:
+    type: custom.network
+
+  ELEM_W_1:
+    type: custom.network_element
+    relationships:
+      -  type: cloudify.relationships.contained_in
+         target: GLOBAL_WAN
+
+  ELEM_W_2:
+    type: custom.network_element
+    relationships:
+      -  type: cloudify.relationships.contained_in
+         target: GLOBAL_WAN
+

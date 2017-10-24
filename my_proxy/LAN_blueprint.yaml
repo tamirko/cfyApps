@@ -1,0 +1,21 @@
+tosca_definitions_version: cloudify_dsl_1_3
+
+description: >
+  Service Chaining example: LAN
+
+imports:
+  - http://www.getcloudify.org/spec/cloudify/4.1/types.yaml
+  - types/types.yaml
+  - inputs/common.yaml
+
+node_templates:
+
+  COMPANY_LAN:
+    type: custom.network
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        start:
+          inputs:
+              network_type: { get_input: lan_network }
+              bandwidth: { get_input: lan_network_bandwidth }
+

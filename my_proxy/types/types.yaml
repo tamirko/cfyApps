@@ -1,0 +1,42 @@
+tosca_definitions_version: cloudify_dsl_1_3
+
+node_types:
+
+  custom.network:
+    derived_from: cloudify.nodes.Root
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        start:
+          # Map the single plugin task to the start operation
+          implementation: chaining-plugin.chain.tasks.start_network
+          inputs:
+              # start_network accepts two properties named network_type and bandwidth
+              # Inject these properties from the user's inputs.
+              network_type:
+                default: { get_input: wan_network }
+              bandwidth:
+                default: { get_input: wan_network_bandwidth }
+        stop: chaining-plugin.chain.tasks.stop_network
+
+  custom.network_element:
+    derived_from: cloudify.nodes.Root
+    properties:
+      element_type:
+        type: string
+        default: WAN_NODE
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        start:
+          # here we map the single plugin task to the start operation
+          implementation: chaining-plugin.chain.tasks.start_element
+          inputs:
+              # start_element accepts a single property named element_type
+              # Inject this property from the user's input.
+              device_type:
+                default: "Generic vCPE"
+        stop: chaining-plugin.chain.tasks.stop_element
+
+plugins:
+   chaining-plugin:
+      executor: central_deployment_agent
+      source: chaining-plugin-folder
