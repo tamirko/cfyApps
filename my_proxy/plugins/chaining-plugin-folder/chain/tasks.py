@@ -14,25 +14,42 @@
 #    * limitations under the License.
 
 import json
+import random
+import string
+
 from cloudify import ctx
 from cloudify.decorators import operation
+
+system_prefix = "{0} ".format("-"*4)
 
 
 def _print_node_name(prefix_text, suffix_text, **kwargs):
     current_node_name = ctx.node.name
-    ctx.logger.info("{0} {1} {2}".format(prefix_text, current_node_name, suffix_text))
+    ctx.logger.info("{0}{1}{2}{3}".format(system_prefix, prefix_text, current_node_name, suffix_text))
+    return current_node_name
+
+
+def _random_alphanumeric(output_length):
+    return ''.join(random.choice(string.ascii_uppercase + string.digits)
+                   for _ in range(output_length))
 
 
 @operation
 def start_element(device_type, **kwargs):
-    _print_node_name("Starting element: ", "", **kwargs)
+    element_name = _print_node_name("Starting element: ", "", **kwargs)
 
-    ctx.logger.info("device_type: {0}".format(device_type))
     rt = ctx.instance.runtime_properties
     rt["device_type"] = device_type
+    ctx.logger.info("{0}{1} device_type: {2}".format(system_prefix, element_name, device_type))
 
     element_type = ctx.node.properties.get('element_type')
-    ctx.logger.info("element_type: {0}".format(element_type))
+    ctx.logger.info("{0}{1} element_type: {2}".format(system_prefix, element_name, element_type))
+
+    ctx.logger.info("{0}{1} Generating an element ID...".format(system_prefix, element_name))
+    element_id = "ELE_{0}".format(_random_alphanumeric(16))
+    ctx.logger.info("{0}{1} element ID: {2}".format(system_prefix, element_name, element_id))
+    rt["element_id"] = element_id
+
 
 @operation
 def stop_element(**kwargs):
@@ -41,22 +58,25 @@ def stop_element(**kwargs):
 
 @operation
 def start_network(network_type, bandwidth, **kwargs):
-    _print_node_name("Starting network: ", "", **kwargs)
+    network_name = _print_node_name("Starting network: ", "", **kwargs)
 
-    ctx.logger.info("network_type: {0}".format(network_type))
     rt = ctx.instance.runtime_properties
     rt["network_type"] = network_type
 
-    ctx.logger.info("bandwidth:    {0}".format(bandwidth))
+    ctx.logger.info("{0}{1} network_type: {2}".format(system_prefix, network_name, network_type))
+    ctx.logger.info("{0}{1} bandwidth: {2}".format(system_prefix, network_name, bandwidth))
+
+    ctx.logger.info("{0}{1} Generating a network ID...".format(system_prefix, network_name))
+    network_id = "NET_{0}".format(_random_alphanumeric(16))
+    ctx.logger.info("{0}{1} network ID: {2}".format(system_prefix, network_name, network_id))
+    rt["network_id"] = network_id
 
 
 @operation
 def stop_network(**kwargs):
     _print_node_name("Stopping network: ", "", **kwargs)
 
-    rt = ctx.instance.runtime_properties
-    network_type = rt["network_type"]
-    ctx.logger.info("network_type: {0}".format(network_type))
+
 
 
 

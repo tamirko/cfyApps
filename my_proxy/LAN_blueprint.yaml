@@ -10,7 +10,7 @@ imports:
 
 node_templates:
 
-  COMPANY_LAN:
+  COMPANY_NETWORK:
     type: custom.network
     interfaces:
       cloudify.interfaces.lifecycle:
@@ -18,4 +18,7 @@ node_templates:
           inputs:
               network_type: { get_input: lan_network }
               bandwidth: { get_input: lan_network_bandwidth }
+    relationships:
+      -  type: cloudify.relationships.depends_on
+         target: GLOBAL_WAN
 

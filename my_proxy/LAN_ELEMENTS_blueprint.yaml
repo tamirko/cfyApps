@@ -21,7 +21,7 @@ node_templates:
             device_type: { get_input: ELEM_L_1_device_type }
     relationships:
       -  type: cloudify.relationships.contained_in
-         target: COMPANY_LAN
+         target: COMPANY_NETWORK
       -  type: cloudify.relationships.connected_to
          target: GLOBAL_WAN
 
@@ -36,7 +36,7 @@ node_templates:
             device_type: { get_input: ELEM_L_2_device_type }
     relationships:
       -  type: cloudify.relationships.contained_in
-         target: COMPANY_LAN
+         target: COMPANY_NETWORK
       -  type: cloudify.relationships.connected_to
          target: GLOBAL_WAN
 
@@ -51,5 +51,5 @@ node_templates:
             device_type: { get_input: ELEM_L_3_device_type }
     relationships:
       -  type: cloudify.relationships.contained_in
-         target: COMPANY_LAN
+         target: COMPANY_NETWORK
 
