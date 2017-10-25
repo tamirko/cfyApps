@@ -13,6 +13,7 @@
 #    * See the License for the specific language governing permissions and
 #    * limitations under the License.
 
+import time
 import json
 import random
 import string
@@ -45,10 +46,12 @@ def start_element(device_type, **kwargs):
     element_type = ctx.node.properties.get('element_type')
     ctx.logger.info("{0}{1} element_type: {2}".format(system_prefix, element_name, element_type))
 
+    time.sleep(1)
     ctx.logger.info("{0}{1} Generating an element ID...".format(system_prefix, element_name))
     element_id = "ELE_{0}".format(_random_alphanumeric(16))
-    ctx.logger.info("{0}{1} element ID: {2}".format(system_prefix, element_name, element_id))
     rt["element_id"] = element_id
+    time.sleep(1)
+    ctx.logger.info("{0}{1} element ID: {2}".format(system_prefix, element_name, element_id))
 
 
 @operation
@@ -66,10 +69,12 @@ def start_network(network_type, bandwidth, **kwargs):
     ctx.logger.info("{0}{1} network_type: {2}".format(system_prefix, network_name, network_type))
     ctx.logger.info("{0}{1} bandwidth: {2}".format(system_prefix, network_name, bandwidth))
 
+    time.sleep(1)
     ctx.logger.info("{0}{1} Generating a network ID...".format(system_prefix, network_name))
     network_id = "NET_{0}".format(_random_alphanumeric(16))
-    ctx.logger.info("{0}{1} network ID: {2}".format(system_prefix, network_name, network_id))
     rt["network_id"] = network_id
+    time.sleep(1)
+    ctx.logger.info("{0}{1} network ID: {2}".format(system_prefix, network_name, network_id))
 
 
 @operation
