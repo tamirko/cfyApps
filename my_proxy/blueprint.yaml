@@ -54,8 +54,6 @@ node_templates:
 
   GLOBAL_WAN:
     type: custom.network
-    properties:
-      use_external_resource: true
 
   ELEM_W_1:
     type: custom.network_element

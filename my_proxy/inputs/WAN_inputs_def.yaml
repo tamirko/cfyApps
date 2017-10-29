@@ -1,0 +1,9 @@
+inputs:
+
+  wan_network:
+    type: string
+    default: 'WAN'
+
+  wan_network_bandwidth:
+    type: string
+    default: '100'

@@ -36,6 +36,13 @@ def _random_alphanumeric(output_length):
                    for _ in range(output_length))
 
 
+def _use_external_resource(**kwargs):
+    if USE_EXTERNAL_RESOURCE in ctx.node.properties:
+        curr_use_external_resource = ctx.node.properties[USE_EXTERNAL_RESOURCE]
+        return curr_use_external_resource
+    return False
+
+
 @operation
 def start_element(device_type, **kwargs):
     element_name = _print_node_name("Starting element: ", "", **kwargs)
@@ -62,9 +69,7 @@ def stop_element(**kwargs):
 
 @operation
 def create_network(**kwargs):
-    if USE_EXTERNAL_RESOURCE in ctx.node.properties:
-        curr_use_external_resource = ctx.node.properties[USE_EXTERNAL_RESOURCE]
-        if curr_use_external_resource:
+    if _use_external_resource(**kwargs):
             network_name = ctx.node.name
             network_id = ctx.node.id
             ctx.logger.info("{0} {1} {2} already exists. Skipping creation".
@@ -76,6 +81,9 @@ def create_network(**kwargs):
 
 @operation
 def start_network(network_type, bandwidth, **kwargs):
+    if _use_external_resource(**kwargs):
+        return
+
     network_name = _print_node_name("Starting network: ", "", **kwargs)
 
     rt = ctx.instance.runtime_properties
