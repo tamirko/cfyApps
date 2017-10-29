@@ -46,4 +46,4 @@ node_templates:
           inputs: { get_input: external_deployment_inputs }
           outputs:
             my_wan_network_id: wan_network_id
-            my_wan_network_type: wan_network_type
+            wan_network_type: my_wan_network_type

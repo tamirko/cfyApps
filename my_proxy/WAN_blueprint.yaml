@@ -25,3 +25,12 @@ node_templates:
       -  type: cloudify.relationships.contained_in
          target: GLOBAL_WAN
 
+outputs:
+  wan_network_id:
+    description: WAN Network ID
+    value: { get_attribute: [GLOBAL_WAN, network_id ] }
+  wan_network_type:
+    description: WAN Network Type
+    value: { get_attribute: [GLOBAL_WAN, network_type] }
+
+

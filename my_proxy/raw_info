@@ -1,3 +1,9 @@
 zip -r9 my_proxy.zip my_proxy
 mv my_proxy.zip my_proxy/
 
+
+
+export bp=bp2910_vb01
+export dep=${bp}_dep_v01
+cfy blu upl -b $bp ~/cloudify-cosmo/cfyApps/my_proxy/LAN_blueprint.yaml
+cfy dep cr $dep -b $bp --skip-plugins-validation -i inputs/LAN_inputs.yaml
