@@ -45,5 +45,13 @@ node_templates:
           id: { get_input: external_deployment_name }
           inputs: { get_input: external_deployment_inputs }
           outputs:
-            my_wan_network_id: wan_network_id
-            wan_network_type: my_wan_network_type
+            proxy_wan_network_id: wan_network_id
+            proxy_wan_network_type: wan_network_type
+
+outputs:
+  wan_network_id:
+    description: WAN Network ID
+    value: { get_attribute: [current_proxy, proxy_wan_network_id ] }
+  wan_network_type:
+    description: WAN Network Type
+    value: { get_attribute: [current_proxy, proxy_wan_network_type] }
