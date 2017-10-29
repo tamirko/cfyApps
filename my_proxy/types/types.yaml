@@ -6,7 +6,7 @@ node_types:
     derived_from: cloudify.nodes.Root
     properties:
       use_external_resource:
-        default: false
+        default: { get_input: user_existing_WAN_network }
       global_network_type:
         default: N/A
     interfaces:

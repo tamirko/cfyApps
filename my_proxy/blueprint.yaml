@@ -54,6 +54,8 @@ node_templates:
 
   GLOBAL_WAN:
     type: custom.network
+    properties:
+      use_external_resource: { get_input: user_existing_WAN_network }
 
   ELEM_W_1:
     type: custom.network_element
@@ -70,6 +72,7 @@ node_templates:
   COMPANY_NETWORK:
     type: custom.network
     properties:
+      use_external_resource: false
       global_network_type: GLOBAL_WAN
     interfaces:
       cloudify.interfaces.lifecycle:

@@ -8,6 +8,9 @@ inputs:
     type: string
     default: '100'
 
+  user_existing_WAN_network:
+    default: false
+
   lan_network:
     type: string
     default: 'LAN'
@@ -27,3 +30,4 @@ inputs:
   ELEM_L_3_device_type:
     type: string
     default: 'Bridge'
+

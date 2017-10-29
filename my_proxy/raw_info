@@ -1,0 +1,3 @@
+zip -r9 my_proxy.zip my_proxy
+mv my_proxy.zip my_proxy/
+

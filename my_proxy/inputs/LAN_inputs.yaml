@@ -1,9 +1,8 @@
-environment_name: XXX
-environment_blueprint_filename: WAN_blueprint.yaml
-environment_blueprint: https://github.com/tamirko/cfyApps/raw/master/my_proxy/my_proxy.zip
-environment_inputs:
-  aaa111: bbb222
-  ccc333: ddd444
-  eee555: fff666
-
-
+external_blueprint_name: my_WAN_blueprint
+external_blueprint_filename: WAN_blueprint.yaml
+external_blueprint_archive: https://github.com/tamirko/cfyApps/raw/master/my_proxy/my_proxy.zip
+external_deployment_name: my_WAN_deployment
+external_deployment_inputs:
+  wan_network: WAN
+  wan_network_bandwidth: 80
+  user_existing_WAN_network: true

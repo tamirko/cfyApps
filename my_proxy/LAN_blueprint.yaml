@@ -15,33 +15,35 @@ node_templates:
     type: custom.network
     properties:
       use_external_resource: true
+      global_network_type: { get_attribute: [ current_proxy, deployment, outputs, wan_network_type ] }
 
   COMPANY_NETWORK:
     type: custom.network
     properties:
-      global_network_type: { get_attribute: [ environment, deployment, outputs, wan_network_type ] }
+      use_external_resource: false
+      global_network_type: { get_attribute: [ current_proxy, deployment, outputs, wan_network_type ] }
     interfaces:
       cloudify.interfaces.lifecycle:
         start:
           inputs:
               network_type: { get_input: lan_network }
               bandwidth: { get_input: lan_network_bandwidth }
-              global_network_id: { get_attribute: [ environment, deployment, outputs, wan_network_id ] }
+              global_network_id: { get_attribute: [ current_proxy, deployment, outputs, wan_network_id ] }
     relationships:
       -  type: cloudify.relationships.connected_to
          target: GLOBAL_WAN
 
-  environment:
+  current_proxy:
     type: cloudify.nodes.DeploymentProxy
     properties:
       resource_config:
         blueprint:
-          id: { get_input: environment_name }
-          blueprint_archive: { get_input: environment_blueprint }
-          main_file_name: { get_input: environment_blueprint_filename }
+          id: { get_input: external_blueprint_name }
+          blueprint_archive: { get_input: external_blueprint_archive }
+          main_file_name: { get_input: external_blueprint_filename }
         deployment:
-          id: { get_input: environment_name }
-          inputs: { get_input: environment_inputs }
+          id: { get_input: external_deployment_name }
+          inputs: { get_input: external_deployment_inputs }
           outputs:
-            network_id: wan_network_id
-            network_type: wan_network_type
+            my_wan_network_id: wan_network_id
+            my_wan_network_type: wan_network_type
