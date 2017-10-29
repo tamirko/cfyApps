@@ -38,10 +38,12 @@ node_templates:
     properties:
       resource_config:
         blueprint:
+          external_resource: true
           id: { get_input: external_blueprint_name }
           blueprint_archive: { get_input: external_blueprint_archive }
           main_file_name: { get_input: external_blueprint_filename }
         deployment:
+          external_resource: true
           id: { get_input: external_deployment_name }
           inputs: { get_input: external_deployment_inputs }
           outputs:
@@ -51,7 +53,8 @@ node_templates:
 outputs:
   wan_network_id:
     description: WAN Network ID
-    value: { get_attribute: [current_proxy, proxy_wan_network_id ] }
+    value: { get_attribute: [ current_proxy, deployment, outputs, proxy_wan_network_id ] }
   wan_network_type:
     description: WAN Network Type
-    value: { get_attribute: [current_proxy, proxy_wan_network_type] }
+    value: { get_attribute: [ current_proxy, deployment, outputs, proxy_wan_network_type ] }
+
