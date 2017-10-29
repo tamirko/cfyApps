@@ -28,15 +28,23 @@ inputs:
     type: string
     default: 'Bridge'
 
-  environment_name:
+  external_blueprint_name:
     default: WAN
 
-  environment_blueprint_filename:
+  external_blueprint_filename:
     default: WAN_blueprint.yaml
 
-  environment_blueprint:
+  external_blueprint_archive:
     default: https://github.com/tamirko/cfyApps/raw/master/my_proxy/my_proxy.zip
 
-  environment_inputs:
+  external_deployment_inputs:
     description: The inputs that are required to execute aws-environment.yaml blueprint.
     required: true
+
+  external_deployment_name:
+    description: The name of the deployment which this blueprint's deployment depends on
+    required: true
+
+
+
+
