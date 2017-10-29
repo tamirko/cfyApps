@@ -4,8 +4,14 @@ node_types:
 
   custom.network:
     derived_from: cloudify.nodes.Root
+    properties:
+      use_external_resource:
+        default: false
+      global_network_type:
+        default: N/A
     interfaces:
       cloudify.interfaces.lifecycle:
+        create: chaining-plugin.chain.tasks.create_network
         start:
           # Map the single plugin task to the start operation
           implementation: chaining-plugin.chain.tasks.start_network

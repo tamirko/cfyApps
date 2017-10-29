@@ -21,6 +21,7 @@ import string
 from cloudify import ctx
 from cloudify.decorators import operation
 
+USE_EXTERNAL_RESOURCE = 'use_external_resource'
 system_prefix = "{0} ".format("-"*4)
 
 
@@ -57,6 +58,20 @@ def start_element(device_type, **kwargs):
 @operation
 def stop_element(**kwargs):
     _print_node_name("Stopping element: ", "", **kwargs)
+
+
+@operation
+def create_network(**kwargs):
+    if USE_EXTERNAL_RESOURCE in ctx.node.properties:
+        curr_use_external_resource = ctx.node.properties[USE_EXTERNAL_RESOURCE]
+        if curr_use_external_resource:
+            network_name = ctx.node.name
+            network_id = ctx.node.id
+            ctx.logger.info("{0} {1} {2} already exists. Skipping creation".
+                            format(system_prefix, "Network", network_name, network_id))
+            return
+
+    _print_node_name("Creating network: ", "...", **kwargs)
 
 
 @operation

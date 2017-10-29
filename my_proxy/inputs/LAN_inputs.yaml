@@ -1,0 +1,42 @@
+inputs:
+
+  wan_network:
+    type: string
+    default: 'WAN'
+
+  wan_network_bandwidth:
+    type: string
+    default: '100'
+
+  lan_network:
+    type: string
+    default: 'LAN'
+
+  lan_network_bandwidth:
+    type: string
+    default: '40'
+
+  ELEM_L_1_device_type:
+    type: string
+    default: 'Router'
+
+  ELEM_L_2_device_type:
+    type: string
+    default: 'Network switch'
+
+  ELEM_L_3_device_type:
+    type: string
+    default: 'Bridge'
+
+  environment_name:
+    default: WAN
+
+  environment_blueprint_filename:
+    default: WAN_blueprint.yaml
+
+  environment_blueprint:
+    default: https://github.com/tamirko/cfyApps/raw/master/my_proxy/my_proxy.zip
+
+  environment_inputs:
+    description: The inputs that are required to execute aws-environment.yaml blueprint.
+    required: true
