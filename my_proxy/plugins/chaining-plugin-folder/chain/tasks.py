@@ -80,7 +80,7 @@ def create_network(**kwargs):
 
 
 @operation
-def start_network(network_type, bandwidth, **kwargs):
+def start_network(network_type, bandwidth, global_network_id=None, **kwargs):
     if _use_external_resource(**kwargs):
         return
 
@@ -91,6 +91,15 @@ def start_network(network_type, bandwidth, **kwargs):
 
     ctx.logger.info("{0}{1} network_type: {2}".format(system_prefix, network_name, network_type))
     ctx.logger.info("{0}{1} bandwidth: {2}".format(system_prefix, network_name, bandwidth))
+
+    global_network_type = ctx.node.properties.get('global_network_type')
+    ctx.logger.info("{0}{1} global_network_type: {2}".format(system_prefix, network_name, global_network_type))
+
+    if global_network_id is not None:
+        ctx.logger.info("{0}{1} global_network_id: {2}".format(system_prefix, network_name, global_network_id))
+        rt["global_network_id"] = global_network_id
+    else:
+        ctx.logger.info("{0}{1} global_network_id is None".format(system_prefix, network_name))
 
     time.sleep(1)
     ctx.logger.info("{0}{1} Generating a network ID...".format(system_prefix, network_name))

@@ -15,7 +15,7 @@ node_types:
       use_external_resource:
         default: false
       global_network_type:
-        default: N/A
+        default: null
     interfaces:
       cloudify.interfaces.lifecycle:
         create: chaining-plugin.chain.tasks.create_network
@@ -26,7 +26,7 @@ node_types:
               # start_network accepts two properties named network_type and bandwidth
               # Inject these properties from the user's inputs.
               network_type:
-                default: { get_input: wan_network }
+                default: { get_input: wan_network_type }
               bandwidth:
                 default: { get_input: wan_network_bandwidth }
         stop: chaining-plugin.chain.tasks.stop_network
@@ -78,7 +78,7 @@ node_templates:
       cloudify.interfaces.lifecycle:
         start:
           inputs:
-              network_type: { get_input: lan_network }
+              network_type: { get_input: lan_network_type }
               bandwidth: { get_input: lan_network_bandwidth }
     relationships:
       -  type: cloudify.relationships.depends_on

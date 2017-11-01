@@ -1,6 +1,6 @@
 inputs:
 
-  wan_network:
+  wan_network_type:
     type: string
     default: 'WAN'
 
@@ -8,5 +8,5 @@ inputs:
     type: string
     default: '100'
 
-  user_existing_WAN_network:
+  use_existing_WAN_network:
     default: false

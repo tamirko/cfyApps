@@ -15,7 +15,9 @@ node_templates:
     type: custom.network
     properties:
       use_external_resource: true
-      global_network_type: { get_attribute: [ current_proxy, deployment, outputs, wan_network_type ] }
+    relationships:
+      -  type: cloudify.relationships.depends_on
+         target: current_proxy
 
   COMPANY_NETWORK:
     type: custom.network
@@ -26,12 +28,14 @@ node_templates:
       cloudify.interfaces.lifecycle:
         start:
           inputs:
-              network_type: { get_input: lan_network }
+              network_type: { get_input: lan_network_type }
               bandwidth: { get_input: lan_network_bandwidth }
               global_network_id: { get_attribute: [ current_proxy, deployment, outputs, wan_network_id ] }
     relationships:
       -  type: cloudify.relationships.connected_to
          target: GLOBAL_WAN
+      -  type: cloudify.relationships.depends_on
+         target: current_proxy
 
   current_proxy:
     type: cloudify.nodes.DeploymentProxy
