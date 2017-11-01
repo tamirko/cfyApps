@@ -39,6 +39,10 @@ inputs:
 
   external_deployment_inputs:
     description: The inputs that are required to execute aws-environment.yaml blueprint.
+    default:
+      wan_network: WAN
+      wan_network_bandwidth: 80
+      user_existing_WAN_network: true
     required: true
 
   external_deployment_name:

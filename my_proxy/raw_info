@@ -7,3 +7,31 @@ export bp=bp2910_vb01
 export dep=${bp}_dep_v01
 cfy blu upl -b $bp ~/cloudify-cosmo/cfyApps/my_proxy/LAN_blueprint.yaml
 cfy dep cr $dep -b $bp --skip-plugins-validation -i inputs/LAN_inputs.yaml
+
+
+Service chaining
+==================
+
+WAN:
+----
+export WAN_BP=WAN_nov_01_v02
+cfy bl upl -b $WAN_BP ~/cloudify-cosmo/cfyApps/my_proxy/WAN_blueprint.yaml
+export WAN_DEP=WAN_v02
+cfy dep cr -b $WAN_BP $WAN_DEP --skip-plugins-validation
+cfy exe start install -d $WAN_DEP
+cfy deployments outputs $WAN_DEP
+cfy node-instances -v list -d $WAN_DEP
+
+LANs:
+-----
+export LAN_BP=LAN_nov_01_vb02
+export LAN_DEP=LAN_vb02
+export external_blueprint_name=$WAN_BP
+export external_deployment_name=$WAN_DEP
+export lan_network=$LAN_DEP
+cfy bl upl -b $LAN_BP ~/cloudify-cosmo/cfyApps/my_proxy/LAN_blueprint.yaml
+cfy dep cr -b $LAN_BP $LAN_DEP --skip-plugins-validation -i external_deployment_name=$external_deployment_name -i external_blueprint_name=$external_blueprint_name -i lan_network=$lan_network
+cfy exe start install -d $LAN_DEP
+cfy deployments outputs $LAN_DEP
+export proxy_instance=`cfy node-instances list -d $LAN_DEP | grep proxy | awk -F\| '{print $2}' | sed 's/  //g'`
+cfy node-instances get $proxy_instance
