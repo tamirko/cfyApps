@@ -1,8 +1,8 @@
-lan_network_type: LAN_04
-external_blueprint_name: my_WAN_blueprint
+lan_network_type: LAN
+external_blueprint_name: WAN_nov_01_v05
 external_blueprint_filename: WAN_blueprint.yaml
 external_blueprint_archive: https://github.com/tamirko/cfyApps/raw/master/my_proxy/my_proxy.zip
-external_deployment_name: my_WAN_deployment
+external_deployment_name: WAN_nov_01_v05
 external_deployment_inputs:
   wan_network_type: WAN
   wan_network_bandwidth: 80
