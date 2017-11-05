@@ -19,6 +19,22 @@ node_templates:
       -  type: cloudify.relationships.depends_on
          target: current_proxy
 
+  ELEM_W_1:
+    type: custom.network_element
+    properties:
+      use_external_resource: true
+    relationships:
+      -  type: cloudify.relationships.contained_in
+         target: GLOBAL_WAN
+
+  ELEM_W_2:
+    type: custom.network_element
+    properties:
+      use_external_resource: true
+    relationships:
+      -  type: cloudify.relationships.contained_in
+         target: GLOBAL_WAN
+
   COMPANY_NETWORK:
     type: custom.network
     properties:

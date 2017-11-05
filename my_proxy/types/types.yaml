@@ -27,6 +27,8 @@ node_types:
   custom.network_element:
     derived_from: cloudify.nodes.Root
     properties:
+      use_external_resource:
+        default: false
       element_type:
         type: string
         default: WAN_NODE
