@@ -19,7 +19,7 @@ node_templates:
       -  type: cloudify.relationships.depends_on
          target: current_proxy
 
-  ELEM_W_1:
+  Router_2_LANs:
     type: custom.network_element
     properties:
       use_external_resource: true
@@ -27,7 +27,7 @@ node_templates:
       -  type: cloudify.relationships.contained_in
          target: GLOBAL_WAN
 
-  ELEM_W_2:
+  MAIN_SWITCH:
     type: custom.network_element
     properties:
       use_external_resource: true
@@ -52,6 +52,23 @@ node_templates:
          target: GLOBAL_WAN
       -  type: cloudify.relationships.depends_on
          target: current_proxy
+
+
+  WORKSTATION_1:
+    type: custom.network_element
+    properties:
+      use_external_resource: false
+    relationships:
+      -  type: cloudify.relationships.contained_in
+         target: COMPANY_NETWORK
+
+  SERVER_1:
+    type: custom.network_element
+    properties:
+      use_external_resource: false
+    relationships:
+      -  type: cloudify.relationships.contained_in
+         target: COMPANY_NETWORK
 
   current_proxy:
     type: cloudify.nodes.DeploymentProxy

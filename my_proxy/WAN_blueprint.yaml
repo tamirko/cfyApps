@@ -13,13 +13,13 @@ node_templates:
   GLOBAL_WAN:
     type: custom.network
 
-  ELEM_W_1:
+  Router_2_LANs:
     type: custom.network_element
     relationships:
       -  type: cloudify.relationships.contained_in
          target: GLOBAL_WAN
 
-  ELEM_W_2:
+  MAIN_SWITCH:
     type: custom.network_element
     relationships:
       -  type: cloudify.relationships.contained_in
