@@ -1,0 +1,9 @@
+lan_network_type: SECONDARY
+external_blueprint_name: PRIMARY
+external_blueprint_filename: PRIMARY_blueprint.yaml
+external_blueprint_archive: https://github.com/tamirko/cfyApps/raw/master/my_proxy/my_proxy.zip
+external_deployment_name: PRIMARY
+external_deployment_inputs:
+  wan_network_type: PRIMARY
+  wan_network_bandwidth: 80
+  use_existing_WAN_network: false

@@ -1,0 +1,12 @@
+inputs:
+
+  wan_network_type:
+    type: string
+    default: 'PRIMARY'
+
+  wan_network_bandwidth:
+    type: string
+    default: '100'
+
+  use_existing_WAN_network:
+    default: false

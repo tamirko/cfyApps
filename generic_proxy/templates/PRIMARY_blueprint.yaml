@@ -1,0 +1,36 @@
+tosca_definitions_version: cloudify_dsl_1_3
+
+description: >
+  Service Chaining example : PRIMARY blueprint
+
+imports:
+  - http://www.getcloudify.org/spec/cloudify/4.1/types.yaml
+  - types/types.yaml
+  - inputs/PRIMARY_inputs_def.yaml
+
+node_templates:
+
+  GLOBAL_PRIMARY:
+    type: custom.network
+
+  Router_2_LANs:
+    type: custom.network_element
+    relationships:
+      -  type: cloudify.relationships.contained_in
+         target: GLOBAL_PRIMARY
+
+  MAIN_SWITCH:
+    type: custom.network_element
+    relationships:
+      -  type: cloudify.relationships.contained_in
+         target: GLOBAL_PRIMARY
+
+outputs:
+  wan_network_id:
+    description: WAN Network ID
+    value: { get_attribute: [GLOBAL_PRIMARY, network_id ] }
+  wan_network_type:
+    description: WAN Network Type
+    value: { get_attribute: [GLOBAL_PRIMARY, network_type] }
+
+
