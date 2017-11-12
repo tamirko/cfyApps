@@ -58,5 +58,18 @@ exit
 SVC -  Service Chaining
 
 FW -> Router
-WAN -> Router
+==================
+FW: POLICY, ANTI_SPAM
+ROUTER: Routingtable, interface
+
+WAN -> LAN
+==================
+WAN: Router, Switch
+LAN(Workstation, Server)
+
+Controller -> SWITCH
+==================
+Controller: Policy, switch_manager
+Switch (vlan, port)
+
 

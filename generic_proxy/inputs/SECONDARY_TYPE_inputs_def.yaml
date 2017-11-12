@@ -1,0 +1,53 @@
+inputs:
+
+  wan_network_type:
+    type: string
+    default: 'PRIMARY_TYPE'
+
+  wan_network_bandwidth:
+    type: string
+    default: '100'
+
+  lan_network_type:
+    type: string
+    default: 'SECONDARY_TYPE'
+
+  lan_network_bandwidth:
+    type: string
+    default: '40'
+
+  ELEM_L_1_device_type:
+    type: string
+    default: 'Router'
+
+  ELEM_L_2_device_type:
+    type: string
+    default: 'Network switch'
+
+  ELEM_L_3_device_type:
+    type: string
+    default: 'Bridge'
+
+  external_blueprint_name:
+    default: PRIMARY_NAME
+
+  external_blueprint_filename:
+    default: PRIMARY_TYPE_blueprint.yaml
+
+  external_blueprint_archive:
+    default: https://github.com/tamirko/cfyApps/raw/master/generic_proxy/generic_proxy.zip
+
+  external_deployment_inputs:
+    default:
+      wan_network_type: PRIMARY_TYPE
+      wan_network_bandwidth: 80
+      use_existing_device: false
+    required: true
+
+  external_deployment_name:
+    description: The name of the deployment which this blueprint's deployment depends on
+    required: true
+
+
+
+

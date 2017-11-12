@@ -1,36 +1,36 @@
 tosca_definitions_version: cloudify_dsl_1_3
 
 description: >
-  Service Chaining example : PRIMARY blueprint
+  Service Chaining example : FIREWALL blueprint
 
 imports:
   - http://www.getcloudify.org/spec/cloudify/4.1/types.yaml
   - types/types.yaml
-  - inputs/PRIMARY_inputs_def.yaml
+  - inputs/FIREWALL_inputs_def.yaml
 
 node_templates:
 
-  GLOBAL_PRIMARY:
+  GLOBAL_FIREWALL_70:
     type: custom.network
 
-  Router_2_LANs:
+  SSL_VPN_14:
     type: custom.network_element
     relationships:
       -  type: cloudify.relationships.contained_in
-         target: GLOBAL_PRIMARY
+         target: GLOBAL_FIREWALL_70
 
-  MAIN_SWITCH:
+  ANTI_SPAM_03:
     type: custom.network_element
     relationships:
       -  type: cloudify.relationships.contained_in
-         target: GLOBAL_PRIMARY
+         target: GLOBAL_FIREWALL_70
 
 outputs:
   wan_network_id:
-    description: WAN Network ID
-    value: { get_attribute: [GLOBAL_PRIMARY, network_id ] }
+    description: FIREWALL Network ID
+    value: { get_attribute: [GLOBAL_FIREWALL_70, network_id ] }
   wan_network_type:
-    description: WAN Network Type
-    value: { get_attribute: [GLOBAL_PRIMARY, network_type] }
+    description: FIREWALL Network Type
+    value: { get_attribute: [GLOBAL_FIREWALL_70, network_type] }
 
 

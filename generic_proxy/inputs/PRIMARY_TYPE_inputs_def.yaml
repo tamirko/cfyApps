@@ -2,11 +2,11 @@ inputs:
 
   wan_network_type:
     type: string
-    default: 'PRIMARY'
+    default: 'PRIMARY_TYPE'
 
   wan_network_bandwidth:
     type: string
     default: '100'
 
-  use_existing_WAN_network:
+  use_existing_device:
     default: false
