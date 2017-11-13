@@ -14,8 +14,8 @@ Service chaining
 
 #     WAN:
 # -----------
-export wan_suffix=""
-export WAN_BP=WAN_blueprint_nov_9th${wan_suffix}
+export wan_suffix="v1"
+export WAN_BP=WAN_blueprint_nov_13th${wan_suffix}
 cfy bl upl -b $WAN_BP ~/cloudify-cosmo/cfyApps/my_proxy/WAN_blueprint.yaml
 #export WAN_DEP=${WAN_BP}_dep${wan_suffix}
 export WAN_DEP=GLOBAL_WAN${wan_suffix}
@@ -27,8 +27,8 @@ cfy node-instances -v list -d $WAN_DEP
 
 #     LANs:
 # -------------
-export lan_suffix=""
-export LAN_BP=LAN_blueprint_nov_9th${lan_suffix}
+export lan_suffix="v2"
+export LAN_BP=LAN_blueprint_nov_13th${lan_suffix}
 export external_blueprint_name=$WAN_BP
 export external_deployment_name=$WAN_DEP
 cfy bl upl -b $LAN_BP ~/cloudify-cosmo/cfyApps/my_proxy/LAN_blueprint.yaml

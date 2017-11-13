@@ -1,9 +1,9 @@
-lan_network_type: SECONDARY_TYPE
+secondary_device_type: SECONDARY_TYPE
 external_blueprint_name: PRIMARY_NAME
 external_blueprint_filename: PRIMARY_TYPE_blueprint.yaml
 external_blueprint_archive: https://github.com/tamirko/cfyApps/raw/master/generic_proxy/generic_proxy.zip
 external_deployment_name: PRIMARY_NAME
 external_deployment_inputs:
-  wan_network_type: PRIMARY_TYPE
-  wan_network_bandwidth: 80
+  device_type: PRIMARY_TYPE
+  device_network_bandwidth: 80
   use_existing_device: false

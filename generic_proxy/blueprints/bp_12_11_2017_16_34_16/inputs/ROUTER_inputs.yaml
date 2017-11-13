@@ -1,9 +1,0 @@
-lan_network_type: ROUTER
-external_blueprint_name: FIREWALL_70
-external_blueprint_filename: FIREWALL_blueprint.yaml
-external_blueprint_archive: https://github.com/tamirko/cfyApps/raw/master/generic_proxy/generic_proxy.zip
-external_deployment_name: FIREWALL_70
-external_deployment_inputs:
-  wan_network_type: FIREWALL
-  wan_network_bandwidth: 80
-  use_existing_device: false

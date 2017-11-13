@@ -1,18 +1,18 @@
 inputs:
 
-  wan_network_type:
+  primary_device_type:
     type: string
     default: 'PRIMARY_TYPE'
 
-  wan_network_bandwidth:
+  primary_device_network_bandwidth:
     type: string
     default: '100'
 
-  lan_network_type:
+  secondary_device_type:
     type: string
     default: 'SECONDARY_TYPE'
 
-  lan_network_bandwidth:
+  secondary_device_network_bandwidth:
     type: string
     default: '40'
 
@@ -39,8 +39,8 @@ inputs:
 
   external_deployment_inputs:
     default:
-      wan_network_type: PRIMARY_TYPE
-      wan_network_bandwidth: 80
+      primary_device_type: PRIMARY_TYPE
+      primary_device_network_bandwidth: 80
       use_existing_device: false
     required: true
 

@@ -10,27 +10,27 @@ imports:
 
 node_templates:
 
-  GLOBAL_PRIMARY_NAME:
+  PRIMARY_NAME:
     type: custom.network
 
   PRIMARY_DEVICE_ELEMENT1_NAME:
     type: custom.network_element
     relationships:
       -  type: cloudify.relationships.contained_in
-         target: GLOBAL_PRIMARY_NAME
+         target: PRIMARY_NAME
 
   PRIMARY_DEVICE_ELEMENT2_NAME:
     type: custom.network_element
     relationships:
       -  type: cloudify.relationships.contained_in
-         target: GLOBAL_PRIMARY_NAME
+         target: PRIMARY_NAME
 
 outputs:
-  wan_network_id:
-    description: PRIMARY_TYPE Network ID
-    value: { get_attribute: [GLOBAL_PRIMARY_NAME, network_id ] }
-  wan_network_type:
-    description: PRIMARY_TYPE Network Type
-    value: { get_attribute: [GLOBAL_PRIMARY_NAME, network_type] }
+  primary_device_id:
+    description: PRIMARY_NAME's ID
+    value: { get_attribute: [PRIMARY_NAME, device_id ] }
+  primary_device_type:
+    description: PRIMARY_NAME's device Type
+    value: { get_attribute: [PRIMARY_NAME, device_type] }
 
 

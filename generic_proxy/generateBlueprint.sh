@@ -20,7 +20,7 @@ export ORIG_SECONDARY_DEVICE_ELEMENT2_NAME=SECONDARY_DEVICE_ELEMENT2_NAME
 mkdir -p blueprints
 
 export date1=`date +%d_%m_%Y_%H_%M_%S`
-current_bp_ver=bp_${date1}
+current_bp_ver=${folderPrefix}_${date1}
 current_bp_folder=blueprints/${current_bp_ver}
 mkdir -p ${current_bp_folder}
 mkdir -p ${current_bp_folder}/inputs
@@ -36,6 +36,8 @@ cp -f inputs/${ORIG_SECONDARY_TYPE}_inputs.yaml ${current_bp_folder}/inputs/${SE
 
 cp -rp types ${current_bp_folder}/types
 cp -rp plugins ${current_bp_folder}/plugins
+
+sed -i -e "s+${ORIG_PRIMARY_TYPE}+${PRIMARY_TYPE}+g" ${current_bp_folder}/types/types.yaml
 
 sed -i -e "s+${ORIG_PRIMARY_NAME}+${PRIMARY_NAME}+g" ${current_bp_folder}/${PRIMARY_TYPE}_blueprint.yaml
 sed -i -e "s+${ORIG_PRIMARY_TYPE}+${PRIMARY_TYPE}+g" ${current_bp_folder}/${PRIMARY_TYPE}_blueprint.yaml

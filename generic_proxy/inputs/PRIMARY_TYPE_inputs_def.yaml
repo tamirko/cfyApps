@@ -1,10 +1,10 @@
 inputs:
 
-  wan_network_type:
+  device_type:
     type: string
     default: 'PRIMARY_TYPE'
 
-  wan_network_bandwidth:
+  device_network_bandwidth:
     type: string
     default: '100'
 
