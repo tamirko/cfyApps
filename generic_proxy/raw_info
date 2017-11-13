@@ -1,3 +1,4 @@
+rm -rf generic_proxy.zip
 pushd ..
 zip -r9 generic_proxy.zip generic_proxy
 mv generic_proxy.zip generic_proxy/
