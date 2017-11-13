@@ -8,23 +8,23 @@
 export folderPrefix=BP_
 
 # Replace the value with: Primary device's name
-export PRIMARY_NAME=FIREWALL_508
+export PRIMARY_NAME=FIREWALL_429
 # Replace the value with: Primary device's type
 export PRIMARY_TYPE=FIREWALL
 
 # Replace the value with: Primary device's 1st element's name
-export PRIMARY_DEVICE_ELEMENT1_NAME=SSL_VPN_19
+export PRIMARY_DEVICE_ELEMENT1_NAME=SSL_VPN_23
 # Replace the value with: Primary device's 2nd element's name
-export PRIMARY_DEVICE_ELEMENT2_NAME=ANTI_SPAM_15
+export PRIMARY_DEVICE_ELEMENT2_NAME=ANTI_SPAM_18
 
 
 # Replace the value with: Secondary device's name
-export SECONDARY_NAME=ROUTER_106c
+export SECONDARY_NAME=ROUTER_107e
 # Replace the value with: Secondary device's type
 export SECONDARY_TYPE=ROUTER
 
 # Replace the value with: Secondary device's 1st element's name
-export SECONDARY_DEVICE_ELEMENT1_NAME=ROUTING_TABLE_49c
+export SECONDARY_DEVICE_ELEMENT1_NAME=ROUTING_TABLE_49f5
 # Replace the value with: Secondary device's 2nd element's name
-export SECONDARY_DEVICE_ELEMENT2_NAME=ROUTING_TABLE_30f
+export SECONDARY_DEVICE_ELEMENT2_NAME=ROUTING_TABLE_32a9
 
