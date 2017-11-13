@@ -44,8 +44,8 @@ node_templates:
       cloudify.interfaces.lifecycle:
         start:
           inputs:
-              device_type: { get_input: secondary_device_type }
-              bandwidth: { get_input: secondary_device_network_bandwidth }
+              device_type: { get_input: device_type }
+              bandwidth: { get_input: device_network_bandwidth }
               global_device_id: { get_attribute: [ current_proxy, deployment, outputs, proxy_primary_device_id ] }
     relationships:
       -  type: cloudify.relationships.connected_to

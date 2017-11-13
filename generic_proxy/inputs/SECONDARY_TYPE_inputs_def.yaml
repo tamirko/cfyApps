@@ -8,11 +8,11 @@ inputs:
     type: string
     default: '100'
 
-  secondary_device_type:
+  device_type:
     type: string
     default: 'SECONDARY_TYPE'
 
-  secondary_device_network_bandwidth:
+  device_network_bandwidth:
     type: string
     default: '40'
 
@@ -39,8 +39,8 @@ inputs:
 
   external_deployment_inputs:
     default:
-      primary_device_type: PRIMARY_TYPE
-      primary_device_network_bandwidth: 80
+      device_type: PRIMARY_TYPE
+      device_network_bandwidth: 80
       use_existing_device: false
     required: true
 
