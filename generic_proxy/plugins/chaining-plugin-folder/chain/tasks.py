@@ -44,74 +44,74 @@ def _use_external_resource(**kwargs):
 
 
 @operation
-def start_element(device_type, **kwargs):
-    element_name = _print_node_name("Starting element: ", "", **kwargs)
+def start_component(device_type, **kwargs):
+    component_name = _print_node_name("Starting component: ", "", **kwargs)
 
     rt = ctx.instance.runtime_properties
     rt["device_type"] = device_type
-    ctx.logger.info("{0}{1} device_type: {2}".format(system_prefix, element_name, device_type))
+    ctx.logger.info("{0}{1} device_type: {2}".format(system_prefix, component_name, device_type))
 
-    element_type = ctx.node.properties.get('element_type')
-    ctx.logger.info("{0}{1} element_type: {2}".format(system_prefix, element_name, element_type))
+    component_type = ctx.node.properties.get('component_type')
+    ctx.logger.info("{0}{1} component_type: {2}".format(system_prefix, component_name, component_type))
 
     time.sleep(1)
-    ctx.logger.info("{0}{1} Generating an element ID...".format(system_prefix, element_name))
-    element_id = "ELE_{0}".format(_random_alphanumeric(16))
-    rt["element_id"] = element_id
+    ctx.logger.info("{0}{1} Generating a component ID...".format(system_prefix, component_name))
+    component_id = "COMPONENT_{0}".format(_random_alphanumeric(16))
+    rt["component_id"] = component_id
     time.sleep(1)
-    ctx.logger.info("{0}{1} element ID: {2}".format(system_prefix, element_name, element_id))
+    ctx.logger.info("{0}{1} component ID: {2}".format(system_prefix, component_name, component_id))
 
 
 @operation
-def stop_element(**kwargs):
-    _print_node_name("Stopping element: ", "", **kwargs)
+def stop_component(**kwargs):
+    _print_node_name("Stopping component: ", "", **kwargs)
 
 
 @operation
-def create_network(**kwargs):
+def create_device(**kwargs):
     if _use_external_resource(**kwargs):
-            network_name = ctx.node.name
-            network_id = ctx.node.id
-            ctx.logger.info("{0} {1} {2} already exists. Skipping creation".
-                            format(system_prefix, "Network", network_name, network_id))
-            return
+        device_name = ctx.node.name
+        device_id = ctx.node.id
+        ctx.logger.info("{0} {1} {2} already exists. Skipping creation".
+                        format(system_prefix, "Device", device_name, device_id))
+        return
 
-    _print_node_name("Creating network: ", "...", **kwargs)
+    _print_node_name("Creating device: ", "...", **kwargs)
 
 
 @operation
-def start_network(network_type, bandwidth, global_network_id=None, **kwargs):
+def start_device(device_type, bandwidth, global_device_id=None, **kwargs):
     if _use_external_resource(**kwargs):
         return
 
-    network_name = _print_node_name("Starting network: ", "", **kwargs)
+    device_name = _print_node_name("Starting device: ", "", **kwargs)
 
     rt = ctx.instance.runtime_properties
-    rt["network_type"] = network_type
+    rt["device_type"] = device_type
 
-    ctx.logger.info("{0}{1} network_type: {2}".format(system_prefix, network_name, network_type))
-    ctx.logger.info("{0}{1} bandwidth: {2}".format(system_prefix, network_name, bandwidth))
+    ctx.logger.info("{0}{1} device_type: {2}".format(system_prefix, device_name, device_type))
+    ctx.logger.info("{0}{1} bandwidth: {2}".format(system_prefix, device_name, bandwidth))
 
-    global_network_type = ctx.node.properties.get('global_network_type')
-    ctx.logger.info("{0}{1} global_network_type: {2}".format(system_prefix, network_name, global_network_type))
+    global_device_type = ctx.node.properties.get('global_device_type')
+    ctx.logger.info("{0}{1} global_device_type: {2}".format(system_prefix, device_name, global_device_type))
 
-    if global_network_id is not None:
-        ctx.logger.info("{0}{1} global_network_id: {2}".format(system_prefix, network_name, global_network_id))
-        rt["global_network_id"] = global_network_id
+    if global_device_id is not None:
+        ctx.logger.info("{0}{1} global_device_id: {2}".format(system_prefix, device_name, global_device_id))
+        rt["global_device_id"] = global_device_id
     else:
-        ctx.logger.info("{0}{1} global_network_id is None".format(system_prefix, network_name))
+        ctx.logger.info("{0}{1} global_device_id is None".format(system_prefix, device_name))
 
     time.sleep(1)
-    ctx.logger.info("{0}{1} Generating a network ID...".format(system_prefix, network_name))
-    network_id = "NET_{0}".format(_random_alphanumeric(16))
-    rt["network_id"] = network_id
+    ctx.logger.info("{0}{1} Generating a device ID...".format(system_prefix, device_name))
+    device_id = "DEVICE_{0}".format(_random_alphanumeric(16))
+    rt["device_id"] = device_id
     time.sleep(1)
-    ctx.logger.info("{0}{1} network ID: {2}".format(system_prefix, network_name, network_id))
+    ctx.logger.info("{0}{1} device ID: {2}".format(system_prefix, device_name, device_id))
 
 
 @operation
-def stop_network(**kwargs):
-    _print_node_name("Stopping network: ", "", **kwargs)
+def stop_device(**kwargs):
+    _print_node_name("Stopping device: ", "", **kwargs)
 
 
 

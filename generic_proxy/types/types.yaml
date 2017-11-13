@@ -2,7 +2,7 @@ tosca_definitions_version: cloudify_dsl_1_3
 
 node_types:
 
-  custom.network:
+  custom.device:
     derived_from: cloudify.nodes.Root
     properties:
       use_external_resource:
@@ -11,20 +11,20 @@ node_types:
         default: null
     interfaces:
       cloudify.interfaces.lifecycle:
-        create: chaining-plugin.chain.tasks.create_network
+        create: chaining-plugin.chain.tasks.create_device
         start:
           # Map the single plugin task to the start operation
-          implementation: chaining-plugin.chain.tasks.start_network
+          implementation: chaining-plugin.chain.tasks.start_device
           inputs:
-              # start_network accepts two properties named network_type and bandwidth
+              # start_device accepts two properties named device_type and bandwidth
               # Inject these properties from the user's inputs.
               device_type:
                 default: { get_input: device_type }
               bandwidth:
                 default: { get_input: device_network_bandwidth }
-        stop: chaining-plugin.chain.tasks.stop_network
+        stop: chaining-plugin.chain.tasks.stop_device
 
-  custom.network_element:
+  custom.device_component:
     derived_from: cloudify.nodes.Root
     properties:
       use_external_resource:
@@ -36,13 +36,13 @@ node_types:
       cloudify.interfaces.lifecycle:
         start:
           # here we map the single plugin task to the start operation
-          implementation: chaining-plugin.chain.tasks.start_element
+          implementation: chaining-plugin.chain.tasks.start_component
           inputs:
-              # start_element accepts a single property named element_type
+              # start_component accepts a single property named device_type
               # Inject this property from the user's input.
               device_type:
                 default: "Generic vCPE"
-        stop: chaining-plugin.chain.tasks.stop_element
+        stop: chaining-plugin.chain.tasks.stop_component
 
 plugins:
    chaining-plugin:

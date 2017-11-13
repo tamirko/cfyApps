@@ -11,16 +11,16 @@ imports:
 node_templates:
 
   PRIMARY_NAME:
-    type: custom.network
+    type: custom.device
 
   PRIMARY_DEVICE_ELEMENT1_NAME:
-    type: custom.network_element
+    type: custom.device_component
     relationships:
       -  type: cloudify.relationships.contained_in
          target: PRIMARY_NAME
 
   PRIMARY_DEVICE_ELEMENT2_NAME:
-    type: custom.network_element
+    type: custom.device_component
     relationships:
       -  type: cloudify.relationships.contained_in
          target: PRIMARY_NAME

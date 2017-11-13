@@ -12,7 +12,7 @@ imports:
 node_templates:
 
   PRIMARY_NAME:
-    type: custom.network
+    type: custom.device
     properties:
       use_external_resource: true
     relationships:
@@ -20,7 +20,7 @@ node_templates:
          target: current_proxy
 
   PRIMARY_DEVICE_ELEMENT1_NAME:
-    type: custom.network_element
+    type: custom.device_component
     properties:
       use_external_resource: true
     relationships:
@@ -28,7 +28,7 @@ node_templates:
          target: PRIMARY_NAME
 
   PRIMARY_DEVICE_ELEMENT2_NAME:
-    type: custom.network_element
+    type: custom.device_component
     properties:
       use_external_resource: true
     relationships:
@@ -36,17 +36,17 @@ node_templates:
          target: PRIMARY_NAME
 
   SECONDARY_NAME:
-    type: custom.network
+    type: custom.device
     properties:
       use_external_resource: false
-      global_network_type: { get_attribute: [ current_proxy, deployment, outputs, proxy_primary_device_type ] }
+      global_device_type: { get_attribute: [ current_proxy, deployment, outputs, proxy_primary_device_type ] }
     interfaces:
       cloudify.interfaces.lifecycle:
         start:
           inputs:
               device_type: { get_input: secondary_device_type }
               bandwidth: { get_input: secondary_device_network_bandwidth }
-              global_network_id: { get_attribute: [ current_proxy, deployment, outputs, proxy_primary_device_id ] }
+              global_device_id: { get_attribute: [ current_proxy, deployment, outputs, proxy_primary_device_id ] }
     relationships:
       -  type: cloudify.relationships.connected_to
          target: PRIMARY_NAME
@@ -55,7 +55,7 @@ node_templates:
 
 
   SECONDARY_DEVICE_ELEMENT1_NAME:
-    type: custom.network_element
+    type: custom.device_component
     properties:
       use_external_resource: false
     relationships:
@@ -63,7 +63,7 @@ node_templates:
          target: SECONDARY_NAME
 
   SECONDARY_DEVICE_ELEMENT2_NAME:
-    type: custom.network_element
+    type: custom.device_component
     properties:
       use_external_resource: false
     relationships:
