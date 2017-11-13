@@ -8,7 +8,7 @@
 export folderPrefix=yourBlueprintName_2_
 
 # Replace the value with: Primary device's name
-export PRIMARY_NAME=FIREWALL_85
+export PRIMARY_NAME=FIREWALL_99
 # Replace the value with: Primary device's type
 export PRIMARY_TYPE=FIREWALL
 

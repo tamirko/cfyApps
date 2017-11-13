@@ -20,7 +20,7 @@ export ORIG_SECONDARY_DEVICE_ELEMENT2_NAME=SECONDARY_DEVICE_ELEMENT2_NAME
 mkdir -p blueprints
 
 export date1=`date +%d_%m_%Y_%H_%M_%S`
-current_bp_ver=${folderPrefix}_${date1}
+current_bp_ver=${folderPrefix}${date1}
 current_bp_folder=blueprints/${current_bp_ver}
 mkdir -p ${current_bp_folder}
 mkdir -p ${current_bp_folder}/inputs
@@ -73,7 +73,7 @@ sed -i -e "s+${ORIG_SECONDARY_TYPE}+${SECONDARY_TYPE}+g" ${current_bp_folder}/in
 bp_full_path=`pwd`/${current_bp_folder}
 echo "======================================================================================"
 echo "Your blueprint is in ${bp_full_path}"
-echo "Run the following:"
+echo "Run the following (primary blueprint):"
 echo "--------------------------------------------------------------------------------------"
 echo "cd ${bp_full_path}"
 echo "export ${PRIMARY_TYPE}_BP=${PRIMARY_TYPE}_blueprint"
@@ -86,7 +86,32 @@ echo "cfy node-instances -v list -d \$${PRIMARY_NAME}_DEP"
 echo ""
 echo "--------------------------------------------------------------------------------------"
 echo "======================================================================================"
-echo ...
+echo ""
+echo "Then run the following (secondary blueprint):"
+echo "--------------------------------------------------------------------------------------"
+echo "export ${SECONDARY_TYPE}_BP=${SECONDARY_TYPE}_blueprint"
+echo "export external_blueprint_name=${PRIMARY_TYPE}_BP"
+echo "export external_deployment_name=${PRIMARY_NAME}_DEP"
+echo "cfy blueprints upload -b ${SECONDARY_TYPE}_BP ${bp_full_path}/${SECONDARY_TYPE}_blueprint.yaml"
+echo "for device_version in {1..3}"
+echo "do"
+echo "export ${SECONDARY_TYPE}_DEP=${SECONDARY_TYPE}_\${device_version}"
+echo "export device_type=\"device_version_\${device_version}.0\""
+echo "cfy deployments create -b \$${SECONDARY_TYPE}_BP \$${SECONDARY_TYPE}_DEP --skip-plugins-validation -i external_deployment_name=\${external_deployment_name} -i external_blueprint_name=\${external_blueprint_name} -i device_type=\"\${device_type}\""
+echo "cfy executions start install -d \$${SECONDARY_TYPE}_DEP"
+echo "cfy deployments outputs \$${SECONDARY_TYPE}_DEP"
+echo "done"
+echo ""
+echo "--------------------------------------------------------------------------------------"
+echo "======================================================================================"
+echo ""
+echo "To remove it, run ... : "
+echo ""
+echo "for device_version in {1..3}"
+echo "do"
+echo "export ${SECONDARY_TYPE}_DEP=${SECONDARY_TYPE}_\${device_version}"
+echo "cfy executions start uninstall -d \$${SECONDARY_TYPE}_DEP && cfy deployments delete \$${SECONDARY_TYPE}_DEP -f &"
+echo "done"
 read -n 3
 
 #rm -rf ${current_bp_folder}
