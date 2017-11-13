@@ -7,7 +7,7 @@ node_types:
     properties:
       use_external_resource:
         default: { get_input: use_existing_device }
-      global_network_type:
+      global_device_type:
         default: null
     interfaces:
       cloudify.interfaces.lifecycle:
@@ -29,7 +29,7 @@ node_types:
     properties:
       use_external_resource:
         default: false
-      element_type:
+      component_type:
         type: string
         default: PRIMARY_TYPE_NODE
     interfaces:

@@ -58,6 +58,7 @@ node_templates:
     type: custom.device_component
     properties:
       use_external_resource: false
+      component_type: SECONDARY_TYPE_COMPONENT
     relationships:
       -  type: cloudify.relationships.contained_in
          target: SECONDARY_NAME
@@ -66,6 +67,7 @@ node_templates:
     type: custom.device_component
     properties:
       use_external_resource: false
+      component_type: SECONDARY_TYPE_COMPONENT
     relationships:
       -  type: cloudify.relationships.contained_in
          target: SECONDARY_NAME
