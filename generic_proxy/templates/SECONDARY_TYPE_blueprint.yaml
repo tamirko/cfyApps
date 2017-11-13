@@ -84,8 +84,8 @@ node_templates:
           id: { get_input: external_deployment_name }
           inputs: { get_input: external_deployment_inputs }
           outputs:
-            primary_device_id: proxy_primary_device_id
-            primary_device_type: proxy_primary_device_type
+            device_id: proxy_primary_device_id
+            device_type: proxy_primary_device_type
 
 outputs:
   primary_device_id:
