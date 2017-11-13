@@ -1,5 +1,8 @@
-zip -r9 my_proxy.zip my_proxy
-mv my_proxy.zip my_proxy/
+pushd ..
+zip -r9 generic_proxy.zip generic_proxy
+mv generic_proxy.zip generic_proxy/
+popd
+
 
 
 
