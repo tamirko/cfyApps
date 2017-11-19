@@ -69,7 +69,7 @@ sed -i -e "s+${ORIG_PRIMARY_TYPE}+${PRIMARY_TYPE}+g" ${current_bp_folder}/inputs
 sed -i -e "s+${ORIG_SECONDARY_NAME}+${SECONDARY_NAME}+g" ${current_bp_folder}/inputs/${SECONDARY_TYPE}_inputs.yaml
 sed -i -e "s+${ORIG_SECONDARY_TYPE}+${SECONDARY_TYPE}+g" ${current_bp_folder}/inputs/${SECONDARY_TYPE}_inputs.yaml
 
-
+clear
 bp_full_path=`pwd`/${current_bp_folder}
 echo "======================================================================================"
 echo "Your blueprint is in ${bp_full_path}"
@@ -95,11 +95,8 @@ echo "for device_version in {1..3}"
 echo "do"
 echo "export ${SECONDARY_TYPE}_DEP=${SECONDARY_TYPE}_\${device_version}"
 echo "export device_type=${SECONDARY_TYPE}"
-echo "cfy deployments create -b \$${SECONDARY_TYPE}_BP \$${SECONDARY_TYPE}_DEP --skip-plugins-validation -i external_deployment_name=\${external_deployment_name} -i external_blueprint_name=\${external_blueprint_name} -i device_type=\"\${device_type}\""
-echo "cfy executions start install -d \$${SECONDARY_TYPE}_DEP"
-echo "cfy deployments outputs \$${SECONDARY_TYPE}_DEP"
+echo "cfy deployments create -b \$${SECONDARY_TYPE}_BP \$${SECONDARY_TYPE}_DEP --skip-plugins-validation -i external_deployment_name=\${external_deployment_name} -i external_blueprint_name=\${external_blueprint_name} -i device_type=\"\${device_type}\"&&cfy executions start install -d \$${SECONDARY_TYPE}_DEP&&cfy deployments outputs \$${SECONDARY_TYPE}_DEP &"
 echo "done"
-echo ""
 echo "======================================================================================"
 echo "To remove the SECONDARY stuff, run ... : "
 echo "--------------------------------------------------------------------------------------"
@@ -108,14 +105,20 @@ echo "do"
 echo "export ${SECONDARY_TYPE}_DEP=${SECONDARY_TYPE}_\${device_version}"
 echo "cfy executions start uninstall -d \$${SECONDARY_TYPE}_DEP && cfy deployments delete \$${SECONDARY_TYPE}_DEP -f &"
 echo "done"
+echo "export depCounter=\`cfy deployments list | grep "\${${SECONDARY_TYPE}_BP}" | grep -viE \"\-\-|created_by|^$|Listing|Deployments:\" | wc -l\`"
+echo "while [ \$depCounter -ne 0 ]"
+echo "do"
+echo "echo \"Waiting for deployments to be deleted...\""
+echo "sleep 5s"
+echo "export depCounter=\`cfy deployments list | grep "\${${SECONDARY_TYPE}_BP}" | grep -viE \"\-\-|created_by|^$|Listing|Deployments:\" | wc -l\`"
+echo "done"
 echo "cfy blueprints delete \$${SECONDARY_TYPE}_BP"
 echo ""
 echo "--------------------------------------------------------------------------------------"
 echo "To remove the PRIMARY stuff, run ... : "
 echo "--------------------------------------------------------------------------------------"
-echo "cfy executions start uninstall -d \$${PRIMARY_NAME}_DEP && cfy deployments delete \$${PRIMARY_NAME}_DEP -f"
-echo "cfy blueprints delete \$${PRIMARY_TYPE}_BP"
-read -n 3
+echo "cfy executions start uninstall -d \$${PRIMARY_NAME}_DEP && cfy deployments delete \$${PRIMARY_NAME}_DEP -f&&cfy blueprints delete \$${PRIMARY_TYPE}_BP"
+#read -n 1
 
 #rm -rf ${current_bp_folder}
 
