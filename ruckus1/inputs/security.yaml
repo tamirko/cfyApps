@@ -1,0 +1,18 @@
+inputs:
+  aws_ssh_key_external:
+    type: boolean
+    default: false
+
+  aws_ssh_key_id:
+    type: string
+    default: 'key_05_11_v1'
+
+  aws_ssh_key_file:
+    type: string
+    description: >
+      Private SSH key path
+    default: '~/.ssh/key_05_11_v1.pem'
+
+  ssh_user:
+    type: string
+    default: centos

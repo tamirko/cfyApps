@@ -1,0 +1,25 @@
+inputs:
+  aws_access_key_id:
+    type: string
+    default: 'XXXXXXXXXXXXXXXXXXXX'
+
+  aws_secret_access_key:
+    type: string
+    default: 'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX'
+
+  ec2_region_name:
+    type: string
+
+    # North Virginia
+    #default: 'us-east-1'
+
+    # North California
+    #default: 'us-west-1'
+
+    # Seoul, Korea
+    #default: 'ap-northeast-2'
+
+    # Sydney, Australia
+    #default: 'ap-southeast-2'
+
+    default: 'ap-northeast-2'

@@ -1,0 +1,208 @@
+tosca_definitions_version: cloudify_dsl_1_3
+
+inputs:
+
+# CentOS 7
+  CentOS7_computer_name:
+    type: string
+    default: 'CentOS7'
+
+  CentOS7_agent_user:
+    type: string
+    default: 'centos'
+
+  CentOS7_image_id:
+    type: string
+    #In 'eu-west-1' it's:
+    #default: 'ami-061b1560'
+    # In 'ap-northeast-2' it's:
+    default: 'ami-08e93466'
+
+  CentOS7_instance_type:
+    type: string
+    default: t2.small
+
+imports:
+  - http://www.getcloudify.org/spec/cloudify/4.2/types.yaml
+  - inputs/aws.yaml
+  - inputs/security.yaml
+  - inputs/network.yaml
+  - https://raw.githubusercontent.com/cloudify-cosmo/cloudify-fabric-plugin/1.5/plugin.yaml
+  - https://raw.githubusercontent.com/cloudify-cosmo/cloudify-aws-plugin/1.5.1.2/plugin.yaml
+
+
+dsl_definitions:
+  aws_config: &aws_config
+    aws_access_key_id: { get_input: aws_access_key_id }
+    aws_secret_access_key: { get_input: aws_secret_access_key }
+    ec2_region_name: { get_input: ec2_region_name }
+
+
+node_templates:
+
+
+  aws_ssh_key:
+    type: cloudify.aws.nodes.KeyPair
+    properties:
+      aws_config: *aws_config
+      resource_id: { get_input: aws_ssh_key_id }
+      use_external_resource: { get_input: aws_ssh_key_external }
+      private_key_path: { get_input: aws_ssh_key_file }
+
+# CentOS7 stage
+
+  CentOS7_elastic_ip:
+    type: cloudify.aws.nodes.ElasticIP
+    properties:
+      domain: 'vpc'
+      aws_config: *aws_config
+    relationships:
+      - type: cloudify.relationships.connected_to
+        target: gateway
+
+
+  CentOS7_security_group:
+    type: cloudify.aws.nodes.SecurityGroup
+    properties:
+      description: CentOS7_security_group
+      rules:
+        - ip_protocol: icmp
+          from_port: -1
+          to_port: -1
+          cidr_ip: 0.0.0.0/0
+        - ip_protocol: tcp
+          from_port: 0
+          to_port: 65535
+          cidr_ip: 0.0.0.0/0
+        - ip_protocol: udp
+          from_port: 0
+          to_port: 65535
+          cidr_ip: 0.0.0.0/0
+      aws_config: *aws_config
+    relationships:
+      - type: cloudify.aws.relationships.security_group_contained_in_vpc
+        target: vpc
+
+
+  CentOS7:
+    type: cloudify.aws.nodes.Instance
+    properties:
+      image_id: { get_input: CentOS7_image_id }
+      instance_type: { get_input: CentOS7_instance_type }
+      name: { get_input: CentOS7_computer_name }
+      agent_config:
+         install_method: none
+      aws_config: *aws_config
+    interfaces:
+      utils:
+        get_file_content:
+          implementation: fabric.fabric_plugin.tasks.run_task
+          inputs:
+            tasks_file: scripts/mytasks.py
+            task_name: retrieve_file_content
+            task_properties:
+                file_name: '/etc/hosts'
+            #hide_output: *hide_output
+            #fabric_env: &simple_fabric_env
+            fabric_env:
+              user: { get_input: ssh_user }
+              port: 22
+              key_filename: { get_input: aws_ssh_key_file }
+              host_string: { get_attribute: [ CentOS7, public_ip_address ] }
+              #disable_known_hosts: True
+              always_use_pty: true
+    relationships:
+      - type: cloudify.aws.relationships.instance_connected_to_elastic_ip
+        target: CentOS7_elastic_ip
+      - type: cloudify.aws.relationships.instance_connected_to_security_group
+        target: CentOS7_security_group
+      - type: cloudify.aws.relationships.instance_contained_in_subnet
+        target: subnet
+      - type: cloudify.aws.relationships.instance_connected_to_keypair
+        target: aws_ssh_key
+      - type: cloudify.relationships.depends_on
+        target: route_table
+
+# test VPC
+  vpc:
+    type: cloudify.aws.nodes.VPC
+    properties:
+      resource_id: { get_input: vpc_resource_id }
+      cidr_block: { get_input: vpc_cidr_block }
+      aws_config: *aws_config
+
+  gateway:
+    type: cloudify.aws.nodes.InternetGateway
+    properties:
+      resource_id: { get_input: gw_resource_id }
+      aws_config: *aws_config
+      cidr_block: '0.0.0.0/0'
+    relationships:
+      - type: cloudify.aws.relationships.gateway_connected_to_vpc
+        target: vpc
+
+  security_group:
+    type: cloudify.aws.nodes.SecurityGroup
+    properties:
+      description: Sec_Group
+      rules:
+        - ip_protocol: tcp
+          from_port: 22
+          to_port: 22
+          cidr_ip: 0.0.0.0/0
+        - ip_protocol: tcp
+          from_port: 5985
+          to_port: 5985
+          cidr_ip: 0.0.0.0/0
+        - ip_protocol: tcp
+          from_port: 5986
+          to_port: 5986
+          cidr_ip: 0.0.0.0/0
+        - ip_protocol: tcp
+          from_port: 3389
+          to_port: 3389
+          cidr_ip: 0.0.0.0/0
+        - ip_protocol: tcp
+          from_port: 80
+          to_port: 80
+          cidr_ip: 0.0.0.0/0
+        - ip_protocol: tcp
+          from_port: 443
+          to_port: 443
+          cidr_ip: 0.0.0.0/0
+      aws_config: *aws_config
+    relationships:
+      - type: cloudify.aws.relationships.security_group_contained_in_vpc
+        target: vpc
+
+  subnet:
+    type: cloudify.aws.nodes.Subnet
+    properties:
+      resource_id: { get_input: subnet_resource_id }
+      cidr_block: { get_input: vpc_cidr_block }
+      aws_config: *aws_config
+    relationships:
+      - type: cloudify.aws.relationships.subnet_contained_in_vpc
+        target: vpc
+
+  route_table:
+    type: cloudify.aws.nodes.RouteTable
+    properties:
+      resource_id: { get_input: route_resource_id }
+      aws_config: *aws_config
+    relationships:
+      - type: cloudify.aws.relationships.routetable_contained_in_vpc
+        target: vpc
+      - type: cloudify.aws.relationships.routetable_associated_with_subnet
+        target: subnet
+      - type: cloudify.aws.relationships.route_table_to_gateway
+        target: gateway
+
+
+outputs:
+  CentOS7:
+    value:
+      public_ip: { get_attribute: [ CentOS7, public_ip_address ] }
+      ip: { get_attribute: [CentOS7, ip] }
+
+
