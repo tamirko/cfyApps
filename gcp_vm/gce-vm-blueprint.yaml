@@ -1,0 +1,157 @@
+tosca_definitions_version: cloudify_dsl_1_3
+
+imports:
+  - https://raw.githubusercontent.com/cloudify-cosmo/cloudify-manager/4.2/resources/rest-service/cloudify/types/types.yaml
+  - https://raw.githubusercontent.com/cloudify-cosmo/cloudify-gcp-plugin/1.0.1/plugin.yaml
+  - https://raw.githubusercontent.com/cloudify-incubator/cloudify-utilities-plugin/1.2.5/plugin.yaml
+  - inputs/gcp.yaml
+
+inputs:
+  network_subnet0_cidr:
+    default: 10.11.12.0/22
+
+  network_subnet1_cidr:
+    default: 10.11.16.0/22
+
+  resource_prefix:
+    default: cfy42-tamir-v14
+
+  ssh_username:
+    default: centos
+
+  local_ssh_directory:
+    default: '~/.ssh/'
+
+  manager_key_name:
+    default: cfy-mgr-centos.pem
+
+  cloudify_image:
+    default: https://www.googleapis.com/compute/v1/projects/centos-cloud/global/images/centos-7-v20170523
+
+  centos_core_image:
+    default: https://www.googleapis.com/compute/v1/projects/centos-cloud/global/images/centos-7-v20170523
+
+  ubuntu_trusty_image:
+    default: https://www.googleapis.com/compute/v1/projects/ubuntu-os-cloud/global/images/ubuntu-1404-trusty-v20170517
+
+  small_instance_type:
+    default: n1-standard-2
+
+dsl_definitions:
+
+  client_config: &client_config
+    auth:
+      type: service_account
+      auth_uri: https://accounts.google.com/o/oauth2/auth
+      token_uri: https://accounts.google.com/o/oauth2/token
+      auth_provider_x509_cert_url: https://www.googleapis.com/oauth2/v1/certs
+      #client_x509_cert_url: { get_input: client_x509_cert_url }
+      client_email: { get_input: client_email }
+      client_id: { get_input: client_id }
+      project_id: { get_input: project_id }
+      private_key_id: { get_input: private_key_id }
+      private_key: { get_input: private_key }
+    project: { get_input: project_id }
+    zone: { get_input: zone }
+
+node_templates:
+
+  cloudify_manager_network:
+    type: cloudify.gcp.nodes.Network
+    properties:
+      use_external_resource: true
+      gcp_config: *client_config
+      name: 'default'
+      auto_subnets: false
+
+
+  network_subnet0:
+    type: cloudify.gcp.nodes.SubNetwork
+    properties:
+      gcp_config: *client_config
+      name: { concat: [ { get_input: resource_prefix }, 'network_subnet0' ] }
+      subnet: { get_input: network_subnet0_cidr }
+      region: { get_input: region }
+    relationships:
+    - type: cloudify.gcp.relationships.contained_in_network
+      target: cloudify_manager_network
+
+  network_subnet1:
+    type: cloudify.gcp.nodes.SubNetwork
+    properties:
+      gcp_config: *client_config
+      name: { concat: [ { get_input: resource_prefix }, 'network_subnet1' ] }
+      subnet: { get_input: network_subnet1_cidr }
+      region: { get_input: region }
+    relationships:
+    - type: cloudify.gcp.relationships.contained_in_network
+      target: cloudify_manager_network
+
+  cloudify_security_group:
+    type: cloudify.gcp.nodes.FirewallRule
+    properties:
+      gcp_config: *client_config
+      name: { concat: [ { get_input: resource_prefix }, 'cloudify_security_group' ] }
+      sources:
+        - 0.0.0.0/0
+        - 10.138.0.0/20
+      allowed:
+        tcp: [22, 80, 443, 3000, 5671, 5672, 8085, 8086, 8100, 8101, 8443, 9100, 9200, 9999, 53333]
+    relationships:
+      - type: cloudify.relationships.connected_to
+        target: cloudify_manager_network
+
+  cloudify_security_group1:
+    type: cloudify.gcp.nodes.FirewallRule
+    properties:
+      gcp_config: *client_config
+      name: { concat: [ { get_input: resource_prefix }, 'cloudify_security_group1' ] }
+      sources:
+        - { get_property: [ network_subnet0, subnet ] }
+        - { get_property: [ network_subnet1, subnet ] }
+        - 10.138.0.0/20
+      allowed:
+        tcp: [22, 5671, 8101, 8300, 8301, 8500, 22000, 15432, 53229]
+    relationships:
+      - type: cloudify.relationships.connected_to
+        target: cloudify_manager_network
+
+
+  cloudify_host:
+    type: cloudify.gcp.nodes.Instance
+    properties:
+      name: { concat: [ { get_input: resource_prefix }, 'cloudify_host' ] }
+      gcp_config: *client_config
+      tags:
+        - { get_input: resource_prefix }
+        - cfy-mgr-42rc1-tamirko-v2
+        - cfy-mgr
+      image_id: { get_input: cloudify_image }
+      instance_type: { get_input: small_instance_type }
+      agent_config:
+        install_method: remote
+        user: { get_input: ssh_username }
+        port: 22
+        key: { get_secret: agent_key_private }
+      zone: { get_input: zone }
+      external_ip: true
+      #block_project_ssh_keys: true
+      startup_script:
+        type: string
+        script: 'some file'
+    relationships:
+    - type: cloudify.gcp.relationships.contained_in_network
+      target: network_subnet0
+    - type: cloudify.gcp.relationships.instance_connected_to_security_group
+      target: cloudify_security_group
+    - type: cloudify.gcp.relationships.instance_connected_to_security_group
+      target: cloudify_security_group1
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create: &instance_ssh_key_prep
+          implementation: scripts/instance_ssh_key.py
+          executor: central_deployment_agent
+          inputs:
+            user: { get_input: ssh_username }
+            ssh_keys:
+            - { get_secret: agent_key_public }

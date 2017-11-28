@@ -1,0 +1,17 @@
+inputs:
+  region:
+    default: 'us-west1'
+  zone:
+    default: 'us-west1-a'
+  project_id:
+    default: "xxxxxxxxxx-xxxxxxx"
+  private_key_id:
+    default: "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+  private_key:
+    default: "-----BEGIN PRIVATE KEY-----\nxxxx...\nxxxx\n"
+  client_email:
+    default: "xxxxxxxxxxxx-xxxxxxxxxxxxxxxxx.xxxxxxxxxxxxxxx.xxx"
+  client_id:
+    default: "xxxxxxxxxxxxxxxxxxxxx"
+
+
